@@ -21,7 +21,10 @@ type Props = {
   categoryThreshold: number;
   /** Hándicap de la primera participación por jugador (mismo mapa que el ranking acumulado). */
   categoryHandicapMap: Map<string, number | null>;
+  /** Obre la fitxa del jugador (opcional). */
+  onPlayerClick?: (playerId: string) => void;
 };
+
 
 type CatKey = 'hcpLow' | 'hcpHigh' | 'scratch';
 
@@ -47,7 +50,7 @@ const formatDate = (date: string | null) => {
   return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
 };
 
-const CompetitionRounds = ({ rounds, results, categoryThreshold, categoryHandicapMap }: Props) => {
+const CompetitionRounds = ({ rounds, results, categoryThreshold, categoryHandicapMap, onPlayerClick }: Props) => {
   const [openRound, setOpenRound] = useState<string | null>(null);
   const [catByRound, setCatByRound] = useState<Record<string, CatKey>>({});
 
@@ -168,7 +171,19 @@ const CompetitionRounds = ({ rounds, results, categoryThreshold, categoryHandica
                       {cats.scratch.map((x, i) => (
                         <li key={x.r.id} className="pano-embed__row">
                           <span className="pano-embed__pos">{String(i + 1).padStart(2, '0')}</span>
-                          <span className="pano-embed__name">{x.r.players_public?.name ?? '—'}</span>
+                          {onPlayerClick ? (
+                            <button
+                              type="button"
+                              className="pano-embed__name pano-embed__namebtn"
+                              aria-label={`Ver ficha de ${x.r.players_public?.name ?? 'jugador'}`}
+                              onClick={() => onPlayerClick(x.r.player_id)}
+                            >
+                              {x.r.players_public?.name ?? '—'}
+                            </button>
+                          ) : (
+                            <span className="pano-embed__name">{x.r.players_public?.name ?? '—'}</span>
+                          )}
+
                           <span className="pano-embed__points">{x.pts} pts</span>
                         </li>
                       ))}
@@ -181,7 +196,19 @@ const CompetitionRounds = ({ rounds, results, categoryThreshold, categoryHandica
                     {(cat === 'hcpLow' ? cats.hcpLow : cats.hcpHigh).map((r, i) => (
                       <li key={r.id} className="pano-embed__row">
                         <span className="pano-embed__pos">{String(i + 1).padStart(2, '0')}</span>
-                        <span className="pano-embed__name">{r.players_public?.name ?? '—'}</span>
+                        {onPlayerClick ? (
+                          <button
+                            type="button"
+                            className="pano-embed__name pano-embed__namebtn"
+                            aria-label={`Ver ficha de ${r.players_public?.name ?? 'jugador'}`}
+                            onClick={() => onPlayerClick(r.player_id)}
+                          >
+                            {r.players_public?.name ?? '—'}
+                          </button>
+                        ) : (
+                          <span className="pano-embed__name">{r.players_public?.name ?? '—'}</span>
+                        )}
+
                         {getHcp(r) != null && (
                           <span className="pano-embed__rounds">Hcp {Number(getHcp(r)).toFixed(1)}</span>
                         )}

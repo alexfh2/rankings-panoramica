@@ -11,32 +11,70 @@ import { format } from 'date-fns';
 import { ca, es } from 'date-fns/locale';
 import ScorecardVisual from '@/components/ScorecardVisual';
 import HcpEvolutionChart from '@/components/HcpEvolutionChart';
-import { fetchPublicCircuitData, publicCircuitDataQueryKey } from '@/lib/publicCircuitData';
+import { fetchPublicCircuitData, publicCircuitDataQueryKey, type PublicPlayer, type PublicResult } from '@/lib/publicCircuitData';
 import { buildPlayerCategoryHandicapMap } from '@/lib/playerCategoryHandicap';
+
+/** Forma mínima que el diàleg necessita d'un resultat (compatible amb PublicResult i amb la query interna). */
+type ProfileResultLike = {
+  id: string;
+  player_id: string;
+  handicap_at_round: number | null;
+  stableford_points: number | null;
+  scorecard: unknown;
+  rounds: unknown;
+};
+
+type RoundLike = {
+  name?: string | null;
+  date?: string | null;
+  round_number?: number | null;
+  is_master?: boolean | null;
+  master_coefficient?: number | null;
+  course_par?: unknown;
+  course_handicap?: unknown;
+  course_handicap_women?: unknown;
+};
+
+type RankedLike = { id: string; total: number };
+
+/** Dades ja carregades per una competició concreta (evita qualsevol consulta interna). */
+export type PlayerProfileCompetitionData = {
+  players: PublicPlayer[];
+  results: PublicResult[];
+  rankings?: { hcpLow: RankedLike[]; hcpHigh: RankedLike[]; scratch: RankedLike[] };
+  bestN?: number;
+  categoryThreshold?: number;
+};
 
 interface PlayerProfileDialogProps {
   playerId: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Si es proporciona, el diàleg NO executa cap consulta pròpia. */
+  competitionData?: PlayerProfileCompetitionData;
+  variant?: 'default' | 'panoramica';
 }
 
 const initials = (name: string) =>
   name.split(/[\s,]+/).filter(Boolean).slice(0, 2).map((n) => n[0]).join('').toUpperCase();
 
-const PlayerProfileDialog = ({ playerId, open, onOpenChange }: PlayerProfileDialogProps) => {
+const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, variant = 'default' }: PlayerProfileDialogProps) => {
   const { t, i18n } = useTranslation();
   const locale = i18n.language === 'ca' ? ca : es;
   const [openCards, setOpenCards] = useState<string[]>([]);
   const [scratchMode, setScratchMode] = useState<Record<string, boolean>>({});
 
-  const { data: player } = useQuery({
+  const preloaded = competitionData ?? null;
+  const isPano = variant === 'panoramica';
+
+  const { data: playerFromQuery } = useQuery({
     queryKey: [...publicCircuitDataQueryKey(), 'dialog-player', playerId],
     queryFn: fetchPublicCircuitData,
     select: (data) => data.players.find((player) => player.id === playerId) ?? null,
-    enabled: !!playerId && open,
+    enabled: !!playerId && open && !preloaded,
   });
 
-  const { data: results } = useQuery({
+  const { data: resultsFromQuery } = useQuery({
     queryKey: ['player-profile-dialog-results', playerId],
     queryFn: async () => {
       const { data } = await supabase
@@ -47,15 +85,15 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange }: PlayerProfileDial
         .order('rounds(round_number)', { ascending: false });
       return data || [];
     },
-    enabled: !!playerId && open,
+    enabled: !!playerId && open && !preloaded,
   });
 
   // Load all season data to compute category rankings
-  const { data: allResults } = useQuery({
+  const { data: allResultsFromQuery } = useQuery({
     queryKey: [...publicCircuitDataQueryKey(), 'dialog-results'],
     queryFn: fetchPublicCircuitData,
     select: (data) => data.results.filter((result) => result.stableford_points != null),
-    enabled: open,
+    enabled: open && !preloaded,
   });
 
   const { data: season } = useQuery({
@@ -64,14 +102,55 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange }: PlayerProfileDial
       const { data } = await supabase.from('seasons').select('rules_config').eq('active', true).single();
       return data;
     },
-    enabled: open,
+    enabled: open && !preloaded,
   });
 
-  const bestN = (season?.rules_config as any)?.best_n_scores || 8;
+  const bestN = preloaded?.bestN ?? (season?.rules_config as { best_n_scores?: number } | null)?.best_n_scores ?? 8;
+  const threshold = preloaded?.categoryThreshold ?? 15.0;
+
+  const player: PublicPlayer | null = preloaded
+    ? preloaded.players.find((p) => p.id === playerId) ?? null
+    : playerFromQuery ?? null;
+
+  // Resultats del jugador: si hi ha dades precarregades, filtrem per player_id
+  // dins de l'array ja filtrat per competició.
+  const results = useMemo<ProfileResultLike[]>(() => {
+    if (preloaded) {
+      if (!playerId) return [];
+      return preloaded.results
+        .filter((r) => r.player_id === playerId)
+        .slice()
+        .sort((a, b) => ((b.rounds?.round_number ?? 0) - (a.rounds?.round_number ?? 0))) as unknown as ProfileResultLike[];
+    }
+    return (resultsFromQuery ?? []) as unknown as ProfileResultLike[];
+  }, [preloaded, playerId, resultsFromQuery]);
+
+  const allResults = useMemo(
+    () => (preloaded ? preloaded.results.filter((r) => r.stableford_points != null) : allResultsFromQuery),
+    [preloaded, allResultsFromQuery]
+  );
+
+  // Posicions ja calculades (mode competició): no recalculem la classificació.
+  const preloadedPositions = useMemo(() => {
+    if (!preloaded?.rankings || !playerId) return null;
+    const find = (list: RankedLike[]) => {
+      const idx = list.findIndex((r) => r.id === playerId);
+      return idx === -1 ? null : { pos: idx + 1, total: list[idx].total, of: list.length };
+    };
+    const categoryHcpMap = buildPlayerCategoryHandicapMap(preloaded.results);
+    return {
+      hcpLow: find(preloaded.rankings.hcpLow),
+      hcpHigh: find(preloaded.rankings.hcpHigh),
+      scratch: find(preloaded.rankings.scratch),
+      female: null,
+      senior: null,
+      categoryHcp: categoryHcpMap.get(playerId) ?? null,
+    };
+  }, [preloaded, playerId]);
 
   // Compute player category positions
-  const positions = useMemo(() => {
-    if (!allResults?.length || !playerId) return null;
+  const computedPositions = useMemo(() => {
+    if (preloaded || !allResults?.length || !playerId) return null;
 
     const categoryHcpMap = buildPlayerCategoryHandicapMap(allResults as any);
 
@@ -114,8 +193,8 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange }: PlayerProfileDial
       return idx === -1 ? null : { pos: idx + 1, total: ranking[idx].total, of: ranking.length };
     };
 
-    const hcpLow = buildRanking((p) => p.handicap != null && p.handicap <= 15.0);
-    const hcpHigh = buildRanking((p) => p.handicap != null && p.handicap > 15.0);
+    const hcpLow = buildRanking((p) => p.handicap != null && p.handicap <= threshold);
+    const hcpHigh = buildRanking((p) => p.handicap != null && p.handicap > threshold);
     const female = buildRanking((p) => p.gender === 'F');
     const senior = buildRanking((p) => p.is_senior);
 
@@ -124,19 +203,24 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange }: PlayerProfileDial
       hcpHigh: findPos(hcpHigh),
       female: findPos(female),
       senior: findPos(senior),
+      scratch: null,
       categoryHcp: categoryHcpMap.get(playerId) ?? null,
     };
-  }, [allResults, playerId, bestN]);
+  }, [preloaded, allResults, playerId, bestN, threshold]);
+
+  const positions = preloadedPositions ?? computedPositions;
 
   if (!player) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className={`max-w-3xl${isPano ? ' pano-player-dialog' : ''}`}>
+          <DialogTitle className="sr-only">{t('players.profile')}</DialogTitle>
           <p className="text-sm text-muted-foreground py-8 text-center">{t('common.loading')}</p>
         </DialogContent>
       </Dialog>
     );
   }
+
 
   // Stats
   const stbScores = (results || []).filter((r) => r.stableford_points != null).map((r) => r.stableford_points!);
@@ -202,20 +286,24 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange }: PlayerProfileDial
   // Determine main category (by HCP) and subcategories
   // Categoría fijada por el HCP de la primera ronda jugada (consistente con Rankings).
   const hcp = positions?.categoryHcp ?? player.current_handicap;
+  const catLabelLow = preloaded ? `1ª Categoría (≤${threshold.toFixed(1)})` : 'HCP Baix (≤15.0)';
+  const catLabelHigh = preloaded ? `2ª Categoría (>${threshold.toFixed(1)})` : 'HCP Alt (>15.0)';
   const mainCategory =
-    hcp != null && hcp <= 15.0
-      ? { key: 'hcpLow', label: 'HCP Baix (≤15.0)', pos: positions?.hcpLow }
+    hcp != null && hcp <= threshold
+      ? { key: 'hcpLow', label: catLabelLow, pos: positions?.hcpLow }
       : hcp != null
-      ? { key: 'hcpHigh', label: 'HCP Alt (>15.0)', pos: positions?.hcpHigh }
+      ? { key: 'hcpHigh', label: catLabelHigh, pos: positions?.hcpHigh }
       : null;
 
   const subCategories: { label: string; pos: { pos: number; total: number; of: number } | null | undefined }[] = [];
+  if (preloaded && positions?.scratch) subCategories.push({ label: 'Scratch', pos: positions.scratch });
   if (player.gender === 'F') subCategories.push({ label: 'Femení', pos: positions?.female });
   if (player.is_senior) subCategories.push({ label: 'Sènior', pos: positions?.senior });
 
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-none min-w-0 h-[100dvh] max-h-[100dvh] rounded-none translate-x-[-50%] translate-y-[-50%] p-0 gap-0 bg-card border-border flex flex-col overflow-hidden sm:max-w-3xl sm:h-auto sm:max-h-[90vh] sm:rounded-lg">
+      <DialogContent className={`w-full max-w-none min-w-0 h-[100dvh] max-h-[100dvh] rounded-none translate-x-[-50%] translate-y-[-50%] p-0 gap-0 bg-card border-border flex flex-col overflow-hidden sm:max-w-3xl sm:h-auto sm:max-h-[90vh] sm:rounded-lg${isPano ? ' pano-player-dialog sm:max-w-[960px]' : ''}`}>
         <DialogHeader className="shrink-0 h-14 justify-center px-4 sm:px-6 border-b border-border/50 bg-card">
           <DialogTitle className="flex items-center gap-2 font-display text-foreground text-base sm:text-lg">
             <User className="h-5 w-5 text-accent shrink-0" />
