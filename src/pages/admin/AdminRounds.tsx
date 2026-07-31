@@ -261,6 +261,7 @@ const AdminRounds = () => {
         master_coefficient: form.is_master ? 1.25 : 1.0,
         status: editingRound ? editingRound.status : 'draft',
         season_id: form.season_id || activeSeasonId,
+        competition_id: activeCompetitionId,
         course_par: coursePar,
         course_handicap: courseHandicap,
         course_handicap_women: courseHandicapWomen,
