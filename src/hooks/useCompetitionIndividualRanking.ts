@@ -75,6 +75,10 @@ export function useCompetitionIndividualRanking(slug: string) {
 
   const rules = (competition?.rules_config ?? {}) as Record<string, unknown>;
   const bestN = typeof rules.best_n_scores === 'number' ? rules.best_n_scores : DEFAULT_BEST_N;
+  const scheduledRounds =
+    typeof rules.scheduled_rounds === 'number' && rules.scheduled_rounds > 0
+      ? Math.floor(rules.scheduled_rounds)
+      : 8;
   const categoryThreshold =
     typeof rules.category_threshold === 'number' ? rules.category_threshold : DEFAULT_CATEGORY_THRESHOLD;
 
