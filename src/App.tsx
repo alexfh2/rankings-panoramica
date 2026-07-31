@@ -19,6 +19,7 @@ import PlayerDetail from "./pages/PlayerDetail";
 
 import Stats from "./pages/Stats";
 import News from "./pages/News";
+import TestIndividual2026 from "./pages/TestIndividual2026";
 
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -53,6 +54,7 @@ const App = () => (
               
               <Route path="/estadistiques" element={<Stats />} />
               <Route path="/noticies" element={<News />} />
+              <Route path="/test/individual-2026" element={<TestIndividual2026 />} />
 
             </Route>
 
