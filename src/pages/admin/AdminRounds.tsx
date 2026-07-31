@@ -670,6 +670,14 @@ const AdminRounds = () => {
                         {round.is_master && <Star className="h-4 w-4 text-accent fill-accent" />}
                         <Badge variant="outline" className="text-xs">J{round.round_number}</Badge>
                         {round.name}
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); openEdit(round); }}
+                          className="inline-flex items-center justify-center p-1 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                          aria-label="Editar nom de la jornada"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
                       </CardTitle>
                       <Badge className={statusColors[round.status]}>
                         {statusLabels[round.status]}
@@ -847,7 +855,7 @@ const AdminRounds = () => {
             )}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>Nom</Label>
+                <Label>Nom de la jornada</Label>
                 <Input value={form.name} onChange={(e) => updateField('name', e.target.value)} required />
               </div>
               <div className="space-y-2">
