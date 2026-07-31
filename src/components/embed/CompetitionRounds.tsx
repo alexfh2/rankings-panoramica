@@ -196,7 +196,19 @@ const CompetitionRounds = ({ rounds, results, categoryThreshold, categoryHandica
                     {(cat === 'hcpLow' ? cats.hcpLow : cats.hcpHigh).map((r, i) => (
                       <li key={r.id} className="pano-embed__row">
                         <span className="pano-embed__pos">{String(i + 1).padStart(2, '0')}</span>
-                        <span className="pano-embed__name">{r.players_public?.name ?? '—'}</span>
+                        {onPlayerClick ? (
+                          <button
+                            type="button"
+                            className="pano-embed__name pano-embed__namebtn"
+                            aria-label={`Ver ficha de ${r.players_public?.name ?? 'jugador'}`}
+                            onClick={() => onPlayerClick(r.player_id)}
+                          >
+                            {r.players_public?.name ?? '—'}
+                          </button>
+                        ) : (
+                          <span className="pano-embed__name">{r.players_public?.name ?? '—'}</span>
+                        )}
+
                         {getHcp(r) != null && (
                           <span className="pano-embed__rounds">Hcp {Number(getHcp(r)).toFixed(1)}</span>
                         )}
