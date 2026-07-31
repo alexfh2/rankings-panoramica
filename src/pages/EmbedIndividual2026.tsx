@@ -37,6 +37,7 @@ const EmbedIndividual2026 = () => {
     rankings,
     categoryThreshold,
     categoryHandicapMap,
+    scheduledRounds,
     isLoading,
     error,
     competitionNotFound,
@@ -46,45 +47,44 @@ const EmbedIndividual2026 = () => {
 
   const state = (msg: string) => <p className="pano-embed__state">{msg}</p>;
 
-  // Columnas de la matriz: jornadas programadas ordenadas por round_number y fecha.
-  const matrixRounds = useMemo(
-    () =>
-      [...rounds]
-        .sort((a, b) => {
-          const an = a.round_number ?? Number.MAX_SAFE_INTEGER;
-          const bn = b.round_number ?? Number.MAX_SAFE_INTEGER;
-          if (an !== bn) return an - bn;
-          return (a.date ?? '').localeCompare(b.date ?? '');
-        })
-        .slice(0, MAX_MATRIX_ROUNDS),
-    [rounds]
-  );
+  // Columnes: sempre 1..scheduled_rounds (8). Si existeix jornada amb aquest
+  // round_number s'hi associa; si no, columna futura buida.
+  const matrixColumns = useMemo(() => {
+    const count = scheduledRounds > 0 ? scheduledRounds : MAX_MATRIX_ROUNDS;
+    return Array.from({ length: count }, (_, i) => {
+      const number = i + 1;
+      const round = rounds.find((r) => r.round_number === number);
+      return { number, round };
+    });
+  }, [rounds, scheduledRounds]);
 
   const renderList = (players: CompetitionRankedPlayer[]) => {
     if (!players.length) return state('Todavía no hay clasificación en esta categoría.');
     // Una sola definició de columnes: mateixa classe + mateixa variable CSS.
-    const gridStyle = { '--pano-round-count': matrixRounds.length } as React.CSSProperties;
+    const gridStyle = { '--pano-round-count': matrixColumns.length } as React.CSSProperties;
     return (
       <>
-        <div className="pano-matrix__line pano-matrix__head" style={gridStyle} aria-hidden="true">
-          <span className="pano-embed__pos" />
-          <span className="pano-embed__name" />
+        <div className="pano-matrix__line pano-matrix__head" style={gridStyle}>
+          <span className="pano-embed__pos" aria-hidden="true" />
+          <span className="pano-embed__name" aria-hidden="true" />
           <span className="pano-matrix__grid">
-            {matrixRounds.map((r, i) => (
-              <span
-                key={r.id}
-                className="pano-matrix__label"
-                title={`${r.name}${r.date ? ` · ${r.date}` : ''}`}
-              >
-                P{r.round_number ?? i + 1}
-              </span>
-            ))}
+            {matrixColumns.map(({ number, round }) => {
+              const label = round
+                ? `Prueba ${number}${round.name ? ` · ${round.name}` : ''}${round.date ? ` · ${round.date}` : ''}`
+                : `Prueba ${number} · pendiente`;
+              return (
+                <span key={number} className="pano-matrix__label" title={label} aria-label={label}>
+                  P{number}
+                </span>
+              );
+            })}
           </span>
           <span className="pano-embed__points">Total</span>
         </div>
         <ol className="pano-embed__list">
           {players.map((p, i) => {
             const discarded = new Set(p.discardedRoundIds);
+            const displayName = formatPlayerDisplayName(p.name);
             return (
               <li
                 key={p.id}
@@ -93,32 +93,44 @@ const EmbedIndividual2026 = () => {
                 aria-label={`${p.name}, ${p.total} puntos, ${p.roundsPlayed} pruebas disputadas`}
               >
                 <span className="pano-embed__pos">{String(i + 1).padStart(2, '0')}</span>
-                <span className="pano-embed__name">{p.name}</span>
+                <span className="pano-embed__name" title={p.name}>
+                  {displayName}
+                </span>
                 <span className="pano-matrix__grid">
-
-                  {matrixRounds.map((r) => {
-                    const pts = p.pointsByRound[r.id];
+                  {matrixColumns.map(({ number, round }) => {
+                    const pts = round ? p.pointsByRound[round.id] : undefined;
                     if (pts == null) {
                       return (
-                        <span key={r.id} className="pano-matrix__cell pano-matrix__cell--empty">
+                        <span
+                          key={number}
+                          className="pano-matrix__cell pano-matrix__cell--empty"
+                          aria-label={`Prueba ${number}: sin resultado`}
+                        >
                           —
                         </span>
                       );
                     }
-                    const isDiscarded = discarded.has(r.id);
+                    const isDiscarded = round ? discarded.has(round.id) : false;
                     return (
                       <span
-                        key={r.id}
+                        key={number}
                         className={`pano-matrix__cell${isDiscarded ? ' pano-matrix__cell--discarded' : ''}`}
                         title={isDiscarded ? 'Resultado descartado' : undefined}
-                        aria-label={isDiscarded ? `${pts} puntos — resultado descartado` : `${pts} puntos`}
+                        aria-label={
+                          isDiscarded
+                            ? `Prueba ${number}: ${pts} puntos — resultado descartado`
+                            : `Prueba ${number}: ${pts} puntos`
+                        }
                       >
                         {pts}
                       </span>
                     );
                   })}
                 </span>
-                <span className="pano-embed__points">{p.total} pts</span>
+                <span className="pano-embed__points">
+                  <strong className="pano-matrix__total">{p.total}</strong>
+                  <span className="pano-matrix__unit">pts</span>
+                </span>
               </li>
             );
           })}
@@ -129,6 +141,7 @@ const EmbedIndividual2026 = () => {
 
   const body = () => {
     if (isLoading) return state('Cargando clasificación…');
+
     if (competitionNotFound) return state('Competición no disponible.');
     if (error) return state('No se ha podido cargar la clasificación. Inténtalo de nuevo más tarde.');
     if (!rounds.length) return state('Esta competición todavía no tiene pruebas programadas.');
