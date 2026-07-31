@@ -171,7 +171,19 @@ const CompetitionRounds = ({ rounds, results, categoryThreshold, categoryHandica
                       {cats.scratch.map((x, i) => (
                         <li key={x.r.id} className="pano-embed__row">
                           <span className="pano-embed__pos">{String(i + 1).padStart(2, '0')}</span>
-                          <span className="pano-embed__name">{x.r.players_public?.name ?? '—'}</span>
+                          {onPlayerClick ? (
+                            <button
+                              type="button"
+                              className="pano-embed__name pano-embed__namebtn"
+                              aria-label={`Ver ficha de ${x.r.players_public?.name ?? 'jugador'}`}
+                              onClick={() => onPlayerClick(x.r.player_id)}
+                            >
+                              {x.r.players_public?.name ?? '—'}
+                            </button>
+                          ) : (
+                            <span className="pano-embed__name">{x.r.players_public?.name ?? '—'}</span>
+                          )}
+
                           <span className="pano-embed__points">{x.pts} pts</span>
                         </li>
                       ))}
