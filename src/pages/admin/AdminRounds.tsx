@@ -471,6 +471,18 @@ const AdminRounds = () => {
               </SelectContent>
             </Select>
           )}
+          {competitions && competitions.length > 0 && (
+            <Select value={activeCompetitionId} onValueChange={setSelectedCompetition}>
+              <SelectTrigger className="w-[220px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {competitions.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <Button
             variant="outline"
             onClick={() => setShowImport(!showImport)}
