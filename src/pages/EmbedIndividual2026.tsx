@@ -42,14 +42,31 @@ const EmbedIndividual2026 = () => {
     categoryThreshold,
     categoryHandicapMap,
     scheduledRounds,
+    bestN,
     isLoading,
     error,
     competitionNotFound,
   } = useCompetitionIndividualRanking(SLUG);
   const [section, setSection] = useState<SectionKey>('ranking');
   const [tab, setTab] = useState<TabKey>('hcpLow');
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+
+  // Jugadors derivats dels resultats ja carregats (cap consulta nova).
+  const players = useMemo<PublicPlayer[]>(() => {
+    const map = new Map<string, PublicPlayer>();
+    for (const r of results) {
+      if (r.players_public && !map.has(r.player_id)) map.set(r.player_id, r.players_public);
+    }
+    return Array.from(map.values());
+  }, [results]);
+
+  const competitionData = useMemo<PlayerProfileCompetitionData>(
+    () => ({ players, results, rankings, bestN, categoryThreshold }),
+    [players, results, rankings, bestN, categoryThreshold]
+  );
 
   const state = (msg: string) => <p className="pano-embed__state">{msg}</p>;
+
 
   // Columnes: sempre 1..scheduled_rounds (8). Si existeix jornada amb aquest
   // round_number s'hi associa; si no, columna futura buida.
