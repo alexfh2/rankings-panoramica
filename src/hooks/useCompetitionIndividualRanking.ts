@@ -209,6 +209,7 @@ export function useCompetitionIndividualRanking(slug: string) {
     rankings,
     categoryHandicapMap,
     bestN,
+    scheduledRounds,
     categoryThreshold,
     isLoading: competitionQuery.isLoading || roundsQuery.isLoading || resultsQuery.isLoading,
     error: (competitionQuery.error || roundsQuery.error || resultsQuery.error) as Error | null,
