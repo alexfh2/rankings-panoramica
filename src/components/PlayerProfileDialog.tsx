@@ -286,16 +286,20 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
   // Determine main category (by HCP) and subcategories
   // Categoría fijada por el HCP de la primera ronda jugada (consistente con Rankings).
   const hcp = positions?.categoryHcp ?? player.current_handicap;
+  const catLabelLow = preloaded ? `1ª Categoría (≤${threshold.toFixed(1)})` : 'HCP Baix (≤15.0)';
+  const catLabelHigh = preloaded ? `2ª Categoría (>${threshold.toFixed(1)})` : 'HCP Alt (>15.0)';
   const mainCategory =
-    hcp != null && hcp <= 15.0
-      ? { key: 'hcpLow', label: 'HCP Baix (≤15.0)', pos: positions?.hcpLow }
+    hcp != null && hcp <= threshold
+      ? { key: 'hcpLow', label: catLabelLow, pos: positions?.hcpLow }
       : hcp != null
-      ? { key: 'hcpHigh', label: 'HCP Alt (>15.0)', pos: positions?.hcpHigh }
+      ? { key: 'hcpHigh', label: catLabelHigh, pos: positions?.hcpHigh }
       : null;
 
   const subCategories: { label: string; pos: { pos: number; total: number; of: number } | null | undefined }[] = [];
+  if (preloaded && positions?.scratch) subCategories.push({ label: 'Scratch', pos: positions.scratch });
   if (player.gender === 'F') subCategories.push({ label: 'Femení', pos: positions?.female });
   if (player.is_senior) subCategories.push({ label: 'Sènior', pos: positions?.senior });
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
