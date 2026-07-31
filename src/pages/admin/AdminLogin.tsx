@@ -48,7 +48,7 @@ const AdminLogin = () => {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@gastronomicgolf.com"
+                placeholder="admin@panoramica.golf"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
