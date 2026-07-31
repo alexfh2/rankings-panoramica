@@ -71,6 +71,32 @@ const EmbedIndividual2026 = () => {
 
     return (
       <>
+        <div className="pano-embed__tabs" role="tablist" aria-label="Categorías del ranking">
+          {TABS.map((t) => (
+            <button
+              key={t.key}
+              type="button"
+              role="tab"
+              aria-selected={tab === t.key}
+              className="pano-embed__tab"
+              onClick={() => setTab(t.key)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <p className="pano-embed__caption">Orden del mérito individual — {activeLabel}</p>
+        {renderList(rankings[tab])}
+      </>
+    );
+  };
+
+  return (
+    <div className="pano-embed">
+      <div className="pano-embed__inner">
+        <p className="pano-embed__eyebrow">Panorámica Golf · Temporada 2026</p>
+        <h1 className="pano-embed__title">Orden del Mérito Individual</h1>
+
         <nav className="pano-embed__nav" role="tablist" aria-label="Secciones">
           {SECTIONS.map((sec) => (
             <button
