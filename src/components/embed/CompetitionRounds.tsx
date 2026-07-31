@@ -21,7 +21,10 @@ type Props = {
   categoryThreshold: number;
   /** Hándicap de la primera participación por jugador (mismo mapa que el ranking acumulado). */
   categoryHandicapMap: Map<string, number | null>;
+  /** Obre la fitxa del jugador (opcional). */
+  onPlayerClick?: (playerId: string) => void;
 };
+
 
 type CatKey = 'hcpLow' | 'hcpHigh' | 'scratch';
 
