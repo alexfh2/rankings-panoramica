@@ -101,7 +101,7 @@ const Rounds = ({ mode = 'results' }: { mode?: 'results' | 'calendar' }) => {
   };
 
   const { data: roundData } = useQuery({
-    queryKey: [...publicCircuitDataQueryKey, 'round-results', expandedRound],
+    queryKey: [...publicCircuitDataQueryKey(), 'round-results', expandedRound],
     queryFn: async () => {
       if (!expandedRound) return { results: [], categoryHcpMap: new Map<string, number | null>() };
       const data = await fetchPublicCircuitData();

@@ -29,7 +29,7 @@ type Result = {
 
 export function useCategoryRankings() {
   const { data: results } = useQuery({
-    queryKey: publicCircuitDataQueryKey,
+    queryKey: publicCircuitDataQueryKey(),
     queryFn: fetchPublicCircuitData,
     select: (data) => data.results as unknown as Result[],
   });

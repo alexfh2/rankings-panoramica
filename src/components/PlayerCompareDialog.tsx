@@ -55,7 +55,7 @@ const PlayerCompareDialog: React.FC<PlayerCompareProps> = ({ currentPlayerId, cu
   const [comparePlayerId, setComparePlayerId] = useState<string | null>(null);
 
   const { data: allPlayers } = useQuery({
-    queryKey: publicCircuitDataQueryKey,
+    queryKey: publicCircuitDataQueryKey(),
     queryFn: fetchPublicCircuitData,
     select: (data) => data.players.map((player) => ({
         id: player.id,

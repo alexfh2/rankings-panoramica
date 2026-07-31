@@ -32,7 +32,7 @@ const Rankings = () => {
   const [expandedPlayerId, setExpandedPlayerId] = useState<string | null>(null);
 
   const { data: results, isLoading } = useQuery({
-    queryKey: publicCircuitDataQueryKey,
+    queryKey: publicCircuitDataQueryKey(),
     queryFn: fetchPublicCircuitData,
     select: (data) => data.results as Result[],
   });

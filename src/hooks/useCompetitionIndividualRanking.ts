@@ -59,8 +59,8 @@ export function useCompetitionIndividualRanking(slug: string) {
   });
 
   const resultsQuery = useQuery({
-    queryKey: publicCircuitDataQueryKey,
-    queryFn: fetchPublicCircuitData,
+    queryKey: publicCircuitDataQueryKey(slug),
+    queryFn: () => fetchPublicCircuitData(slug),
     select: (data) => data.results as PublicResult[],
   });
 
@@ -81,12 +81,8 @@ export function useCompetitionIndividualRanking(slug: string) {
     }
   }
 
-  // Solo resultados de las jornadas de esta competición
-  const results = useMemo(() => {
-    if (!rounds?.length || !allResults?.length) return [];
-    const ids = new Set(rounds.map((r) => r.id));
-    return allResults.filter((r) => ids.has(r.round_id));
-  }, [rounds, allResults]);
+  // La Edge Function ja filtra per competició al backend (slug) — sense filtre client.
+  const results = useMemo(() => allResults ?? [], [allResults]);
 
   const rankings = useMemo<CompetitionRankings>(() => {
     const empty: CompetitionRankings = { hcpLow: [], hcpHigh: [], scratch: [] };

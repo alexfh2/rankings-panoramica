@@ -1,6 +1,8 @@
 import { supabase } from '@/integrations/supabase/client';
 
-export const publicCircuitDataQueryKey = ['public-circuit-data'] as const;
+export function publicCircuitDataQueryKey(slug?: string): (string | undefined)[] {
+  return slug ? ['public-circuit-data', slug] : ['public-circuit-data'];
+}
 
 export type PublicPlayer = {
   id: string;
@@ -52,9 +54,13 @@ export type PublicCircuitData = {
   results: PublicResult[];
 };
 
-export async function fetchPublicCircuitData(): Promise<PublicCircuitData> {
+export async function fetchPublicCircuitData(slug?: unknown): Promise<PublicCircuitData> {
+  // Nota: aquesta funció també s'usa directament com a queryFn, que rep el
+  // QueryFunctionContext com a primer argument — només acceptem strings.
+  const competitionSlug = typeof slug === 'string' && slug.trim() ? slug.trim() : undefined;
+
   const { data, error } = await supabase.functions.invoke('public-rankings-data', {
-    body: {},
+    body: competitionSlug ? { slug: competitionSlug } : {},
   });
 
   if (error) throw error;

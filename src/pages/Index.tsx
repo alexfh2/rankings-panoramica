@@ -73,7 +73,7 @@ const Index = () => {
 
 
   const { data: topResults } = useQuery({
-    queryKey: [...publicCircuitDataQueryKey, 'home-top-results'],
+    queryKey: [...publicCircuitDataQueryKey(), 'home-top-results'],
     queryFn: fetchPublicCircuitData,
     select: (data) =>
       [...data.results]

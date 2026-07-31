@@ -28,7 +28,7 @@ const PlayerDetail = () => {
   }, []);
 
   const { data: player } = useQuery({
-    queryKey: [...publicCircuitDataQueryKey, 'player', id],
+    queryKey: [...publicCircuitDataQueryKey(), 'player', id],
     queryFn: fetchPublicCircuitData,
     select: (data) => data.players.find((player) => player.id === id) ?? null,
     enabled: !!id,
