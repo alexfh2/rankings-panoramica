@@ -246,8 +246,17 @@ const EmbedIndividual2026 = () => {
           {body()}
         </section>
       </div>
+
+      <PlayerProfileDialog
+        playerId={selectedPlayerId}
+        open={!!selectedPlayerId}
+        onOpenChange={(o) => !o && setSelectedPlayerId(null)}
+        competitionData={competitionData}
+        variant="panoramica"
+      />
     </div>
   );
 };
+
 
 export default EmbedIndividual2026;
