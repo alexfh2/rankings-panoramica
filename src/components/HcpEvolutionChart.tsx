@@ -6,6 +6,8 @@ interface Props {
   data: HcpPoint[];
   /** Desktop height of the plot area */
   className?: string;
+  /** Etiqueta accessible; per defecte manté el text original. */
+  ariaLabel?: string;
 }
 
 /**
@@ -13,7 +15,7 @@ interface Props {
  * The SVG always matches the available container width (no horizontal scroll)
  * and keeps enough inner padding so the first/last labels are never clipped.
  */
-const HcpEvolutionChart = ({ data, className }: Props) => {
+const HcpEvolutionChart = ({ data, className, ariaLabel = 'Evolució HCP' }: Props) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [width, setWidth] = useState(0);
 
@@ -64,7 +66,7 @@ const HcpEvolutionChart = ({ data, className }: Props) => {
         preserveAspectRatio="xMidYMid meet"
         className="text-accent block"
         role="img"
-        aria-label="Evolució HCP"
+        aria-label={ariaLabel}
       >
         <polyline points={polyline} fill="none" stroke="hsl(var(--accent))" strokeWidth="2" strokeLinejoin="round" />
         {points.map((p, i) => (

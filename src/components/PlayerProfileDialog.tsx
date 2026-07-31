@@ -398,7 +398,7 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
               .slice()
               .sort((a, b) => ((a.rounds as any)?.round_number ?? 0) - ((b.rounds as any)?.round_number ?? 0))
               .map(r => ({
-                label: `J${(r.rounds as any)?.round_number}`,
+                label: `${isPano ? 'P' : 'J'}${(r.rounds as any)?.round_number}`,
                 hcp: Number(r.handicap_at_round),
               }));
 
@@ -408,7 +408,7 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
               <div className="min-w-0">
                 <h4 className="font-display font-semibold text-sm mb-3 text-foreground">{tx('players.hcpEvolution', 'Evolución del hándicap')}</h4>
                 <div className="bg-secondary/20 rounded-lg p-3 border border-border/40 min-w-0">
-                  <HcpEvolutionChart data={hcpData} />
+                  <HcpEvolutionChart data={hcpData} ariaLabel={isPano ? 'Evolución del hándicap' : 'Evolució HCP'} />
                 </div>
               </div>
             );
@@ -488,7 +488,7 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
                     <AccordionItem key={r.id} value={r.id} className="border border-border/50 rounded-md overflow-hidden bg-card">
                       <AccordionTrigger className="px-3 py-2 min-h-[44px] hover:no-underline hover:bg-secondary/50 text-foreground">
                         <div className="flex items-center gap-2 text-left flex-1 min-w-0">
-                          <Badge variant="outline" className="text-[10px] font-mono shrink-0 px-1.5 py-0 border-accent/30">J{round?.round_number}</Badge>
+                          <Badge variant="outline" className="text-[10px] font-mono shrink-0 px-1.5 py-0 border-accent/30">{isPano ? 'P' : 'J'}{round?.round_number}</Badge>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5 min-w-0">
                               <span className="font-medium text-sm text-foreground break-words line-clamp-2 sm:truncate">{round?.name}</span>
