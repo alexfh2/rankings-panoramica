@@ -1,6 +1,8 @@
 import { supabase } from '@/integrations/supabase/client';
 
-export const publicCircuitDataQueryKey = ['public-circuit-data'] as const;
+export function publicCircuitDataQueryKey(slug?: string): (string | undefined)[] {
+  return slug ? ['public-circuit-data', slug] : ['public-circuit-data'];
+}
 
 export type PublicPlayer = {
   id: string;
