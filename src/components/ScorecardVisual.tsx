@@ -61,6 +61,15 @@ const calcStablefordPoints = (
   return 0;
 };
 
+/** Classe semàntica (hook CSS) segons els punts Stableford. No altera cap càlcul. */
+const stbBucket = (pts: number | null): string => {
+  if (pts == null) return 'sc-stb sc-stb--none';
+  if (pts >= 3) return 'sc-stb sc-stb--3plus';
+  if (pts === 2) return 'sc-stb sc-stb--2';
+  if (pts === 1) return 'sc-stb sc-stb--1';
+  return 'sc-stb sc-stb--0';
+};
+
 /** Color scale for Stableford points - bright & prominent for dark bg */
 const getStbStyle = (pts: number | null): string => {
   if (pts == null) return 'text-muted-foreground';
@@ -72,7 +81,10 @@ const getStbStyle = (pts: number | null): string => {
   return 'bg-destructive/30 text-destructive-foreground font-semibold';
 };
 
-const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT_PAR, handicap, handicapWomen, playerHandicap, playerGender }) => {
+const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT_PAR, handicap, handicapWomen, playerHandicap, playerGender, locale = 'ca', variant = 'default' }) => {
+  const L = LABELS[locale] ?? LABELS.ca;
+  const isPano = variant === 'panoramica';
+
   const [mobileHalf, setMobileHalf] = useState<0 | 1>(0);
   // Pick female-specific stroke index distribution when applicable
   const effectiveHandicap = (playerGender === 'F' && Array.isArray(handicapWomen) && handicapWomen.length === 18)
