@@ -66,6 +66,7 @@ const AdminRounds = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedSeason, setSelectedSeason] = useState<string>('');
+  const [selectedCompetition, setSelectedCompetition] = useState<string>('');
 
   // Import state
   const [importUrl, setImportUrl] = useState('');
@@ -106,6 +107,22 @@ const AdminRounds = () => {
   });
 
   const activeSeasonId = selectedSeason || seasons?.[0]?.id || '';
+
+  const { data: competitions } = useQuery({
+    queryKey: ['admin-competitions-list', activeSeasonId],
+    enabled: !!activeSeasonId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('competitions')
+        .select('*')
+        .eq('season_id', activeSeasonId)
+        .order('name');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const activeCompetitionId = selectedCompetition || competitions?.[0]?.id || '';
 
   const { data: rounds, isLoading } = useQuery({
     queryKey: ['admin-rounds', activeSeasonId],
@@ -187,6 +204,7 @@ const AdminRounds = () => {
         master_coefficient: 1.0,
         status: 'draft' as RoundStatus,
         season_id: activeSeasonId,
+        competition_id: activeCompetitionId,
         external_links: r.detail_url ? [{ url: r.detail_url, label: 'Web' }] : [],
       }));
 
@@ -243,6 +261,7 @@ const AdminRounds = () => {
         master_coefficient: form.is_master ? 1.25 : 1.0,
         status: editingRound ? editingRound.status : 'draft',
         season_id: form.season_id || activeSeasonId,
+        competition_id: activeCompetitionId,
         course_par: coursePar,
         course_handicap: courseHandicap,
         course_handicap_women: courseHandicapWomen,
@@ -448,6 +467,18 @@ const AdminRounds = () => {
               <SelectContent>
                 {seasons.map((s) => (
                   <SelectItem key={s.id} value={s.id}>{s.year}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          {competitions && competitions.length > 0 && (
+            <Select value={activeCompetitionId} onValueChange={setSelectedCompetition}>
+              <SelectTrigger className="w-[220px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {competitions.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

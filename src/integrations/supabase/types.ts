@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      competitions: {
+        Row: {
+          active: boolean
+          created_at: string
+          format: Database["public"]["Enums"]["competition_format"]
+          id: string
+          name: string
+          rules_config: Json
+          season_id: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          format: Database["public"]["Enums"]["competition_format"]
+          id?: string
+          name: string
+          rules_config?: Json
+          season_id: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          format?: Database["public"]["Enums"]["competition_format"]
+          id?: string
+          name?: string
+          rules_config?: Json
+          season_id?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competitions_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       import_logs: {
         Row: {
           created_at: string
@@ -288,6 +332,7 @@ export type Database = {
       rounds: {
         Row: {
           club: string | null
+          competition_id: string
           course: string | null
           course_handicap: Json | null
           course_handicap_women: Json | null
@@ -309,6 +354,7 @@ export type Database = {
         }
         Insert: {
           club?: string | null
+          competition_id: string
           course?: string | null
           course_handicap?: Json | null
           course_handicap_women?: Json | null
@@ -330,6 +376,7 @@ export type Database = {
         }
         Update: {
           club?: string | null
+          competition_id?: string
           course?: string | null
           course_handicap?: Json | null
           course_handicap_women?: Json | null
@@ -350,6 +397,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "rounds_competition_id_fkey"
+            columns: ["competition_id"]
+            isOneToOne: false
+            referencedRelation: "competitions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "rounds_season_id_fkey"
             columns: ["season_id"]
@@ -463,6 +517,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin"
+      competition_format: "individual" | "pairs"
       player_category: "hcp_low" | "hcp_high"
       round_status: "draft" | "imported" | "review" | "validated" | "published"
     }
@@ -593,6 +648,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin"],
+      competition_format: ["individual", "pairs"],
       player_category: ["hcp_low", "hcp_high"],
       round_status: ["draft", "imported", "review", "validated", "published"],
     },
