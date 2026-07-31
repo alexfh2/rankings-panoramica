@@ -125,18 +125,29 @@ const AdminRounds = () => {
   const activeCompetitionId = selectedCompetition || competitions?.[0]?.id || '';
 
   const { data: rounds, isLoading } = useQuery({
-    queryKey: ['admin-rounds', activeSeasonId],
-    enabled: !!activeSeasonId,
+    queryKey: ['admin-rounds', activeSeasonId, activeCompetitionId],
+    enabled: !!activeSeasonId && !!activeCompetitionId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('rounds')
         .select('*')
         .eq('season_id', activeSeasonId)
+        .eq('competition_id', activeCompetitionId)
         .order('round_number', { ascending: true });
       if (error) throw error;
       return data as Round[];
     },
   });
+
+  const handleSeasonChange = (seasonId: string) => {
+    setSelectedSeason(seasonId);
+    setSelectedCompetition('');
+  };
+
+  const invalidateRounds = () => {
+    queryClient.invalidateQueries({ queryKey: ['admin-rounds', activeSeasonId, activeCompetitionId] });
+    queryClient.invalidateQueries({ queryKey: ['admin-rounds'] });
+  };
 
   // ─── IMPORT FROM URL ───
   const handleImport = async () => {
