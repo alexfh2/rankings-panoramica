@@ -10,7 +10,29 @@ interface ScorecardVisualProps {
   handicapWomen?: number[];
   playerHandicap?: number | null;
   playerGender?: string | null;
+  /** Etiquetes visibles. 'ca' (per defecte) manté els textos actuals; 'es' només s'usa a Panorámica. */
+  locale?: 'ca' | 'es';
+  /** Variant visual: afegeix classes namespaceades per als overrides CSS. No canvia cap càlcul. */
+  variant?: 'default' | 'panoramica';
 }
+
+const LABELS = {
+  ca: {
+    hole: 'Forat', par: 'Par', hcp: 'HCP', strokes: 'Cops', stb: 'Stb', total: 'Tot',
+    holes1: 'Forats 1–9', holes2: 'Forats 10–18',
+    coursePar: 'PAR CAMP', totalStrokes: 'Total cops', totalStb: 'Total Stb',
+    incomplete: '(incomplet)',
+    birdie: 'Birdie', parLegend: 'Par', bogey: 'Bogey', doublePlus: 'Doble+', hcpDots: 'Punts HCP',
+  },
+  es: {
+    hole: 'Hoyo', par: 'Par', hcp: 'HCP', strokes: 'Golpes', stb: 'STB', total: 'Tot',
+    holes1: 'Hoyos 1–9', holes2: 'Hoyos 10–18',
+    coursePar: 'PAR DEL CAMPO', totalStrokes: 'Total golpes', totalStb: 'Total Stableford',
+    incomplete: '(incompleto)',
+    birdie: 'Birdie', parLegend: 'Par', bogey: 'Bogey', doublePlus: 'Doble o más', hcpDots: 'Golpes de hándicap',
+  },
+} as const;
+
 
 const calcPlayingHcp = (hcp: number): number => Math.round(hcp);
 
@@ -39,6 +61,15 @@ const calcStablefordPoints = (
   return 0;
 };
 
+/** Classe semàntica (hook CSS) segons els punts Stableford. No altera cap càlcul. */
+const stbBucket = (pts: number | null): string => {
+  if (pts == null) return 'sc-stb sc-stb--none';
+  if (pts >= 3) return 'sc-stb sc-stb--3plus';
+  if (pts === 2) return 'sc-stb sc-stb--2';
+  if (pts === 1) return 'sc-stb sc-stb--1';
+  return 'sc-stb sc-stb--0';
+};
+
 /** Color scale for Stableford points - bright & prominent for dark bg */
 const getStbStyle = (pts: number | null): string => {
   if (pts == null) return 'text-muted-foreground';
@@ -50,7 +81,10 @@ const getStbStyle = (pts: number | null): string => {
   return 'bg-destructive/30 text-destructive-foreground font-semibold';
 };
 
-const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT_PAR, handicap, handicapWomen, playerHandicap, playerGender }) => {
+const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT_PAR, handicap, handicapWomen, playerHandicap, playerGender, locale = 'ca', variant = 'default' }) => {
+  const L = LABELS[locale] ?? LABELS.ca;
+  const isPano = variant === 'panoramica';
+
   const [mobileHalf, setMobileHalf] = useState<0 | 1>(0);
   // Pick female-specific stroke index distribution when applicable
   const effectiveHandicap = (playerGender === 'F' && Array.isArray(handicapWomen) && handicapWomen.length === 18)
@@ -92,14 +126,14 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
   };
 
   const renderScore = (score: number, holePar: number) => {
-    if (score == null || score === 0) return <span className="text-muted-foreground/60 font-semibold">—</span>;
+    if (score == null || score === 0) return <span className="sc-score sc-score--none text-muted-foreground/60 font-semibold">—</span>;
 
     const diff = score - holePar;
 
     if (diff <= -2) {
       return (
-        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full border-2 border-cream/60 text-cream/80 font-semibold text-xs">
-          <span className="inline-flex items-center justify-center w-5.5 h-5.5 rounded-full border border-cream/60">
+        <span className="sc-score sc-score--eagle inline-flex items-center justify-center w-8 h-8 rounded-full border-2 border-cream/60 text-cream/80 font-semibold text-xs">
+          <span className="sc-score__inner inline-flex items-center justify-center w-5.5 h-5.5 rounded-full border border-cream/60">
             {score}
           </span>
         </span>
@@ -108,7 +142,7 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
 
     if (diff === -1) {
       return (
-        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full border-2 border-cream/60 text-cream/80 font-semibold text-xs">
+        <span className="sc-score sc-score--birdie inline-flex items-center justify-center w-8 h-8 rounded-full border-2 border-cream/60 text-cream/80 font-semibold text-xs">
           {score}
         </span>
       );
@@ -116,7 +150,7 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
 
     if (diff === 0) {
       return (
-        <span className="inline-flex items-center justify-center w-8 h-8 border-2 border-muted-foreground/40 text-muted-foreground font-medium text-xs">
+        <span className="sc-score sc-score--par inline-flex items-center justify-center w-8 h-8 border-2 border-muted-foreground/40 text-muted-foreground font-medium text-xs">
           {score}
         </span>
       );
@@ -124,18 +158,19 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
 
     if (diff === 1) {
       return (
-        <span className="inline-flex items-center justify-center w-8 h-8 bg-muted/30 border border-border/40 text-muted-foreground font-medium text-xs">
+        <span className="sc-score sc-score--bogey inline-flex items-center justify-center w-8 h-8 bg-muted/30 border border-border/40 text-muted-foreground font-medium text-xs">
           {score}
         </span>
       );
     }
 
     return (
-      <span className="inline-flex items-center justify-center w-8 h-8 bg-destructive/15 border border-destructive/30 text-destructive/80 font-semibold text-xs">
+      <span className="sc-score sc-score--double inline-flex items-center justify-center w-8 h-8 bg-destructive/15 border border-destructive/30 text-destructive/80 font-semibold text-xs">
         {score}
       </span>
     );
   };
+
 
   const renderStrokeDots = (extraStrokes: number) => {
     if (extraStrokes === 0) return null;
@@ -144,7 +179,7 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
         {Array.from({ length: Math.min(extraStrokes, 3) }).map((_, i) => (
           <span
             key={i}
-            className="w-[4px] h-[4px] rounded-full bg-accent inline-block"
+            className="sc-dot w-[4px] h-[4px] rounded-full bg-accent inline-block"
           />
         ))}
       </div>
@@ -173,13 +208,13 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
     <table className="text-xs w-full border-collapse">
       <thead>
         <tr>
-          <td className={holeLabelClass}>Forat</td>
+          <td className={holeLabelClass}>{L.hole}</td>
           {halfScores.map((_, i) => (
               <td key={i} className={holeCellClass}>
                 {startHole + i}
               </td>
           ))}
-          <td className={`${holeCellClass} ${totalCellClass} bg-[hsl(var(--primary)/0.12)]`}>Tot</td>
+          <td className={`${holeCellClass} ${totalCellClass} bg-[hsl(var(--primary)/0.12)]`}>{L.total}</td>
         </tr>
         {canCalcStableford && (
           <tr>
@@ -191,7 +226,7 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
                   {strokes > 0 && (
                     <div className="flex justify-center gap-[3px]">
                       {Array.from({ length: Math.min(strokes, 3) }).map((_, j) => (
-                        <span key={j} className="w-[6px] h-[6px] rounded-full bg-accent inline-block" />
+                        <span key={j} className="sc-dot w-[6px] h-[6px] rounded-full bg-accent inline-block" />
                       ))}
                     </div>
                   )}
@@ -202,7 +237,7 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
           </tr>
         )}
         <tr>
-          <td className={headerLabelClass}>Par</td>
+          <td className={headerLabelClass}>{L.par}</td>
           {halfPar.map((p, i) => (
             <td key={i} className={headerCellClass}>{p}</td>
           ))}
@@ -210,7 +245,7 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
         </tr>
         {halfHcp && (
           <tr>
-            <td className={headerLabelClass}>HCP</td>
+            <td className={headerLabelClass}>{L.hcp}</td>
             {halfHcp.map((h, i) => (
               <td key={i} className={headerCellClass}>{h}</td>
             ))}
@@ -220,7 +255,7 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
       </thead>
       <tbody>
         <tr>
-          <td className={`${resultLabelClass} font-semibold text-foreground`}>Cops</td>
+          <td className={`${resultLabelClass} font-semibold text-foreground`}>{L.strokes}</td>
           {halfScores.map((s, i) => (
             <td key={i} className={`${resultCellClass} bg-background`}>
               <div className="flex items-center justify-center h-[2.5rem]">
@@ -234,10 +269,10 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
         </tr>
         {halfStb && (
           <tr>
-            <td className={`${resultLabelClass} font-bold text-accent uppercase tracking-wider bg-secondary/30`}>Stb</td>
+            <td className={`${resultLabelClass} font-bold text-accent uppercase tracking-wider bg-secondary/30`}>{L.stb}</td>
             {halfStb.map((pts, i) => (
               <td key={i} className={`${resultCellClass} bg-secondary/20`}>
-                <span className={`inline-flex items-center justify-center w-8 h-8 rounded-md text-sm ${getStbStyle(pts)}`}>
+                <span className={`${stbBucket(pts)} inline-flex items-center justify-center w-8 h-8 rounded-md text-sm ${getStbStyle(pts)}`}>
                   {pts != null ? pts : '—'}
                 </span>
               </td>
@@ -267,11 +302,11 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
   ) => (
     <div className="rounded-md border border-border/40 overflow-hidden">
       <div className="grid grid-cols-5 bg-[hsl(var(--primary)/0.08)] text-[11px] font-medium text-muted-foreground/80">
-        <div className="py-1.5 text-center">Forat</div>
-        <div className="py-1.5 text-center">Par</div>
-        <div className="py-1.5 text-center">HCP</div>
-        <div className="py-1.5 text-center">Cops</div>
-        <div className="py-1.5 text-center text-accent">STB</div>
+        <div className="py-1.5 text-center">{L.hole}</div>
+        <div className="py-1.5 text-center">{L.par}</div>
+        <div className="py-1.5 text-center">{L.hcp}</div>
+        <div className="py-1.5 text-center">{L.strokes}</div>
+        <div className="py-1.5 text-center text-accent">{L.stb}</div>
       </div>
       {halfScores.map((s, i) => {
         const strokes = getStrokeMarker(holeOffset + i);
@@ -286,7 +321,7 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
               {strokes > 0 && (
                 <span className="flex gap-[2px]">
                   {Array.from({ length: Math.min(strokes, 3) }).map((_, j) => (
-                    <span key={j} className="w-[4px] h-[4px] rounded-full bg-accent inline-block" />
+                    <span key={j} className="sc-dot w-[4px] h-[4px] rounded-full bg-accent inline-block" />
                   ))}
                 </span>
               )}
@@ -296,7 +331,7 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
             <div className="flex items-center justify-center">{renderScore(s, halfPar[i])}</div>
             <div className="flex items-center justify-center">
               {halfStb ? (
-                <span className={`inline-flex items-center justify-center w-8 h-8 rounded-md text-sm ${getStbStyle(pts)}`}>
+                <span className={`${stbBucket(pts)} inline-flex items-center justify-center w-8 h-8 rounded-md text-sm ${getStbStyle(pts)}`}>
                   {pts != null ? pts : '—'}
                 </span>
               ) : (
@@ -307,7 +342,7 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
         );
       })}
       <div className="grid grid-cols-5 items-center min-h-[40px] border-t border-border/40 bg-[hsl(var(--primary)/0.12)] font-mono text-sm font-bold">
-        <div className="text-center text-[11px] uppercase tracking-wider text-muted-foreground font-body font-medium">Tot</div>
+        <div className="text-center text-[11px] uppercase tracking-wider text-muted-foreground font-body font-medium">{L.total}</div>
         <div className="text-center text-xs text-muted-foreground">{halfPar.reduce((a, b) => a + b, 0)}</div>
         <div />
         <div className="text-center text-foreground">{total != null ? total : '—'}</div>
@@ -317,7 +352,7 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
   );
 
   return (
-    <div className="space-y-3 min-w-0">
+    <div className={`space-y-3 min-w-0${isPano ? ' pano-sc' : ''}`}>
       {/* Mobile view: one hole per row, split in two halves */}
       <div className="sm:hidden space-y-2">
         <div className="grid grid-cols-2 gap-1 p-1 rounded-md bg-secondary/40 border border-border/40">
@@ -331,7 +366,7 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
                 mobileHalf === half ? 'bg-accent text-accent-foreground' : 'text-muted-foreground'
               }`}
             >
-              {half === 0 ? 'Forats 1–9' : 'Forats 10–18'}
+              {half === 0 ? L.holes1 : L.holes2}
             </button>
           ))}
         </div>
@@ -348,21 +383,21 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
 
 
       {/* Totales 18 hoyos dentro de la tarjeta */}
-      <div className="grid grid-cols-3 gap-1 sm:gap-2 border-2 border-accent/40 rounded-lg bg-secondary/30 p-2 sm:p-3">
+      <div className="sc-totals grid grid-cols-3 gap-1 sm:gap-2 border-2 border-accent/40 rounded-lg bg-secondary/30 p-2 sm:p-3">
         <div className="text-center">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">PAR CAMP</div>
-          <div className="font-mono font-bold text-base text-foreground mt-1">{totalPar}</div>
+          <div className="sc-totals__label text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{L.coursePar}</div>
+          <div className="sc-totals__value font-mono font-bold text-base text-foreground mt-1">{totalPar}</div>
         </div>
         <div className="text-center border-x border-border/40">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Total cops</div>
-          <div className="font-mono font-bold text-base text-cream mt-1">
+          <div className="sc-totals__label text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{L.totalStrokes}</div>
+          <div className="sc-totals__value font-mono font-bold text-base text-cream mt-1">
             {totalStrokes != null ? totalStrokes : '—'}
-            {hasLiftedBall && <span className="text-[9px] text-muted-foreground ml-1">(incomplet)</span>}
+            {hasLiftedBall && <span className="text-[9px] text-muted-foreground ml-1">{L.incomplete}</span>}
           </div>
         </div>
         <div className="text-center">
-          <div className="text-[10px] uppercase tracking-wider text-accent font-semibold">Total Stb</div>
-          <div className="font-mono font-bold text-lg text-accent mt-1">{totalStb ?? '—'}</div>
+          <div className="sc-totals__label sc-totals__label--stb text-[10px] uppercase tracking-wider text-accent font-semibold">{L.totalStb}</div>
+          <div className="sc-totals__value sc-totals__value--stb font-mono font-bold text-lg text-accent mt-1">{totalStb ?? '—'}</div>
         </div>
       </div>
 
@@ -370,30 +405,31 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
         <span className="sr-only">
           Total: {totalStrokes ?? '—'}
         </span>
-        <div className="flex items-center gap-3 text-[10px] text-muted-foreground ml-auto flex-wrap">
-          <span className="inline-flex items-center gap-1">
-            <span className="w-4 h-4 rounded-full border-2 border-primary inline-block" /> Birdie
+        <div className="sc-legend flex items-center gap-3 text-[10px] text-muted-foreground ml-auto flex-wrap">
+          <span className="sc-legend__item inline-flex items-center gap-1">
+            <span className="sc-legend__mark sc-legend__mark--birdie w-4 h-4 rounded-full border-2 border-primary inline-block" /> {L.birdie}
           </span>
-          <span className="inline-flex items-center gap-1">
-            <span className="w-4 h-4 border-2 border-foreground/60 inline-block" /> Par
+          <span className="sc-legend__item inline-flex items-center gap-1">
+            <span className="sc-legend__mark sc-legend__mark--par w-4 h-4 border-2 border-foreground/60 inline-block" /> {L.parLegend}
           </span>
-          <span className="inline-flex items-center gap-1">
-            <span className="w-4 h-4 bg-muted border border-border inline-block" /> Bogey
+          <span className="sc-legend__item inline-flex items-center gap-1">
+            <span className="sc-legend__mark sc-legend__mark--bogey w-4 h-4 bg-muted border border-border inline-block" /> {L.bogey}
           </span>
-          <span className="inline-flex items-center gap-1">
-            <span className="w-4 h-4 bg-destructive/15 border border-destructive/30 inline-block" /> Doble+
+          <span className="sc-legend__item inline-flex items-center gap-1">
+            <span className="sc-legend__mark sc-legend__mark--double w-4 h-4 bg-destructive/15 border border-destructive/30 inline-block" /> {L.doublePlus}
           </span>
           {canCalcStableford && (
-            <span className="inline-flex items-center gap-1">
+            <span className="sc-legend__item inline-flex items-center gap-1">
               <span className="flex gap-[2px]">
-                <span className="w-[5px] h-[5px] rounded-full bg-accent inline-block" />
-                <span className="w-[5px] h-[5px] rounded-full bg-accent inline-block" />
+                <span className="sc-dot w-[5px] h-[5px] rounded-full bg-accent inline-block" />
+                <span className="sc-dot w-[5px] h-[5px] rounded-full bg-accent inline-block" />
               </span>
-              Punts HCP
+              {L.hcpDots}
             </span>
           )}
         </div>
       </div>
+
     </div>
   );
 };
