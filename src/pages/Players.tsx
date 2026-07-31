@@ -83,7 +83,7 @@ const Players = () => {
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
 
   const { data: players, isLoading } = useQuery({
-    queryKey: publicCircuitDataQueryKey,
+    queryKey: publicCircuitDataQueryKey(),
     queryFn: fetchPublicCircuitData,
     select: (data) => data.players as Player[],
   });

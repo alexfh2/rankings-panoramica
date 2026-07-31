@@ -30,7 +30,7 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange }: PlayerProfileDial
   const [scratchMode, setScratchMode] = useState<Record<string, boolean>>({});
 
   const { data: player } = useQuery({
-    queryKey: [...publicCircuitDataQueryKey, 'dialog-player', playerId],
+    queryKey: [...publicCircuitDataQueryKey(), 'dialog-player', playerId],
     queryFn: fetchPublicCircuitData,
     select: (data) => data.players.find((player) => player.id === playerId) ?? null,
     enabled: !!playerId && open,
@@ -52,7 +52,7 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange }: PlayerProfileDial
 
   // Load all season data to compute category rankings
   const { data: allResults } = useQuery({
-    queryKey: [...publicCircuitDataQueryKey, 'dialog-results'],
+    queryKey: [...publicCircuitDataQueryKey(), 'dialog-results'],
     queryFn: fetchPublicCircuitData,
     select: (data) => data.results.filter((result) => result.stableford_points != null),
     enabled: open,

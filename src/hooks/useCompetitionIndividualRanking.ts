@@ -59,7 +59,7 @@ export function useCompetitionIndividualRanking(slug: string) {
   });
 
   const resultsQuery = useQuery({
-    queryKey: publicCircuitDataQueryKey,
+    queryKey: publicCircuitDataQueryKey(),
     queryFn: fetchPublicCircuitData,
     select: (data) => data.results as PublicResult[],
   });

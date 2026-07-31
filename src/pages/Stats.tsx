@@ -143,13 +143,13 @@ const Stats = () => {
   };
 
   const { data: results, isLoading } = useQuery({
-    queryKey: publicCircuitDataQueryKey,
+    queryKey: publicCircuitDataQueryKey(),
     queryFn: fetchPublicCircuitData,
     select: (data) => data.results,
   });
 
   const { data: categoryData } = useQuery({
-    queryKey: [...publicCircuitDataQueryKey, 'category-leaders'],
+    queryKey: [...publicCircuitDataQueryKey(), 'category-leaders'],
     queryFn: fetchPublicCircuitData,
     select: (data) => data.results.filter((result) => result.stableford_points != null),
   });
