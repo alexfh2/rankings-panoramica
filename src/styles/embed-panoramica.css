@@ -417,3 +417,89 @@
   .pano-matrix__row .pano-matrix__cell { font-size: 11px; }
   .pano-matrix__total { font-size: 14px; }
 }
+
+/* ── Noms de jugador clicables (botó real, sense aspecte d'enllaç) ── */
+.pano-embed__namebtn {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+.pano-embed__namebtn:hover {
+  color: #F3EEE3;
+  text-decoration: underline;
+  text-decoration-color: rgba(185, 116, 82, 0.7);
+  text-underline-offset: 3px;
+}
+.pano-embed__namebtn:focus-visible {
+  outline: 1px solid rgba(185, 116, 82, 0.9);
+  outline-offset: 2px;
+}
+
+/* ── Variant visual Panorámica per a PlayerProfileDialog ──
+   Namespaceada: només s'aplica dins de .pano-player-dialog. */
+.pano-player-dialog {
+  background: #1B2318 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #FFFFFF;
+  font-family: 'Inter', sans-serif;
+}
+@media (min-width: 640px) {
+  .pano-player-dialog { max-width: 960px !important; max-height: 90vh !important; }
+}
+.pano-player-dialog * { border-color: rgba(255, 255, 255, 0.1); }
+.pano-player-dialog h1,
+.pano-player-dialog h2,
+.pano-player-dialog h3,
+.pano-player-dialog h4,
+.pano-player-dialog .font-display {
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic;
+  color: #F3EEE3;
+}
+.pano-player-dialog .text-foreground { color: #FFFFFF !important; }
+.pano-player-dialog .text-muted-foreground,
+.pano-player-dialog .text-cream-dark { color: rgba(255, 255, 255, 0.65) !important; }
+.pano-player-dialog .text-cream { color: #F3EEE3 !important; }
+.pano-player-dialog .text-accent,
+.pano-player-dialog .text-accent\/70 { color: #B97452 !important; }
+.pano-player-dialog [class*='bg-card'],
+.pano-player-dialog [class*='bg-secondary'],
+.pano-player-dialog [class*='bg-border'],
+.pano-player-dialog [class*='bg-primary'],
+.pano-player-dialog [class*='bg-white'],
+.pano-player-dialog [class*='bg-muted'] {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+.pano-player-dialog .bg-accent { background-color: #B97452 !important; }
+.pano-player-dialog .text-accent-foreground { color: #1B2318 !important; }
+.pano-player-dialog [class*='bg-accent\\/'] { background-color: rgba(185, 116, 82, 0.18) !important; }
+.pano-player-dialog [class*='border-accent'] { border-color: rgba(185, 116, 82, 0.4) !important; }
+.pano-player-dialog .bg-gradient-to-l { background-image: none !important; }
+
+/* Targetes (ScorecardVisual) dins de la variant: sense fons blancs */
+.pano-player-dialog table,
+.pano-player-dialog th,
+.pano-player-dialog td {
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+.pano-player-dialog th { background-color: rgba(255, 255, 255, 0.06) !important; }
+
+/* Mòbil: el diàleg ocupa pràcticament tot l'iframe */
+@media (max-width: 639px) {
+  .pano-player-dialog {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    border-radius: 0 !important;
+  }
+}
