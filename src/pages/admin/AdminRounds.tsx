@@ -66,6 +66,7 @@ const AdminRounds = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedSeason, setSelectedSeason] = useState<string>('');
+  const [selectedCompetition, setSelectedCompetition] = useState<string>('');
 
   // Import state
   const [importUrl, setImportUrl] = useState('');
