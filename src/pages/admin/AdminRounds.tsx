@@ -203,6 +203,7 @@ const AdminRounds = () => {
 
   const saveImportedRounds = useMutation({
     mutationFn: async () => {
+      if (!activeCompetitionId) throw new Error('Selecciona una competició abans de guardar les jornades');
       const payloads: TablesInsert<'rounds'>[] = importedRounds.map((r) => ({
         name: r.name,
         round_number: r.round_number,
@@ -236,6 +237,7 @@ const AdminRounds = () => {
   // ─── MANUAL EDIT (always saves as current status, new rounds as draft) ───
   const saveMutation = useMutation({
     mutationFn: async () => {
+      if (!editingRound && !activeCompetitionId) throw new Error('Selecciona una competició abans de crear una jornada');
       let coursePar: number[] | null = null;
       if (form.course_par.trim()) {
         coursePar = form.course_par.split(',').map(v => parseInt(v.trim())).filter(v => !isNaN(v));
@@ -272,7 +274,7 @@ const AdminRounds = () => {
         master_coefficient: form.is_master ? 1.25 : 1.0,
         status: editingRound ? editingRound.status : 'draft',
         season_id: form.season_id || activeSeasonId,
-        competition_id: activeCompetitionId,
+        competition_id: editingRound ? editingRound.competition_id : activeCompetitionId,
         course_par: coursePar,
         course_handicap: courseHandicap,
         course_handicap_women: courseHandicapWomen,
@@ -350,7 +352,7 @@ const AdminRounds = () => {
 
   const openCreate = () => {
     setEditingRound(null);
-    const n = (rounds?.length ?? 0) + 1;
+    const n = (rounds?.reduce((max, r) => Math.max(max, r.round_number), 0) ?? 0) + 1;
     setForm({
       name: `Jornada ${n}`, round_number: String(n),
       date: '', end_date: '', club: '', course: '', sponsor: '',
@@ -471,7 +473,7 @@ const AdminRounds = () => {
         <h1 className="font-display text-2xl font-bold">Jornades</h1>
         <div className="flex items-center gap-2 flex-wrap">
           {seasons && seasons.length > 0 && (
-            <Select value={activeSeasonId} onValueChange={setSelectedSeason}>
+            <Select value={activeSeasonId} onValueChange={handleSeasonChange}>
               <SelectTrigger className="w-[130px]">
                 <SelectValue />
               </SelectTrigger>
@@ -497,12 +499,12 @@ const AdminRounds = () => {
           <Button
             variant="outline"
             onClick={() => setShowImport(!showImport)}
-            disabled={!activeSeasonId}
+            disabled={!activeSeasonId || !activeCompetitionId}
           >
             <Link2 className="h-4 w-4 mr-2" />
             Importar des d'URL
           </Button>
-          <Button onClick={openCreate} disabled={!activeSeasonId}>
+          <Button onClick={openCreate} disabled={!activeSeasonId || !activeCompetitionId}>
             <Plus className="h-4 w-4 mr-2" />
             Manual
           </Button>
@@ -553,7 +555,7 @@ const AdminRounds = () => {
                   <Button
                     size="sm"
                     onClick={() => saveImportedRounds.mutate()}
-                    disabled={saveImportedRounds.isPending}
+                    disabled={saveImportedRounds.isPending || !activeCompetitionId}
                   >
                     <Check className="h-4 w-4 mr-2" />
                     {saveImportedRounds.isPending ? 'Guardant...' : 'Guardar totes'}
