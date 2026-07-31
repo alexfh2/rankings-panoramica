@@ -10,7 +10,29 @@ interface ScorecardVisualProps {
   handicapWomen?: number[];
   playerHandicap?: number | null;
   playerGender?: string | null;
+  /** Etiquetes visibles. 'ca' (per defecte) manté els textos actuals; 'es' només s'usa a Panorámica. */
+  locale?: 'ca' | 'es';
+  /** Variant visual: afegeix classes namespaceades per als overrides CSS. No canvia cap càlcul. */
+  variant?: 'default' | 'panoramica';
 }
+
+const LABELS = {
+  ca: {
+    hole: 'Forat', par: 'Par', hcp: 'HCP', strokes: 'Cops', stb: 'Stb', total: 'Tot',
+    holes1: 'Forats 1–9', holes2: 'Forats 10–18',
+    coursePar: 'PAR CAMP', totalStrokes: 'Total cops', totalStb: 'Total Stb',
+    incomplete: '(incomplet)',
+    birdie: 'Birdie', parLegend: 'Par', bogey: 'Bogey', doublePlus: 'Doble+', hcpDots: 'Punts HCP',
+  },
+  es: {
+    hole: 'Hoyo', par: 'Par', hcp: 'HCP', strokes: 'Golpes', stb: 'STB', total: 'Tot',
+    holes1: 'Hoyos 1–9', holes2: 'Hoyos 10–18',
+    coursePar: 'PAR DEL CAMPO', totalStrokes: 'Total golpes', totalStb: 'Total Stableford',
+    incomplete: '(incompleto)',
+    birdie: 'Birdie', parLegend: 'Par', bogey: 'Bogey', doublePlus: 'Doble o más', hcpDots: 'Golpes de hándicap',
+  },
+} as const;
+
 
 const calcPlayingHcp = (hcp: number): number => Math.round(hcp);
 
