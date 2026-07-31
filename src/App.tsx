@@ -20,6 +20,7 @@ import PlayerDetail from "./pages/PlayerDetail";
 import Stats from "./pages/Stats";
 import News from "./pages/News";
 import TestIndividual2026 from "./pages/TestIndividual2026";
+import EmbedIndividual2026 from "./pages/EmbedIndividual2026";
 
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -41,6 +42,9 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Embed públic (sense Layout) */}
+            <Route path="/embed/individual-2026" element={<EmbedIndividual2026 />} />
+
             {/* Public routes */}
             <Route element={<Layout />}>
               <Route path="/" element={<Index />} />
