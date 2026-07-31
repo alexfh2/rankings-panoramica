@@ -385,19 +385,19 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
       {/* Totales 18 hoyos dentro de la tarjeta */}
       <div className="sc-totals grid grid-cols-3 gap-1 sm:gap-2 border-2 border-accent/40 rounded-lg bg-secondary/30 p-2 sm:p-3">
         <div className="text-center">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{L.coursePar}</div>
-          <div className="font-mono font-bold text-base text-foreground mt-1">{totalPar}</div>
+          <div className="sc-totals__label text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{L.coursePar}</div>
+          <div className="sc-totals__value font-mono font-bold text-base text-foreground mt-1">{totalPar}</div>
         </div>
         <div className="text-center border-x border-border/40">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{L.totalStrokes}</div>
-          <div className="font-mono font-bold text-base text-cream mt-1">
+          <div className="sc-totals__label text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{L.totalStrokes}</div>
+          <div className="sc-totals__value font-mono font-bold text-base text-cream mt-1">
             {totalStrokes != null ? totalStrokes : '—'}
             {hasLiftedBall && <span className="text-[9px] text-muted-foreground ml-1">{L.incomplete}</span>}
           </div>
         </div>
         <div className="text-center">
-          <div className="text-[10px] uppercase tracking-wider text-accent font-semibold">{L.totalStb}</div>
-          <div className="font-mono font-bold text-lg text-accent mt-1">{totalStb ?? '—'}</div>
+          <div className="sc-totals__label sc-totals__label--stb text-[10px] uppercase tracking-wider text-accent font-semibold">{L.totalStb}</div>
+          <div className="sc-totals__value sc-totals__value--stb font-mono font-bold text-lg text-accent mt-1">{totalStb ?? '—'}</div>
         </div>
       </div>
 
@@ -405,30 +405,31 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
         <span className="sr-only">
           Total: {totalStrokes ?? '—'}
         </span>
-        <div className="flex items-center gap-3 text-[10px] text-muted-foreground ml-auto flex-wrap">
-          <span className="inline-flex items-center gap-1">
-            <span className="w-4 h-4 rounded-full border-2 border-primary inline-block" /> Birdie
+        <div className="sc-legend flex items-center gap-3 text-[10px] text-muted-foreground ml-auto flex-wrap">
+          <span className="sc-legend__item inline-flex items-center gap-1">
+            <span className="sc-legend__mark sc-legend__mark--birdie w-4 h-4 rounded-full border-2 border-primary inline-block" /> {L.birdie}
           </span>
-          <span className="inline-flex items-center gap-1">
-            <span className="w-4 h-4 border-2 border-foreground/60 inline-block" /> Par
+          <span className="sc-legend__item inline-flex items-center gap-1">
+            <span className="sc-legend__mark sc-legend__mark--par w-4 h-4 border-2 border-foreground/60 inline-block" /> {L.parLegend}
           </span>
-          <span className="inline-flex items-center gap-1">
-            <span className="w-4 h-4 bg-muted border border-border inline-block" /> Bogey
+          <span className="sc-legend__item inline-flex items-center gap-1">
+            <span className="sc-legend__mark sc-legend__mark--bogey w-4 h-4 bg-muted border border-border inline-block" /> {L.bogey}
           </span>
-          <span className="inline-flex items-center gap-1">
-            <span className="w-4 h-4 bg-destructive/15 border border-destructive/30 inline-block" /> Doble+
+          <span className="sc-legend__item inline-flex items-center gap-1">
+            <span className="sc-legend__mark sc-legend__mark--double w-4 h-4 bg-destructive/15 border border-destructive/30 inline-block" /> {L.doublePlus}
           </span>
           {canCalcStableford && (
-            <span className="inline-flex items-center gap-1">
+            <span className="sc-legend__item inline-flex items-center gap-1">
               <span className="flex gap-[2px]">
-                <span className="w-[5px] h-[5px] rounded-full bg-accent inline-block" />
-                <span className="w-[5px] h-[5px] rounded-full bg-accent inline-block" />
+                <span className="sc-dot w-[5px] h-[5px] rounded-full bg-accent inline-block" />
+                <span className="sc-dot w-[5px] h-[5px] rounded-full bg-accent inline-block" />
               </span>
-              Punts HCP
+              {L.hcpDots}
             </span>
           )}
         </div>
       </div>
+
     </div>
   );
 };
