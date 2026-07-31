@@ -125,18 +125,29 @@ const AdminRounds = () => {
   const activeCompetitionId = selectedCompetition || competitions?.[0]?.id || '';
 
   const { data: rounds, isLoading } = useQuery({
-    queryKey: ['admin-rounds', activeSeasonId],
-    enabled: !!activeSeasonId,
+    queryKey: ['admin-rounds', activeSeasonId, activeCompetitionId],
+    enabled: !!activeSeasonId && !!activeCompetitionId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('rounds')
         .select('*')
         .eq('season_id', activeSeasonId)
+        .eq('competition_id', activeCompetitionId)
         .order('round_number', { ascending: true });
       if (error) throw error;
       return data as Round[];
     },
   });
+
+  const handleSeasonChange = (seasonId: string) => {
+    setSelectedSeason(seasonId);
+    setSelectedCompetition('');
+  };
+
+  const invalidateRounds = () => {
+    queryClient.invalidateQueries({ queryKey: ['admin-rounds', activeSeasonId, activeCompetitionId] });
+    queryClient.invalidateQueries({ queryKey: ['admin-rounds'] });
+  };
 
   // ─── IMPORT FROM URL ───
   const handleImport = async () => {
@@ -192,6 +203,7 @@ const AdminRounds = () => {
 
   const saveImportedRounds = useMutation({
     mutationFn: async () => {
+      if (!activeCompetitionId) throw new Error('Selecciona una competició abans de guardar les jornades');
       const payloads: TablesInsert<'rounds'>[] = importedRounds.map((r) => ({
         name: r.name,
         round_number: r.round_number,
@@ -212,7 +224,7 @@ const AdminRounds = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-rounds'] });
+      invalidateRounds();
       toast({ title: `${importedRounds.length} jornades importades!` });
       setImportedRounds([]);
       setShowImport(false);
@@ -225,6 +237,7 @@ const AdminRounds = () => {
   // ─── MANUAL EDIT (always saves as current status, new rounds as draft) ───
   const saveMutation = useMutation({
     mutationFn: async () => {
+      if (!editingRound && !activeCompetitionId) throw new Error('Selecciona una competició abans de crear una jornada');
       let coursePar: number[] | null = null;
       if (form.course_par.trim()) {
         coursePar = form.course_par.split(',').map(v => parseInt(v.trim())).filter(v => !isNaN(v));
@@ -261,7 +274,7 @@ const AdminRounds = () => {
         master_coefficient: form.is_master ? 1.25 : 1.0,
         status: editingRound ? editingRound.status : 'draft',
         season_id: form.season_id || activeSeasonId,
-        competition_id: activeCompetitionId,
+        competition_id: editingRound ? editingRound.competition_id : activeCompetitionId,
         course_par: coursePar,
         course_handicap: courseHandicap,
         course_handicap_women: courseHandicapWomen,
@@ -275,7 +288,7 @@ const AdminRounds = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-rounds'] });
+      invalidateRounds();
       toast({ title: editingRound ? 'Jornada actualitzada' : 'Jornada creada' });
       setDialogOpen(false);
       setEditingRound(null);
@@ -292,7 +305,7 @@ const AdminRounds = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-rounds'] });
+      invalidateRounds();
       toast({ title: 'Jornada publicada!' });
     },
     onError: (err: Error) => {
@@ -307,7 +320,7 @@ const AdminRounds = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-rounds'] });
+      invalidateRounds();
       toast({ title: 'Jornada despublicada' });
     },
     onError: (err: Error) => {
@@ -339,7 +352,7 @@ const AdminRounds = () => {
 
   const openCreate = () => {
     setEditingRound(null);
-    const n = (rounds?.length ?? 0) + 1;
+    const n = (rounds?.reduce((max, r) => Math.max(max, r.round_number), 0) ?? 0) + 1;
     setForm({
       name: `Jornada ${n}`, round_number: String(n),
       date: '', end_date: '', club: '', course: '', sponsor: '',
@@ -368,7 +381,7 @@ const AdminRounds = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-rounds'] });
+      invalidateRounds();
       toast({ title: 'Jornada eliminada' });
       setDeletingRound(null);
     },
@@ -460,7 +473,7 @@ const AdminRounds = () => {
         <h1 className="font-display text-2xl font-bold">Jornades</h1>
         <div className="flex items-center gap-2 flex-wrap">
           {seasons && seasons.length > 0 && (
-            <Select value={activeSeasonId} onValueChange={setSelectedSeason}>
+            <Select value={activeSeasonId} onValueChange={handleSeasonChange}>
               <SelectTrigger className="w-[130px]">
                 <SelectValue />
               </SelectTrigger>
@@ -486,12 +499,12 @@ const AdminRounds = () => {
           <Button
             variant="outline"
             onClick={() => setShowImport(!showImport)}
-            disabled={!activeSeasonId}
+            disabled={!activeSeasonId || !activeCompetitionId}
           >
             <Link2 className="h-4 w-4 mr-2" />
             Importar des d'URL
           </Button>
-          <Button onClick={openCreate} disabled={!activeSeasonId}>
+          <Button onClick={openCreate} disabled={!activeSeasonId || !activeCompetitionId}>
             <Plus className="h-4 w-4 mr-2" />
             Manual
           </Button>
@@ -542,7 +555,7 @@ const AdminRounds = () => {
                   <Button
                     size="sm"
                     onClick={() => saveImportedRounds.mutate()}
-                    disabled={saveImportedRounds.isPending}
+                    disabled={saveImportedRounds.isPending || !activeCompetitionId}
                   >
                     <Check className="h-4 w-4 mr-2" />
                     {saveImportedRounds.isPending ? 'Guardant...' : 'Guardar totes'}
