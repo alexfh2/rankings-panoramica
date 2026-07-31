@@ -114,9 +114,16 @@ const EmbedIndividual2026 = () => {
                 aria-label={`${p.name}, ${p.total} puntos, ${p.roundsPlayed} pruebas disputadas`}
               >
                 <span className="pano-embed__pos">{String(i + 1).padStart(2, '0')}</span>
-                <span className="pano-embed__name" title={p.name}>
+                <button
+                  type="button"
+                  className="pano-embed__name pano-embed__namebtn"
+                  title={p.name}
+                  aria-label={`Ver ficha de ${p.name}`}
+                  onClick={() => setSelectedPlayerId(p.id)}
+                >
                   {displayName}
-                </span>
+                </button>
+
                 <span className="pano-matrix__grid">
                   {matrixColumns.map(({ number, round }) => {
                     const pts = round ? p.pointsByRound[round.id] : undefined;
