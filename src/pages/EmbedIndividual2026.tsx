@@ -182,7 +182,9 @@ const EmbedIndividual2026 = () => {
           results={results}
           categoryThreshold={categoryThreshold}
           categoryHandicapMap={categoryHandicapMap}
+          onPlayerClick={setSelectedPlayerId}
         />
+
       );
     }
 
