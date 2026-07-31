@@ -223,7 +223,7 @@ const AdminRounds = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-rounds'] });
+      invalidateRounds();
       toast({ title: `${importedRounds.length} jornades importades!` });
       setImportedRounds([]);
       setShowImport(false);
@@ -286,7 +286,7 @@ const AdminRounds = () => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-rounds'] });
+      invalidateRounds();
       toast({ title: editingRound ? 'Jornada actualitzada' : 'Jornada creada' });
       setDialogOpen(false);
       setEditingRound(null);
@@ -303,7 +303,7 @@ const AdminRounds = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-rounds'] });
+      invalidateRounds();
       toast({ title: 'Jornada publicada!' });
     },
     onError: (err: Error) => {
@@ -318,7 +318,7 @@ const AdminRounds = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-rounds'] });
+      invalidateRounds();
       toast({ title: 'Jornada despublicada' });
     },
     onError: (err: Error) => {
@@ -379,7 +379,7 @@ const AdminRounds = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-rounds'] });
+      invalidateRounds();
       toast({ title: 'Jornada eliminada' });
       setDeletingRound(null);
     },
