@@ -62,9 +62,11 @@ const EmbedIndividual2026 = () => {
 
   const renderList = (players: CompetitionRankedPlayer[]) => {
     if (!players.length) return state('Todavía no hay clasificación en esta categoría.');
+    // Una sola definició de columnes: mateixa classe + mateixa variable CSS.
+    const gridStyle = { '--pano-round-count': matrixRounds.length } as React.CSSProperties;
     return (
       <>
-        <div className="pano-matrix__head" aria-hidden="true">
+        <div className="pano-matrix__line pano-matrix__head" style={gridStyle} aria-hidden="true">
           <span className="pano-embed__pos" />
           <span className="pano-embed__name" />
           <span className="pano-matrix__grid">
@@ -86,12 +88,14 @@ const EmbedIndividual2026 = () => {
             return (
               <li
                 key={p.id}
-                className="pano-embed__row pano-matrix__row"
+                className="pano-embed__row pano-matrix__line pano-matrix__row"
+                style={gridStyle}
                 aria-label={`${p.name}, ${p.total} puntos, ${p.roundsPlayed} pruebas disputadas`}
               >
                 <span className="pano-embed__pos">{String(i + 1).padStart(2, '0')}</span>
                 <span className="pano-embed__name">{p.name}</span>
                 <span className="pano-matrix__grid">
+
                   {matrixRounds.map((r) => {
                     const pts = p.pointsByRound[r.id];
                     if (pts == null) {
