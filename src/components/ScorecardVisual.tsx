@@ -126,14 +126,14 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
   };
 
   const renderScore = (score: number, holePar: number) => {
-    if (score == null || score === 0) return <span className="text-muted-foreground/60 font-semibold">—</span>;
+    if (score == null || score === 0) return <span className="sc-score sc-score--none text-muted-foreground/60 font-semibold">—</span>;
 
     const diff = score - holePar;
 
     if (diff <= -2) {
       return (
-        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full border-2 border-cream/60 text-cream/80 font-semibold text-xs">
-          <span className="inline-flex items-center justify-center w-5.5 h-5.5 rounded-full border border-cream/60">
+        <span className="sc-score sc-score--eagle inline-flex items-center justify-center w-8 h-8 rounded-full border-2 border-cream/60 text-cream/80 font-semibold text-xs">
+          <span className="sc-score__inner inline-flex items-center justify-center w-5.5 h-5.5 rounded-full border border-cream/60">
             {score}
           </span>
         </span>
@@ -142,7 +142,7 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
 
     if (diff === -1) {
       return (
-        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full border-2 border-cream/60 text-cream/80 font-semibold text-xs">
+        <span className="sc-score sc-score--birdie inline-flex items-center justify-center w-8 h-8 rounded-full border-2 border-cream/60 text-cream/80 font-semibold text-xs">
           {score}
         </span>
       );
@@ -150,7 +150,7 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
 
     if (diff === 0) {
       return (
-        <span className="inline-flex items-center justify-center w-8 h-8 border-2 border-muted-foreground/40 text-muted-foreground font-medium text-xs">
+        <span className="sc-score sc-score--par inline-flex items-center justify-center w-8 h-8 border-2 border-muted-foreground/40 text-muted-foreground font-medium text-xs">
           {score}
         </span>
       );
@@ -158,18 +158,19 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
 
     if (diff === 1) {
       return (
-        <span className="inline-flex items-center justify-center w-8 h-8 bg-muted/30 border border-border/40 text-muted-foreground font-medium text-xs">
+        <span className="sc-score sc-score--bogey inline-flex items-center justify-center w-8 h-8 bg-muted/30 border border-border/40 text-muted-foreground font-medium text-xs">
           {score}
         </span>
       );
     }
 
     return (
-      <span className="inline-flex items-center justify-center w-8 h-8 bg-destructive/15 border border-destructive/30 text-destructive/80 font-semibold text-xs">
+      <span className="sc-score sc-score--double inline-flex items-center justify-center w-8 h-8 bg-destructive/15 border border-destructive/30 text-destructive/80 font-semibold text-xs">
         {score}
       </span>
     );
   };
+
 
   const renderStrokeDots = (extraStrokes: number) => {
     if (extraStrokes === 0) return null;
