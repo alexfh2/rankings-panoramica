@@ -670,6 +670,14 @@ const AdminRounds = () => {
                         {round.is_master && <Star className="h-4 w-4 text-accent fill-accent" />}
                         <Badge variant="outline" className="text-xs">J{round.round_number}</Badge>
                         {round.name}
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); openEdit(round); }}
+                          className="inline-flex items-center justify-center p-1 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                          aria-label="Editar nom de la jornada"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
                       </CardTitle>
                       <Badge className={statusColors[round.status]}>
                         {statusLabels[round.status]}
