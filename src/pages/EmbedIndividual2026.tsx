@@ -7,6 +7,7 @@ import {
   useCompetitionIndividualRanking,
   type CompetitionRankedPlayer,
 } from '@/hooks/useCompetitionIndividualRanking';
+import CompetitionRounds from '@/components/embed/CompetitionRounds';
 import '@/styles/embed-panoramica.css';
 
 const SLUG = 'individual-2026';
@@ -19,9 +20,18 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: 'scratch', label: 'Scratch' },
 ];
 
+type SectionKey = 'ranking' | 'rounds' | 'stats';
+
+const SECTIONS: { key: SectionKey; label: string; disabled?: boolean }[] = [
+  { key: 'ranking', label: 'Orden del mérito' },
+  { key: 'rounds', label: 'Pruebas' },
+  { key: 'stats', label: 'Estadísticas', disabled: true },
+];
+
 const EmbedIndividual2026 = () => {
-  const { rounds, results, rankings, isLoading, error, competitionNotFound } =
+  const { rounds, results, rankings, categoryThreshold, isLoading, error, competitionNotFound } =
     useCompetitionIndividualRanking(SLUG);
+  const [section, setSection] = useState<SectionKey>('ranking');
   const [tab, setTab] = useState<TabKey>('hcpLow');
 
   const state = (msg: string) => <p className="pano-embed__state">{msg}</p>;
@@ -51,47 +61,40 @@ const EmbedIndividual2026 = () => {
     if (!rounds.length) return state('Esta competición todavía no tiene pruebas programadas.');
     if (!results.length) return state('Todavía no hay resultados publicados.');
 
+    if (section === 'rounds') {
+      return (
+        <CompetitionRounds rounds={rounds} results={results} categoryThreshold={categoryThreshold} />
+      );
+    }
+
     const activeLabel = TABS.find((t) => t.key === tab)?.label ?? '';
 
     return (
       <>
-        <p className="pano-embed__caption">Orden del mérito individual — {activeLabel}</p>
-        {renderList(rankings[tab])}
-      </>
-    );
-  };
-
-  return (
-    <div className="pano-embed">
-      <div className="pano-embed__inner">
-        <p className="pano-embed__eyebrow">Panorámica Golf · Temporada 2026</p>
-        <h1 className="pano-embed__title">Orden del Mérito Individual</h1>
-
-        <div className="pano-embed__tabs" role="tablist" aria-label="Categorías del ranking">
-          {TABS.map((t) => (
+        <nav className="pano-embed__nav" role="tablist" aria-label="Secciones">
+          {SECTIONS.map((sec) => (
             <button
-              key={t.key}
+              key={sec.key}
               type="button"
               role="tab"
-              id={`pano-tab-${t.key}`}
-              aria-selected={tab === t.key}
-              aria-controls="pano-ranking-panel"
+              aria-selected={section === sec.key}
+              disabled={sec.disabled}
               className="pano-embed__tab"
-              onClick={() => setTab(t.key)}
+              onClick={() => !sec.disabled && setSection(sec.key)}
             >
-              {t.label}
+              {sec.disabled ? `${sec.label} · Próximamente` : sec.label}
             </button>
           ))}
-        </div>
+        </nav>
 
         <section
           id="pano-ranking-panel"
           role="tabpanel"
-          aria-labelledby={`pano-tab-${tab}`}
+          aria-label={SECTIONS.find((sec) => sec.key === section)?.label}
           aria-live="polite"
         >
           <h2 className="pano-embed__sr">
-            Clasificación — {TABS.find((t) => t.key === tab)?.label}
+            {SECTIONS.find((sec) => sec.key === section)?.label}
           </h2>
           {body()}
         </section>
