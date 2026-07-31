@@ -179,7 +179,7 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
         {Array.from({ length: Math.min(extraStrokes, 3) }).map((_, i) => (
           <span
             key={i}
-            className="w-[4px] h-[4px] rounded-full bg-accent inline-block"
+            className="sc-dot w-[4px] h-[4px] rounded-full bg-accent inline-block"
           />
         ))}
       </div>
@@ -208,13 +208,13 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
     <table className="text-xs w-full border-collapse">
       <thead>
         <tr>
-          <td className={holeLabelClass}>Forat</td>
+          <td className={holeLabelClass}>{L.hole}</td>
           {halfScores.map((_, i) => (
               <td key={i} className={holeCellClass}>
                 {startHole + i}
               </td>
           ))}
-          <td className={`${holeCellClass} ${totalCellClass} bg-[hsl(var(--primary)/0.12)]`}>Tot</td>
+          <td className={`${holeCellClass} ${totalCellClass} bg-[hsl(var(--primary)/0.12)]`}>{L.total}</td>
         </tr>
         {canCalcStableford && (
           <tr>
@@ -226,7 +226,7 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
                   {strokes > 0 && (
                     <div className="flex justify-center gap-[3px]">
                       {Array.from({ length: Math.min(strokes, 3) }).map((_, j) => (
-                        <span key={j} className="w-[6px] h-[6px] rounded-full bg-accent inline-block" />
+                        <span key={j} className="sc-dot w-[6px] h-[6px] rounded-full bg-accent inline-block" />
                       ))}
                     </div>
                   )}
@@ -237,7 +237,7 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
           </tr>
         )}
         <tr>
-          <td className={headerLabelClass}>Par</td>
+          <td className={headerLabelClass}>{L.par}</td>
           {halfPar.map((p, i) => (
             <td key={i} className={headerCellClass}>{p}</td>
           ))}
@@ -245,7 +245,7 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
         </tr>
         {halfHcp && (
           <tr>
-            <td className={headerLabelClass}>HCP</td>
+            <td className={headerLabelClass}>{L.hcp}</td>
             {halfHcp.map((h, i) => (
               <td key={i} className={headerCellClass}>{h}</td>
             ))}
@@ -255,7 +255,7 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
       </thead>
       <tbody>
         <tr>
-          <td className={`${resultLabelClass} font-semibold text-foreground`}>Cops</td>
+          <td className={`${resultLabelClass} font-semibold text-foreground`}>{L.strokes}</td>
           {halfScores.map((s, i) => (
             <td key={i} className={`${resultCellClass} bg-background`}>
               <div className="flex items-center justify-center h-[2.5rem]">
@@ -269,10 +269,10 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
         </tr>
         {halfStb && (
           <tr>
-            <td className={`${resultLabelClass} font-bold text-accent uppercase tracking-wider bg-secondary/30`}>Stb</td>
+            <td className={`${resultLabelClass} font-bold text-accent uppercase tracking-wider bg-secondary/30`}>{L.stb}</td>
             {halfStb.map((pts, i) => (
               <td key={i} className={`${resultCellClass} bg-secondary/20`}>
-                <span className={`inline-flex items-center justify-center w-8 h-8 rounded-md text-sm ${getStbStyle(pts)}`}>
+                <span className={`${stbBucket(pts)} inline-flex items-center justify-center w-8 h-8 rounded-md text-sm ${getStbStyle(pts)}`}>
                   {pts != null ? pts : '—'}
                 </span>
               </td>
@@ -302,11 +302,11 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
   ) => (
     <div className="rounded-md border border-border/40 overflow-hidden">
       <div className="grid grid-cols-5 bg-[hsl(var(--primary)/0.08)] text-[11px] font-medium text-muted-foreground/80">
-        <div className="py-1.5 text-center">Forat</div>
-        <div className="py-1.5 text-center">Par</div>
-        <div className="py-1.5 text-center">HCP</div>
-        <div className="py-1.5 text-center">Cops</div>
-        <div className="py-1.5 text-center text-accent">STB</div>
+        <div className="py-1.5 text-center">{L.hole}</div>
+        <div className="py-1.5 text-center">{L.par}</div>
+        <div className="py-1.5 text-center">{L.hcp}</div>
+        <div className="py-1.5 text-center">{L.strokes}</div>
+        <div className="py-1.5 text-center text-accent">{L.stb}</div>
       </div>
       {halfScores.map((s, i) => {
         const strokes = getStrokeMarker(holeOffset + i);
@@ -321,7 +321,7 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
               {strokes > 0 && (
                 <span className="flex gap-[2px]">
                   {Array.from({ length: Math.min(strokes, 3) }).map((_, j) => (
-                    <span key={j} className="w-[4px] h-[4px] rounded-full bg-accent inline-block" />
+                    <span key={j} className="sc-dot w-[4px] h-[4px] rounded-full bg-accent inline-block" />
                   ))}
                 </span>
               )}
@@ -331,7 +331,7 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
             <div className="flex items-center justify-center">{renderScore(s, halfPar[i])}</div>
             <div className="flex items-center justify-center">
               {halfStb ? (
-                <span className={`inline-flex items-center justify-center w-8 h-8 rounded-md text-sm ${getStbStyle(pts)}`}>
+                <span className={`${stbBucket(pts)} inline-flex items-center justify-center w-8 h-8 rounded-md text-sm ${getStbStyle(pts)}`}>
                   {pts != null ? pts : '—'}
                 </span>
               ) : (
@@ -342,7 +342,7 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
         );
       })}
       <div className="grid grid-cols-5 items-center min-h-[40px] border-t border-border/40 bg-[hsl(var(--primary)/0.12)] font-mono text-sm font-bold">
-        <div className="text-center text-[11px] uppercase tracking-wider text-muted-foreground font-body font-medium">Tot</div>
+        <div className="text-center text-[11px] uppercase tracking-wider text-muted-foreground font-body font-medium">{L.total}</div>
         <div className="text-center text-xs text-muted-foreground">{halfPar.reduce((a, b) => a + b, 0)}</div>
         <div />
         <div className="text-center text-foreground">{total != null ? total : '—'}</div>
@@ -352,7 +352,7 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
   );
 
   return (
-    <div className="space-y-3 min-w-0">
+    <div className={`space-y-3 min-w-0${isPano ? ' pano-sc' : ''}`}>
       {/* Mobile view: one hole per row, split in two halves */}
       <div className="sm:hidden space-y-2">
         <div className="grid grid-cols-2 gap-1 p-1 rounded-md bg-secondary/40 border border-border/40">
@@ -366,7 +366,7 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
                 mobileHalf === half ? 'bg-accent text-accent-foreground' : 'text-muted-foreground'
               }`}
             >
-              {half === 0 ? 'Forats 1–9' : 'Forats 10–18'}
+              {half === 0 ? L.holes1 : L.holes2}
             </button>
           ))}
         </div>
@@ -383,20 +383,20 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
 
 
       {/* Totales 18 hoyos dentro de la tarjeta */}
-      <div className="grid grid-cols-3 gap-1 sm:gap-2 border-2 border-accent/40 rounded-lg bg-secondary/30 p-2 sm:p-3">
+      <div className="sc-totals grid grid-cols-3 gap-1 sm:gap-2 border-2 border-accent/40 rounded-lg bg-secondary/30 p-2 sm:p-3">
         <div className="text-center">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">PAR CAMP</div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{L.coursePar}</div>
           <div className="font-mono font-bold text-base text-foreground mt-1">{totalPar}</div>
         </div>
         <div className="text-center border-x border-border/40">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Total cops</div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{L.totalStrokes}</div>
           <div className="font-mono font-bold text-base text-cream mt-1">
             {totalStrokes != null ? totalStrokes : '—'}
-            {hasLiftedBall && <span className="text-[9px] text-muted-foreground ml-1">(incomplet)</span>}
+            {hasLiftedBall && <span className="text-[9px] text-muted-foreground ml-1">{L.incomplete}</span>}
           </div>
         </div>
         <div className="text-center">
-          <div className="text-[10px] uppercase tracking-wider text-accent font-semibold">Total Stb</div>
+          <div className="text-[10px] uppercase tracking-wider text-accent font-semibold">{L.totalStb}</div>
           <div className="font-mono font-bold text-lg text-accent mt-1">{totalStb ?? '—'}</div>
         </div>
       </div>
