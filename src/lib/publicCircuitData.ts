@@ -54,9 +54,13 @@ export type PublicCircuitData = {
   results: PublicResult[];
 };
 
-export async function fetchPublicCircuitData(): Promise<PublicCircuitData> {
+export async function fetchPublicCircuitData(slug?: string): Promise<PublicCircuitData> {
+  // Nota: aquesta funció també s'usa directament com a queryFn, que rep el
+  // QueryFunctionContext com a primer argument — només acceptem strings.
+  const competitionSlug = typeof slug === 'string' && slug.trim() ? slug.trim() : undefined;
+
   const { data, error } = await supabase.functions.invoke('public-rankings-data', {
-    body: {},
+    body: competitionSlug ? { slug: competitionSlug } : {},
   });
 
   if (error) throw error;
