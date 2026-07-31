@@ -32,6 +32,9 @@ import NewsGenerationDialog from '@/components/admin/NewsGenerationDialog';
 import type { Tables, TablesInsert } from '@/integrations/supabase/types';
 import type { Database } from '@/integrations/supabase/types';
 
+const DEFAULT_CLUB = 'Panorámica';
+const DEFAULT_COURSE = 'Panorámica';
+
 type Round = Tables<'rounds'>;
 type Season = Tables<'seasons'>;
 type RoundStatus = Database['public']['Enums']['round_status'];
@@ -90,7 +93,7 @@ const AdminRounds = () => {
   const [form, setForm] = useState({
     name: '', round_number: '', date: '', end_date: '',
     club: '', course: '', sponsor: '', is_master: false,
-    season_id: '',
+    season_id: '', competition_id: '',
     course_par: '' as string,
     course_handicap: '' as string,
     course_handicap_women: '' as string,
@@ -136,6 +139,24 @@ const AdminRounds = () => {
         .order('round_number', { ascending: true });
       if (error) throw error;
       return data as Round[];
+    },
+  });
+
+  // Últimes dades de camp guardades (per defecte sempre Panoràmica)
+  const { data: courseDefaults } = useQuery({
+    queryKey: ['admin-course-defaults', activeSeasonId],
+    enabled: !!activeSeasonId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('rounds')
+        .select('club, course, course_par, course_handicap, course_handicap_women')
+        .eq('season_id', activeSeasonId)
+        .not('course_par', 'is', null)
+        .order('date', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
     },
   });
 
@@ -237,7 +258,7 @@ const AdminRounds = () => {
   // ─── MANUAL EDIT (always saves as current status, new rounds as draft) ───
   const saveMutation = useMutation({
     mutationFn: async () => {
-      if (!editingRound && !activeCompetitionId) throw new Error('Selecciona una competició abans de crear una jornada');
+      if (!form.competition_id && !editingRound && !activeCompetitionId) throw new Error('Selecciona una competició abans de crear una jornada');
       let coursePar: number[] | null = null;
       if (form.course_par.trim()) {
         coursePar = form.course_par.split(',').map(v => parseInt(v.trim())).filter(v => !isNaN(v));
@@ -274,7 +295,7 @@ const AdminRounds = () => {
         master_coefficient: form.is_master ? 1.25 : 1.0,
         status: editingRound ? editingRound.status : 'draft',
         season_id: form.season_id || activeSeasonId,
-        competition_id: editingRound ? editingRound.competition_id : activeCompetitionId,
+        competition_id: form.competition_id || (editingRound ? editingRound.competition_id : activeCompetitionId),
         course_par: coursePar,
         course_handicap: courseHandicap,
         course_handicap_women: courseHandicapWomen,
@@ -341,7 +362,7 @@ const AdminRounds = () => {
       date: round.date, end_date: round.end_date || '',
       club: round.club || '', course: round.course || '',
       sponsor: round.sponsor || '', is_master: round.is_master,
-      season_id: round.season_id,
+      season_id: round.season_id, competition_id: round.competition_id,
       course_par: parStr,
       course_handicap: hcpStr,
       course_handicap_women: hcpWomenStr,
@@ -353,12 +374,21 @@ const AdminRounds = () => {
   const openCreate = () => {
     setEditingRound(null);
     const n = (rounds?.reduce((max, r) => Math.max(max, r.round_number), 0) ?? 0) + 1;
+    const toStr = (v: unknown) => (Array.isArray(v) ? v.join(', ') : '');
+    const defPar = toStr(courseDefaults?.course_par);
+    const defHcp = toStr(courseDefaults?.course_handicap);
+    const defHcpW = toStr(courseDefaults?.course_handicap_women);
     setForm({
       name: `Jornada ${n}`, round_number: String(n),
-      date: '', end_date: '', club: '', course: '', sponsor: '',
+      date: '', end_date: '',
+      club: courseDefaults?.club || DEFAULT_CLUB,
+      course: courseDefaults?.course || DEFAULT_COURSE,
+      sponsor: '',
       is_master: false, season_id: activeSeasonId,
-      course_par: '', course_handicap: '',
-      course_handicap_women: '', has_women_handicap: false,
+      competition_id: activeCompetitionId,
+      course_par: defPar, course_handicap: defHcp,
+      course_handicap_women: defHcpW,
+      has_women_handicap: defHcpW.length > 0,
     });
     setDialogOpen(true);
   };
@@ -796,6 +826,24 @@ const AdminRounds = () => {
             </Badge>
           )}
           <form onSubmit={(e) => { e.preventDefault(); saveMutation.mutate(); }} className="space-y-4">
+            {competitions && competitions.length > 0 && (
+              <div className="space-y-2">
+                <Label>Competició</Label>
+                <Select
+                  value={form.competition_id || activeCompetitionId}
+                  onValueChange={(v) => setForm((prev) => ({ ...prev, competition_id: v }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {competitions.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>Nom</Label>
