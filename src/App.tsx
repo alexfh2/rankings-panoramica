@@ -42,6 +42,9 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Embed públic (sense Layout) */}
+            <Route path="/embed/individual-2026" element={<EmbedIndividual2026 />} />
+
             {/* Public routes */}
             <Route element={<Layout />}>
               <Route path="/" element={<Index />} />
