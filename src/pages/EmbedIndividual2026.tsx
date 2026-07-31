@@ -8,6 +8,7 @@ import {
   type CompetitionRankedPlayer,
 } from '@/hooks/useCompetitionIndividualRanking';
 import CompetitionRounds from '@/components/embed/CompetitionRounds';
+import { formatPlayerDisplayName } from '@/lib/formatPlayerDisplayName';
 import '@/styles/embed-panoramica.css';
 
 const SLUG = 'individual-2026';
