@@ -54,7 +54,7 @@ export type PublicCircuitData = {
   results: PublicResult[];
 };
 
-export async function fetchPublicCircuitData(slug?: string): Promise<PublicCircuitData> {
+export async function fetchPublicCircuitData(slug?: unknown): Promise<PublicCircuitData> {
   // Nota: aquesta funció també s'usa directament com a queryFn, que rep el
   // QueryFunctionContext com a primer argument — només acceptem strings.
   const competitionSlug = typeof slug === 'string' && slug.trim() ? slug.trim() : undefined;
