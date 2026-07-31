@@ -72,8 +72,43 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-    const [{ data: resultsData, error: resultsError }, { data: playersData, error: playersError }] = await Promise.all([
-      adminClient
+    // slug opcional: filtra per competició dins de Supabase
+    let slug: string | undefined;
+    if (req.method === "POST") {
+      try {
+        const body = await req.json();
+        if (body && typeof body === "object" && "slug" in body && body.slug !== undefined && body.slug !== null) {
+          if (typeof body.slug !== "string" || !body.slug.trim()) {
+            return new Response(JSON.stringify({ error: "slug must be a non-empty string" }), {
+              status: 400,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+          slug = body.slug.trim();
+        }
+      } catch (_e) {
+        // sense body o body invàlid: comportament per defecte
+      }
+    }
+
+    let competitionId: string | undefined;
+    if (slug) {
+      const { data: competition, error: competitionError } = await adminClient
+        .from("competitions")
+        .select("id")
+        .eq("slug", slug)
+        .maybeSingle();
+      if (competitionError) throw competitionError;
+      if (!competition) {
+        return new Response(JSON.stringify({ error: `Competition not found: ${slug}` }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      competitionId = competition.id;
+    }
+
+    let resultsQuery = adminClient
       .from("results")
       .select(`
         id,
@@ -94,15 +129,36 @@ Deno.serve(async (req) => {
         players!inner(id, name, license, club, gender, is_senior, initial_handicap, current_handicap, photo_url, created_at, updated_at)
       `)
       .eq("rounds.status", "published")
-      .not("stableford_points", "is", null),
-      adminClient
+      .not("stableford_points", "is", null);
+
+    if (competitionId) {
+      resultsQuery = resultsQuery.eq("rounds.competition_id", competitionId);
+    }
+
+    const { data: resultsData, error: resultsError } = await resultsQuery;
+    if (resultsError) throw resultsError;
+
+    let playersData: any[] = [];
+    if (competitionId) {
+      // Només els jugadors relacionats amb aquests resultats
+      const playerIds = Array.from(new Set((resultsData || []).map((row: any) => row.player_id)));
+      if (playerIds.length) {
+        const { data, error } = await adminClient
+          .from("players")
+          .select("id, license, name, club, current_handicap, initial_handicap, gender, is_senior, photo_url, created_at, updated_at")
+          .in("id", playerIds)
+          .order("name");
+        if (error) throw error;
+        playersData = data || [];
+      }
+    } else {
+      const { data, error } = await adminClient
         .from("players")
         .select("id, license, name, club, current_handicap, initial_handicap, gender, is_senior, photo_url, created_at, updated_at")
-        .order("name"),
-    ]);
-
-    if (resultsError) throw resultsError;
-    if (playersError) throw playersError;
+        .order("name");
+      if (error) throw error;
+      playersData = data || [];
+    }
 
     const results: RankingResultRow[] = (resultsData || []).map((row: any) => ({
       id: row.id,
