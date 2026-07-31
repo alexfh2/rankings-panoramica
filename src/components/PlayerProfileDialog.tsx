@@ -303,7 +303,7 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-none min-w-0 h-[100dvh] max-h-[100dvh] rounded-none translate-x-[-50%] translate-y-[-50%] p-0 gap-0 bg-card border-border flex flex-col overflow-hidden sm:max-w-3xl sm:h-auto sm:max-h-[90vh] sm:rounded-lg">
+      <DialogContent className={`w-full max-w-none min-w-0 h-[100dvh] max-h-[100dvh] rounded-none translate-x-[-50%] translate-y-[-50%] p-0 gap-0 bg-card border-border flex flex-col overflow-hidden sm:max-w-3xl sm:h-auto sm:max-h-[90vh] sm:rounded-lg${isPano ? ' pano-player-dialog sm:max-w-[960px]' : ''}`}>
         <DialogHeader className="shrink-0 h-14 justify-center px-4 sm:px-6 border-b border-border/50 bg-card">
           <DialogTitle className="flex items-center gap-2 font-display text-foreground text-base sm:text-lg">
             <User className="h-5 w-5 text-accent shrink-0" />
