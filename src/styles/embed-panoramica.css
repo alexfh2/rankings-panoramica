@@ -295,15 +295,33 @@
 }
 
 /* ── Matriz de jornadas del Orden del Mérito ─────────────────── */
-.pano-matrix__head {
-  display: flex;
+/* Definició única de columnes compartida per cabecera i files. */
+.pano-matrix__line {
+  display: grid;
+  grid-template-columns:
+    34px
+    minmax(0, 1fr)
+    repeat(var(--pano-round-count, 8), 30px)
+    62px;
+  gap: 8px;
   align-items: baseline;
-  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .pano-matrix__line {
+    grid-template-columns:
+      48px
+      minmax(0, 1fr)
+      repeat(var(--pano-round-count, 8), 40px)
+      80px;
+    gap: 12px;
+  }
+}
+
+.pano-matrix__head {
   padding: 10px 0 8px;
   border-bottom: 1px solid var(--pano-line);
 }
-
-.pano-matrix__head .pano-embed__name { flex: 1 1 auto; }
 
 .pano-matrix__head .pano-embed__points,
 .pano-matrix__head .pano-matrix__label {
@@ -313,14 +331,8 @@
   color: rgba(255, 255, 255, 0.45);
 }
 
-.pano-matrix__grid {
-  display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
-  gap: 2px;
-  flex: 0 0 auto;
-  width: 152px;
-  text-align: center;
-}
+/* Les cel·les passen a ser ítems de la mateixa rejilla que la cabecera. */
+.pano-matrix__grid { display: contents; }
 
 .pano-matrix__cell,
 .pano-matrix__label {
@@ -338,15 +350,15 @@
   text-decoration: line-through;
 }
 
+.pano-matrix__head .pano-embed__points,
 .pano-matrix__row .pano-embed__points {
-  flex: 0 0 58px;
-  color: var(--pano-muted);
+  text-align: right;
+  padding-right: 0;
 }
 
-.pano-matrix__head .pano-embed__points { flex: 0 0 58px; text-align: right; }
+.pano-matrix__row .pano-embed__points { color: var(--pano-muted); }
 
 @media (min-width: 768px) {
-  .pano-matrix__grid { width: 240px; gap: 4px; }
   .pano-matrix__cell,
   .pano-matrix__label { font-size: 13px; }
 }
@@ -355,25 +367,25 @@
 @media (max-width: 599px) {
   .pano-matrix__head { display: none; }
 
-  .pano-matrix__row {
-    display: grid;
-    grid-template-columns: 34px 1fr auto;
+  .pano-matrix__line.pano-matrix__row {
+    grid-template-columns: 34px minmax(0, 1fr) auto;
     grid-template-areas:
       'pos name total'
       'grid grid grid';
     row-gap: 8px;
     column-gap: 10px;
-    align-items: baseline;
   }
 
   .pano-matrix__row .pano-embed__pos { grid-area: pos; }
   .pano-matrix__row .pano-embed__name { grid-area: name; }
-  .pano-matrix__row .pano-embed__points { grid-area: total; flex: 0 0 auto; }
+  .pano-matrix__row .pano-embed__points { grid-area: total; }
 
   .pano-matrix__row .pano-matrix__grid {
     grid-area: grid;
-    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(var(--pano-round-count, 8), minmax(0, 1fr));
     gap: 2px;
+    width: 100%;
   }
 
   .pano-matrix__row .pano-matrix__cell { font-size: 11px; }
