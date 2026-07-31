@@ -299,22 +299,22 @@
 .pano-matrix__line {
   display: grid;
   grid-template-columns:
-    34px
+    30px
     minmax(0, 1fr)
-    repeat(var(--pano-round-count, 8), 30px)
-    62px;
-  gap: 8px;
+    repeat(var(--pano-round-count, 8), 26px)
+    64px;
+  gap: 6px;
   align-items: baseline;
 }
 
 @media (min-width: 768px) {
   .pano-matrix__line {
     grid-template-columns:
-      48px
+      44px
       minmax(0, 1fr)
-      repeat(var(--pano-round-count, 8), 40px)
-      80px;
-    gap: 12px;
+      repeat(var(--pano-round-count, 8), 32px)
+      82px;
+    gap: 10px;
   }
 }
 
@@ -329,6 +329,7 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.45);
+  font-weight: 400;
 }
 
 /* Les cel·les passen a ser ítems de la mateixa rejilla que la cabecera. */
@@ -338,12 +339,13 @@
 .pano-matrix__label {
   font-family: 'Inter', sans-serif;
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.85);
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.58);
   font-variant-numeric: tabular-nums;
   text-align: center;
 }
 
-.pano-matrix__cell--empty { color: rgba(255, 255, 255, 0.25); }
+.pano-matrix__cell--empty { color: rgba(255, 255, 255, 0.28); }
 
 .pano-matrix__cell--discarded {
   color: #C65A5A;
@@ -356,30 +358,54 @@
   padding-right: 0;
 }
 
-.pano-matrix__row .pano-embed__points { color: var(--pano-muted); }
+/* Jerarquia: el total destaca sobre P1–P8 */
+.pano-matrix__row .pano-embed__points {
+  font-family: 'Inter', sans-serif;
+  color: #F3EEE3;
+  white-space: nowrap;
+}
+
+.pano-matrix__total {
+  font-weight: 700;
+  font-size: 15px;
+  color: #F3EEE3;
+  font-variant-numeric: tabular-nums;
+}
+
+.pano-matrix__unit {
+  margin-left: 3px;
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(243, 238, 227, 0.6);
+}
 
 @media (min-width: 768px) {
   .pano-matrix__cell,
-  .pano-matrix__label { font-size: 13px; }
+  .pano-matrix__label { font-size: 12px; }
+  .pano-matrix__total { font-size: 17px; }
+  .pano-matrix__unit { font-size: 12px; }
 }
 
-/* Móvil: dos niveles por jugador */
+/* Móvil: dos niveles por jugador (cabecera i files comparteixen grid) */
 @media (max-width: 599px) {
-  .pano-matrix__head { display: none; }
-
+  .pano-matrix__line.pano-matrix__head,
   .pano-matrix__line.pano-matrix__row {
-    grid-template-columns: 34px minmax(0, 1fr) auto;
+    grid-template-columns: 30px minmax(0, 1fr) auto;
     grid-template-areas:
       'pos name total'
       'grid grid grid';
-    row-gap: 8px;
+    row-gap: 6px;
     column-gap: 10px;
   }
 
+  .pano-matrix__head .pano-embed__pos,
   .pano-matrix__row .pano-embed__pos { grid-area: pos; }
+  .pano-matrix__head .pano-embed__name,
   .pano-matrix__row .pano-embed__name { grid-area: name; }
+  .pano-matrix__head .pano-embed__points,
   .pano-matrix__row .pano-embed__points { grid-area: total; }
 
+  .pano-matrix__head .pano-matrix__grid,
   .pano-matrix__row .pano-matrix__grid {
     grid-area: grid;
     display: grid;
@@ -387,6 +413,11 @@
     gap: 2px;
     width: 100%;
   }
+
+  .pano-matrix__row .pano-matrix__cell { font-size: 11px; }
+  .pano-matrix__total { font-size: 14px; }
+}
+
 
   .pano-matrix__row .pano-matrix__cell { font-size: 11px; }
 }
