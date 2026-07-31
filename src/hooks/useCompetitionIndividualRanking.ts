@@ -20,6 +20,12 @@ export type CompetitionRankedPlayer = {
   displayHandicap: number | null;
   total: number;
   roundsPlayed: number;
+  /** Puntos por jornada (Stableford hcp en categorías; Scratch en la pestaña Scratch). */
+  pointsByRound: Record<string, number>;
+  /** IDs de jornada cuyos resultados SÍ entran en el total (los mejores bestN). */
+  countedRoundIds: string[];
+  /** IDs de jornada cuyos resultados quedan descartados por bestN. */
+  discardedRoundIds: string[];
 };
 
 export type CompetitionRankings = {
@@ -84,18 +90,24 @@ export function useCompetitionIndividualRanking(slug: string) {
   // La Edge Function ja filtra per competició al backend (slug) — sense filtre client.
   const results = useMemo(() => allResults ?? [], [allResults]);
 
+  // Mismo mapa de hándicap de categoría (primera participación) que usa el ranking.
+  const categoryHandicapMap = useMemo(
+    () => buildPlayerCategoryHandicapMap(results as any),
+    [results]
+  );
+
   const rankings = useMemo<CompetitionRankings>(() => {
     const empty: CompetitionRankings = { hcpLow: [], hcpHigh: [], scratch: [] };
     if (!results.length) return empty;
 
-    const categoryHcpMap = buildPlayerCategoryHandicapMap(results as any);
+    const categoryHcpMap = categoryHandicapMap;
     const lastHcpMap = buildPlayerLastHandicapMap(results as any);
 
     const byPlayer = new Map<string, {
       name: string;
       handicap: number | null;
       displayHandicap: number | null;
-      scores: { points: number; weighted: number }[];
+      scores: { roundId: string; points: number; weighted: number }[];
     }>();
 
     for (const r of results) {
@@ -112,14 +124,17 @@ export function useCompetitionIndividualRanking(slug: string) {
       const coef = r.rounds?.master_coefficient || 1;
       const isMaster = r.rounds?.is_master || false;
       const weighted = Math.round(r.stableford_points * (isMaster ? coef : 1));
-      byPlayer.get(pid)!.scores.push({ points: r.stableford_points, weighted });
+      byPlayer.get(pid)!.scores.push({ roundId: r.round_id, points: r.stableford_points, weighted });
     }
 
     const build = (filterFn: (p: { handicap: number | null }) => boolean): CompetitionRankedPlayer[] => {
       const list: CompetitionRankedPlayer[] = [];
       for (const [id, p] of byPlayer.entries()) {
         if (!filterFn(p)) continue;
-        const sorted = [...p.scores].sort((a, b) => b.weighted - a.weighted).slice(0, bestN);
+        const ranked = [...p.scores].sort((a, b) => b.weighted - a.weighted);
+        const sorted = ranked.slice(0, bestN);
+        const pointsByRound: Record<string, number> = {};
+        for (const s2 of p.scores) pointsByRound[s2.roundId] = s2.points;
         list.push({
           id,
           name: p.name,
@@ -127,6 +142,9 @@ export function useCompetitionIndividualRanking(slug: string) {
           displayHandicap: p.displayHandicap,
           total: sorted.reduce((s, x) => s + x.weighted, 0),
           roundsPlayed: p.scores.length,
+          pointsByRound,
+          countedRoundIds: sorted.map((x) => x.roundId),
+          discardedRoundIds: ranked.slice(bestN).map((x) => x.roundId),
         });
       }
       list.sort((a, b) => b.total - a.total);
@@ -134,7 +152,7 @@ export function useCompetitionIndividualRanking(slug: string) {
     };
 
     // Scratch (misma fórmula que /ranquings)
-    const scratchByPlayer = new Map<string, { name: string; handicap: number | null; displayHandicap: number | null; scores: number[] }>();
+    const scratchByPlayer = new Map<string, { name: string; handicap: number | null; displayHandicap: number | null; scores: { roundId: string; points: number }[] }>();
     for (const r of results) {
       if (!r.players_public) continue;
       let scratchPts = computeScratchStableford(r.scorecard, r.rounds?.course_par);
@@ -151,18 +169,24 @@ export function useCompetitionIndividualRanking(slug: string) {
           scores: [],
         });
       }
-      scratchByPlayer.get(pid)!.scores.push(scratchPts);
+      scratchByPlayer.get(pid)!.scores.push({ roundId: r.round_id, points: scratchPts });
     }
 
     const scratch: CompetitionRankedPlayer[] = Array.from(scratchByPlayer.entries()).map(([id, p]) => {
-      const sorted = [...p.scores].sort((a, b) => b - a).slice(0, bestN);
+      const ranked = [...p.scores].sort((a, b) => b.points - a.points);
+      const sorted = ranked.slice(0, bestN);
+      const pointsByRound: Record<string, number> = {};
+      for (const s2 of p.scores) pointsByRound[s2.roundId] = s2.points;
       return {
         id,
         name: p.name,
         handicap: p.handicap,
         displayHandicap: p.displayHandicap,
-        total: sorted.reduce((s, x) => s + x, 0),
+        total: sorted.reduce((s, x) => s + x.points, 0),
         roundsPlayed: p.scores.length,
+        pointsByRound,
+        countedRoundIds: sorted.map((x) => x.roundId),
+        discardedRoundIds: ranked.slice(bestN).map((x) => x.roundId),
       };
     });
     scratch.sort((a, b) => b.total - a.total);
@@ -172,13 +196,14 @@ export function useCompetitionIndividualRanking(slug: string) {
       hcpHigh: build((p) => p.handicap != null && p.handicap > categoryThreshold),
       scratch,
     };
-  }, [results, bestN, categoryThreshold]);
+  }, [results, bestN, categoryThreshold, categoryHandicapMap]);
 
   return {
     competition,
     rounds: rounds || [],
     results,
     rankings,
+    categoryHandicapMap,
     bestN,
     categoryThreshold,
     isLoading: competitionQuery.isLoading || roundsQuery.isLoading || resultsQuery.isLoading,

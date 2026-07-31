@@ -2,7 +2,7 @@
  * Vista pública per iframe — Orden del Mérito Individual 2026 (Panorámica).
  * Reutilitza íntegrament useCompetitionIndividualRanking; cap lògica nova.
  */
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   useCompetitionIndividualRanking,
   type CompetitionRankedPlayer,
@@ -28,29 +28,98 @@ const SECTIONS: { key: SectionKey; label: string; disabled?: boolean }[] = [
   { key: 'stats', label: 'Estadísticas', disabled: true },
 ];
 
+const MAX_MATRIX_ROUNDS = 8;
+
 const EmbedIndividual2026 = () => {
-  const { rounds, results, rankings, categoryThreshold, isLoading, error, competitionNotFound } =
-    useCompetitionIndividualRanking(SLUG);
+  const {
+    rounds,
+    results,
+    rankings,
+    categoryThreshold,
+    categoryHandicapMap,
+    isLoading,
+    error,
+    competitionNotFound,
+  } = useCompetitionIndividualRanking(SLUG);
   const [section, setSection] = useState<SectionKey>('ranking');
   const [tab, setTab] = useState<TabKey>('hcpLow');
 
   const state = (msg: string) => <p className="pano-embed__state">{msg}</p>;
 
+  // Columnas de la matriz: jornadas programadas ordenadas por round_number y fecha.
+  const matrixRounds = useMemo(
+    () =>
+      [...rounds]
+        .sort((a, b) => {
+          const an = a.round_number ?? Number.MAX_SAFE_INTEGER;
+          const bn = b.round_number ?? Number.MAX_SAFE_INTEGER;
+          if (an !== bn) return an - bn;
+          return (a.date ?? '').localeCompare(b.date ?? '');
+        })
+        .slice(0, MAX_MATRIX_ROUNDS),
+    [rounds]
+  );
+
   const renderList = (players: CompetitionRankedPlayer[]) => {
     if (!players.length) return state('Todavía no hay clasificación en esta categoría.');
     return (
-      <ol className="pano-embed__list">
-        {players.map((p, i) => (
-          <li key={p.id} className="pano-embed__row">
-            <span className="pano-embed__pos">{String(i + 1).padStart(2, '0')}</span>
-            <span className="pano-embed__name">{p.name}</span>
-            {p.roundsPlayed > 0 && (
-              <span className="pano-embed__rounds">{p.roundsPlayed} pruebas</span>
-            )}
-            <span className="pano-embed__points">{p.total} pts</span>
-          </li>
-        ))}
-      </ol>
+      <>
+        <div className="pano-matrix__head" aria-hidden="true">
+          <span className="pano-embed__pos" />
+          <span className="pano-embed__name" />
+          <span className="pano-matrix__grid">
+            {matrixRounds.map((r, i) => (
+              <span
+                key={r.id}
+                className="pano-matrix__label"
+                title={`${r.name}${r.date ? ` · ${r.date}` : ''}`}
+              >
+                P{r.round_number ?? i + 1}
+              </span>
+            ))}
+          </span>
+          <span className="pano-embed__points">Total</span>
+        </div>
+        <ol className="pano-embed__list">
+          {players.map((p, i) => {
+            const discarded = new Set(p.discardedRoundIds);
+            return (
+              <li
+                key={p.id}
+                className="pano-embed__row pano-matrix__row"
+                aria-label={`${p.name}, ${p.total} puntos, ${p.roundsPlayed} pruebas disputadas`}
+              >
+                <span className="pano-embed__pos">{String(i + 1).padStart(2, '0')}</span>
+                <span className="pano-embed__name">{p.name}</span>
+                <span className="pano-matrix__grid">
+                  {matrixRounds.map((r) => {
+                    const pts = p.pointsByRound[r.id];
+                    if (pts == null) {
+                      return (
+                        <span key={r.id} className="pano-matrix__cell pano-matrix__cell--empty">
+                          —
+                        </span>
+                      );
+                    }
+                    const isDiscarded = discarded.has(r.id);
+                    return (
+                      <span
+                        key={r.id}
+                        className={`pano-matrix__cell${isDiscarded ? ' pano-matrix__cell--discarded' : ''}`}
+                        title={isDiscarded ? 'Resultado descartado' : undefined}
+                        aria-label={isDiscarded ? `${pts} puntos — resultado descartado` : `${pts} puntos`}
+                      >
+                        {pts}
+                      </span>
+                    );
+                  })}
+                </span>
+                <span className="pano-embed__points">{p.total} pts</span>
+              </li>
+            );
+          })}
+        </ol>
+      </>
     );
   };
 
@@ -63,7 +132,12 @@ const EmbedIndividual2026 = () => {
 
     if (section === 'rounds') {
       return (
-        <CompetitionRounds rounds={rounds} results={results} categoryThreshold={categoryThreshold} />
+        <CompetitionRounds
+          rounds={rounds}
+          results={results}
+          categoryThreshold={categoryThreshold}
+          categoryHandicapMap={categoryHandicapMap}
+        />
       );
     }
 

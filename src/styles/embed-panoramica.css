@@ -293,3 +293,88 @@
   .pano-rounds__num { flex-basis: 48px; font-size: 20px; }
   .pano-rounds__name { font-size: 17px; }
 }
+
+/* ── Matriz de jornadas del Orden del Mérito ─────────────────── */
+.pano-matrix__head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 10px 0 8px;
+  border-bottom: 1px solid var(--pano-line);
+}
+
+.pano-matrix__head .pano-embed__name { flex: 1 1 auto; }
+
+.pano-matrix__head .pano-embed__points,
+.pano-matrix__head .pano-matrix__label {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.pano-matrix__grid {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 2px;
+  flex: 0 0 auto;
+  width: 152px;
+  text-align: center;
+}
+
+.pano-matrix__cell,
+.pano-matrix__label {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.85);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.pano-matrix__cell--empty { color: rgba(255, 255, 255, 0.25); }
+
+.pano-matrix__cell--discarded {
+  color: #C65A5A;
+  text-decoration: line-through;
+}
+
+.pano-matrix__row .pano-embed__points {
+  flex: 0 0 58px;
+  color: var(--pano-muted);
+}
+
+.pano-matrix__head .pano-embed__points { flex: 0 0 58px; text-align: right; }
+
+@media (min-width: 768px) {
+  .pano-matrix__grid { width: 240px; gap: 4px; }
+  .pano-matrix__cell,
+  .pano-matrix__label { font-size: 13px; }
+}
+
+/* Móvil: dos niveles por jugador */
+@media (max-width: 599px) {
+  .pano-matrix__head { display: none; }
+
+  .pano-matrix__row {
+    display: grid;
+    grid-template-columns: 34px 1fr auto;
+    grid-template-areas:
+      'pos name total'
+      'grid grid grid';
+    row-gap: 8px;
+    column-gap: 10px;
+    align-items: baseline;
+  }
+
+  .pano-matrix__row .pano-embed__pos { grid-area: pos; }
+  .pano-matrix__row .pano-embed__name { grid-area: name; }
+  .pano-matrix__row .pano-embed__points { grid-area: total; flex: 0 0 auto; }
+
+  .pano-matrix__row .pano-matrix__grid {
+    grid-area: grid;
+    width: 100%;
+    gap: 2px;
+  }
+
+  .pano-matrix__row .pano-matrix__cell { font-size: 11px; }
+}
