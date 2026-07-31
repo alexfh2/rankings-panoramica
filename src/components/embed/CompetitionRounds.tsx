@@ -19,6 +19,8 @@ type Props = {
   rounds: EmbedRound[];
   results: PublicResult[];
   categoryThreshold: number;
+  /** Hándicap de la primera participación por jugador (mismo mapa que el ranking acumulado). */
+  categoryHandicapMap: Map<string, number | null>;
 };
 
 type CatKey = 'hcpLow' | 'hcpHigh' | 'scratch';
@@ -45,7 +47,7 @@ const formatDate = (date: string | null) => {
   return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
 };
 
-const CompetitionRounds = ({ rounds, results, categoryThreshold }: Props) => {
+const CompetitionRounds = ({ rounds, results, categoryThreshold, categoryHandicapMap }: Props) => {
   const [openRound, setOpenRound] = useState<string | null>(null);
   const [catByRound, setCatByRound] = useState<Record<string, CatKey>>({});
 
@@ -70,19 +72,20 @@ const CompetitionRounds = ({ rounds, results, categoryThreshold }: Props) => {
     [rounds]
   );
 
+  // Categoría FIJA: hándicap de la primera participación en la competición.
+  const fixedCategory = (r: PublicResult): 'hcp_low' | 'hcp_high' | null => {
+    const h = categoryHandicapMap.get(r.player_id) ?? getHcp(r);
+    if (h == null) return null;
+    return h <= categoryThreshold ? 'hcp_low' : 'hcp_high';
+  };
+
   const categorize = (roundResults: PublicResult[]) => {
     const hcpLow = roundResults
-      .filter((r) => {
-        const h = getHcp(r);
-        return h != null && h <= categoryThreshold;
-      })
+      .filter((r) => fixedCategory(r) === 'hcp_low')
       .sort(sortByPointsThenLowHcp);
 
     const hcpHigh = roundResults
-      .filter((r) => {
-        const h = getHcp(r);
-        return h != null && h > categoryThreshold;
-      })
+      .filter((r) => fixedCategory(r) === 'hcp_high')
       .sort(sortByPointsThenLowHcp);
 
     // Scratch: mismo cálculo y fallback que la vista existente. Empate → gana hcp más alto.
