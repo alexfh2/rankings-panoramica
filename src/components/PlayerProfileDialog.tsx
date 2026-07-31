@@ -60,12 +60,15 @@ const initials = (name: string) =>
 
 const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, variant = 'default' }: PlayerProfileDialogProps) => {
   const { t, i18n } = useTranslation();
-  const locale = i18n.language === 'ca' ? ca : es;
+  const isPano = variant === 'panoramica';
+  const locale = isPano ? es : (i18n.language === 'ca' ? ca : es);
+  const dateFmt = isPano ? 'd MMMM' : 'dd MMM';
+  /** Etiquetes: dins de la variant Panorámica sempre en castellà. */
+  const tx = (key: string, esText: string) => (isPano ? esText : t(key));
   const [openCards, setOpenCards] = useState<string[]>([]);
   const [scratchMode, setScratchMode] = useState<Record<string, boolean>>({});
 
   const preloaded = competitionData ?? null;
-  const isPano = variant === 'panoramica';
 
   const { data: playerFromQuery } = useQuery({
     queryKey: [...publicCircuitDataQueryKey(), 'dialog-player', playerId],
@@ -214,8 +217,8 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className={`max-w-3xl${isPano ? ' pano-player-dialog' : ''}`}>
-          <DialogTitle className="sr-only">{t('players.profile')}</DialogTitle>
-          <p className="text-sm text-muted-foreground py-8 text-center">{t('common.loading')}</p>
+          <DialogTitle className="sr-only">{tx('players.profile', 'Ficha de jugador')}</DialogTitle>
+          <p className="text-sm text-muted-foreground py-8 text-center">{tx('common.loading', 'Cargando…')}</p>
         </DialogContent>
       </Dialog>
     );
@@ -269,25 +272,25 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
   };
 
   const stats = [
-    { label: 'Mitjana Stb.', value: avgStb, icon: TrendingUp },
-    { label: 'Millor Stb.', value: bestStb, icon: Trophy },
+    { label: isPano ? 'Media Stb.' : 'Mitjana Stb.', value: avgStb, icon: TrendingUp },
+    { label: isPano ? 'Mejor Stb.' : 'Millor Stb.', value: bestStb, icon: Trophy },
     { label: 'Birdies/r.', value: n ? (birdies / n).toFixed(1) : '—', icon: Bird },
     { label: 'Pars/r.', value: n ? (pars / n).toFixed(1) : '—', icon: Target },
     { label: 'Bogeys/r.', value: n ? (bogeys / n).toFixed(1) : '—', icon: Square },
-    { label: 'Doble+/r.', value: n ? (doublePlus / n).toFixed(1) : '—', icon: AlertTriangle },
+    { label: isPano ? 'Doble o más/r.' : 'Doble+/r.', value: n ? (doublePlus / n).toFixed(1) : '—', icon: AlertTriangle },
   ];
 
   const parAverages = [
-    { label: 'Mitjana Pars 3', value: formatParAvg(3), count: parGroupStats[3].count, par: 3 },
-    { label: 'Mitjana Pars 4', value: formatParAvg(4), count: parGroupStats[4].count, par: 4 },
-    { label: 'Mitjana Pars 5', value: formatParAvg(5), count: parGroupStats[5].count, par: 5 },
+    { label: isPano ? 'Media Pares 3' : 'Mitjana Pars 3', value: formatParAvg(3), count: parGroupStats[3].count, par: 3 },
+    { label: isPano ? 'Media Pares 4' : 'Mitjana Pars 4', value: formatParAvg(4), count: parGroupStats[4].count, par: 4 },
+    { label: isPano ? 'Media Pares 5' : 'Mitjana Pars 5', value: formatParAvg(5), count: parGroupStats[5].count, par: 5 },
   ];
 
   // Determine main category (by HCP) and subcategories
   // Categoría fijada por el HCP de la primera ronda jugada (consistente con Rankings).
   const hcp = positions?.categoryHcp ?? player.current_handicap;
-  const catLabelLow = preloaded ? `1ª Categoría (≤${threshold.toFixed(1)})` : 'HCP Baix (≤15.0)';
-  const catLabelHigh = preloaded ? `2ª Categoría (>${threshold.toFixed(1)})` : 'HCP Alt (>15.0)';
+  const catLabelLow = preloaded ? `1ª Categoría (≤${threshold.toFixed(1)})` : (isPano ? '1ª Categoría' : 'HCP Baix (≤15.0)');
+  const catLabelHigh = preloaded ? `2ª Categoría (>${threshold.toFixed(1)})` : (isPano ? '2ª Categoría' : 'HCP Alt (>15.0)');
   const mainCategory =
     hcp != null && hcp <= threshold
       ? { key: 'hcpLow', label: catLabelLow, pos: positions?.hcpLow }
@@ -297,8 +300,8 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
 
   const subCategories: { label: string; pos: { pos: number; total: number; of: number } | null | undefined }[] = [];
   if (preloaded && positions?.scratch) subCategories.push({ label: 'Scratch', pos: positions.scratch });
-  if (player.gender === 'F') subCategories.push({ label: 'Femení', pos: positions?.female });
-  if (player.is_senior) subCategories.push({ label: 'Sènior', pos: positions?.senior });
+  if (player.gender === 'F') subCategories.push({ label: isPano ? 'Femenino' : 'Femení', pos: positions?.female });
+  if (player.is_senior) subCategories.push({ label: isPano ? 'Sénior' : 'Sènior', pos: positions?.senior });
 
 
   return (
@@ -307,7 +310,7 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
         <DialogHeader className="shrink-0 h-14 justify-center px-4 sm:px-6 border-b border-border/50 bg-card">
           <DialogTitle className="flex items-center gap-2 font-display text-foreground text-base sm:text-lg">
             <User className="h-5 w-5 text-accent shrink-0" />
-            <span className="truncate">{t('players.profile')}</span>
+            <span className="truncate">{tx('players.profile', 'Ficha de jugador')}</span>
           </DialogTitle>
         </DialogHeader>
 
@@ -325,7 +328,7 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
               {player.name}
             </h3>
             <p className="text-xs text-cream-dark mt-1 break-words">
-              {results?.length || 0} {(results?.length || 0) === 1 ? t('players.singleRound') : t('players.multipleRounds')}
+              {results?.length || 0} {(results?.length || 0) === 1 ? tx('players.singleRound', 'prueba') : tx('players.multipleRounds', 'pruebas')}
               {player.current_handicap != null && <> · Hcp {player.current_handicap}</>}
               {player.club && <> · {player.club}</>}
             </p>
@@ -337,7 +340,7 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
           {/* Category positions */}
           {mainCategory && (
             <div>
-              <h4 className="font-display font-semibold text-sm mb-3 text-foreground">{t('rankings.position')}</h4>
+              <h4 className="font-display font-semibold text-sm mb-3 text-foreground">{tx('rankings.position', 'Posición')}</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                 {/* Main category */}
                 <div className="border border-border/50 rounded-lg p-4 bg-secondary/30">
@@ -356,7 +359,7 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
                     </div>
                     <div className="text-right">
                       <div className="font-mono font-bold text-base text-foreground">{mainCategory.pos?.total ?? '—'}</div>
-                      <div className="text-[10px] text-muted-foreground leading-none">{t('common.points')}</div>
+                      <div className="text-[10px] text-muted-foreground leading-none">{tx('common.points', 'puntos')}</div>
                     </div>
                   </div>
                 </div>
@@ -379,7 +382,7 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
                       </div>
                       <div className="text-right">
                         <div className="font-mono font-bold text-base text-foreground">{sub.pos?.total ?? '—'}</div>
-                        <div className="text-[10px] text-muted-foreground leading-none">{t('common.points')}</div>
+                        <div className="text-[10px] text-muted-foreground leading-none">{tx('common.points', 'puntos')}</div>
                       </div>
                     </div>
                   </div>
@@ -403,7 +406,7 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
 
             return (
               <div className="min-w-0">
-                <h4 className="font-display font-semibold text-sm mb-3 text-foreground">{t('players.hcpEvolution')}</h4>
+                <h4 className="font-display font-semibold text-sm mb-3 text-foreground">{tx('players.hcpEvolution', 'Evolución del hándicap')}</h4>
                 <div className="bg-secondary/20 rounded-lg p-3 border border-border/40 min-w-0">
                   <HcpEvolutionChart data={hcpData} />
                 </div>
@@ -415,7 +418,7 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
           {/* Statistics */}
           {n > 0 && (
             <div className="min-w-0">
-              <h4 className="font-display font-semibold text-sm mb-3 text-foreground">{t('stats.title')}</h4>
+              <h4 className="font-display font-semibold text-sm mb-3 text-foreground">{tx('stats.title', 'Estadísticas')}</h4>
               <div className="grid grid-cols-2 min-[390px]:grid-cols-3 sm:grid-cols-6 gap-x-2 gap-y-4 sm:gap-3 bg-secondary/20 rounded-lg p-3 border border-border/40">
                 {stats.map((s) => (
                   <div key={s.label} className="text-center min-w-0">
@@ -438,12 +441,12 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
                         <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-1 leading-tight">{p.label}</div>
                         <div className="font-display font-extrabold text-lg sm:text-xl text-foreground tabular-nums leading-tight">
                           {p.count > 0 ? `${p.value}` : '—'}
-                          {p.count > 0 && <span className="text-[10px] text-muted-foreground font-body font-normal ml-1">cops</span>}
+                          {p.count > 0 && <span className="text-[10px] text-muted-foreground font-body font-normal ml-1">{isPano ? 'golpes' : 'cops'}</span>}
                         </div>
                         <div className="text-[11px] sm:text-[10px] text-muted-foreground/70 mt-0.5 leading-tight">
                           {p.count > 0 ? (
-                            <>{p.count} forats · {overPar! >= 0 ? '+' : ''}{overPar!.toFixed(2)} sobre par</>
-                          ) : 'Sense dades'}
+                            <>{p.count} {isPano ? 'hoyos' : 'forats'} · {overPar! >= 0 ? '+' : ''}{overPar!.toFixed(2)} {isPano ? 'sobre el par' : 'sobre par'}</>
+                          ) : (isPano ? 'Sin datos' : 'Sense dades')}
                         </div>
                       </div>
                     );
@@ -458,7 +461,7 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
 
           {/* Rounds list */}
           <div>
-            <h4 className="font-display font-semibold text-sm mb-3 text-foreground">{t('players.roundsPlayed')}</h4>
+            <h4 className="font-display font-semibold text-sm mb-3 text-foreground">{tx('players.roundsPlayed', 'Pruebas jugadas')}</h4>
             {results && results.length > 0 ? (
               <Accordion type="multiple" value={openCards} onValueChange={setOpenCards} className="space-y-2">
                 {results.map((r) => {
@@ -492,11 +495,11 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
                               {round?.is_master && <Badge variant="secondary" className="text-[9px] px-1.5 py-0 bg-accent/20 text-accent border-0 shrink-0">M</Badge>}
                             </div>
                             <span className="block sm:hidden text-[11px] text-muted-foreground mt-0.5">
-                              {round?.date ? format(new Date(round.date), 'dd MMM', { locale }) : ''}
+                              {round?.date ? format(new Date(round.date), dateFmt, { locale }) : ''}
                             </span>
                           </div>
                           <span className="hidden sm:block text-xs text-muted-foreground mr-2 shrink-0">
-                            {round?.date ? format(new Date(round.date), 'dd MMM', { locale }) : ''}
+                            {round?.date ? format(new Date(round.date), dateFmt, { locale }) : ''}
                           </span>
                           <span className="font-mono font-bold text-sm text-foreground mr-1 shrink-0">{r.stableford_points ?? '—'}</span>
                         </div>
@@ -504,24 +507,24 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
 
                       <AccordionContent className="px-3 pb-3 bg-secondary/20">
                         <div className="flex items-center gap-2 sm:gap-3 mb-3 text-xs flex-wrap min-w-0">
-                          <div className="flex w-full sm:inline-flex sm:w-auto rounded-md border border-accent/30 overflow-hidden shadow-sm" role="group" aria-label="Modo de puntuación">
+                          <div className="flex w-full sm:inline-flex sm:w-auto rounded-md border border-accent/30 overflow-hidden shadow-sm" role="group" aria-label={isPano ? 'Modo de puntuación' : 'Mode de puntuació'}>
 
                             <button
                               type="button"
                               onClick={() => setScratchMode((m) => ({ ...m, [r.id]: false }))}
-                              className={`flex-1 sm:flex-none px-3 py-2 sm:py-1.5 min-h-[40px] text-xs font-medium transition-all ${
+                              className={`sc-mode-btn flex-1 sm:flex-none px-3 py-2 sm:py-1.5 min-h-[40px] text-xs font-medium transition-all ${
                                 !scratchMode[r.id]
                                   ? 'bg-accent text-accent-foreground shadow-inner'
                                   : 'bg-card text-muted-foreground hover:bg-accent/10 hover:text-foreground'
                               }`}
                               aria-pressed={!scratchMode[r.id]}
                             >
-                              Stb HCP <strong className="ml-1 font-mono">{r.stableford_points ?? '—'}</strong>
+                              {isPano ? 'Stableford Hándicap' : 'Stb HCP'} <strong className="ml-1 font-mono">{r.stableford_points ?? '—'}</strong>
                             </button>
                             <button
                               type="button"
                               onClick={() => setScratchMode((m) => ({ ...m, [r.id]: true }))}
-                              className={`flex-1 sm:flex-none px-3 py-2 sm:py-1.5 min-h-[40px] text-xs font-medium transition-all border-l border-accent/30 ${
+                              className={`sc-mode-btn flex-1 sm:flex-none px-3 py-2 sm:py-1.5 min-h-[40px] text-xs font-medium transition-all border-l border-accent/30 ${
                                 scratchMode[r.id]
                                   ? 'bg-accent text-accent-foreground shadow-inner'
                                   : 'bg-card text-muted-foreground hover:bg-accent/10 hover:text-foreground'
@@ -531,7 +534,7 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
                               Scratch <strong className="ml-1 font-mono">{scratchStableford ?? '—'}</strong>
                             </button>
                           </div>
-                          <span className="text-[10px] text-muted-foreground italic">Clica per alternar</span>
+                          <span className="text-[10px] text-muted-foreground italic">{isPano ? 'Pulsa para alternar' : 'Clica per alternar'}</span>
                           <span className="text-muted-foreground ml-auto">
                             HCP: <strong className="text-foreground">{r.handicap_at_round ?? '—'}</strong>{handicapPlay != null ? ` (HPU: ${handicapPlay})` : ''}
                           </span>
@@ -545,10 +548,12 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
                               handicapWomen={Array.isArray((round as any)?.course_handicap_women) ? (round as any).course_handicap_women : undefined}
                               playerGender={player.gender}
                               playerHandicap={scratchMode[r.id] ? 0 : (handicapPlay ?? r.handicap_at_round)}
+                              locale={isPano ? 'es' : 'ca'}
+                              variant={isPano ? 'panoramica' : 'default'}
                             />
                           </div>
                         ) : (
-                          <p className="text-xs text-muted-foreground">{t('players.noScorecard')}</p>
+                          <p className="text-xs text-muted-foreground">{tx('players.noScorecard', 'Sin tarjeta disponible')}</p>
                         )}
                       </AccordionContent>
                     </AccordionItem>
@@ -556,7 +561,7 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
                 })}
               </Accordion>
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-4">{t('players.noRounds')}</p>
+              <p className="text-sm text-muted-foreground text-center py-4">{tx('players.noRounds', 'Todavía no hay pruebas registradas')}</p>
             )}
           </div>
         </div>
