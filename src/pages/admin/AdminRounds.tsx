@@ -855,7 +855,7 @@ const AdminRounds = () => {
             )}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>Nom</Label>
+                <Label>Nom de la jornada</Label>
                 <Input value={form.name} onChange={(e) => updateField('name', e.target.value)} required />
               </div>
               <div className="space-y-2">
