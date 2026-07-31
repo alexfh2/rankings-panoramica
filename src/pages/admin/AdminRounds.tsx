@@ -204,6 +204,7 @@ const AdminRounds = () => {
         master_coefficient: 1.0,
         status: 'draft' as RoundStatus,
         season_id: activeSeasonId,
+        competition_id: activeCompetitionId,
         external_links: r.detail_url ? [{ url: r.detail_url, label: 'Web' }] : [],
       }));
 
