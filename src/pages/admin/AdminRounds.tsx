@@ -168,6 +168,7 @@ const AdminRounds = () => {
   const invalidateRounds = () => {
     queryClient.invalidateQueries({ queryKey: ['admin-rounds', activeSeasonId, activeCompetitionId] });
     queryClient.invalidateQueries({ queryKey: ['admin-rounds'] });
+    queryClient.invalidateQueries({ queryKey: ['admin-course-defaults'] });
   };
 
   // ─── IMPORT FROM URL ───
