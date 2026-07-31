@@ -107,6 +107,22 @@ const AdminRounds = () => {
 
   const activeSeasonId = selectedSeason || seasons?.[0]?.id || '';
 
+  const { data: competitions } = useQuery({
+    queryKey: ['admin-competitions-list', activeSeasonId],
+    enabled: !!activeSeasonId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('competitions')
+        .select('*')
+        .eq('season_id', activeSeasonId)
+        .order('name');
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const activeCompetitionId = selectedCompetition || competitions?.[0]?.id || '';
+
   const { data: rounds, isLoading } = useQuery({
     queryKey: ['admin-rounds', activeSeasonId],
     enabled: !!activeSeasonId,
