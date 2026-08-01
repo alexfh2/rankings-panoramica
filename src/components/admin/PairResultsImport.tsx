@@ -315,6 +315,8 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
       setParsed(result);
       setFileName(file.name);
       setExpanded(new Set());
+      setImportResult(null);
+      setImportError(null);
       if (result.errors.some((e) => e.blocking)) {
         toast({
           title: 'Archivo con errores',
@@ -339,6 +341,57 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
       return next;
     });
   };
+
+  const fourballWarningPending = rows.some(
+    (r) =>
+      r.fourball?.validationStatus === 'mismatch' ||
+      r.fourball?.validationStatus === 'provisional' ||
+      r.fourball?.validationStatus === 'insufficient_data',
+  );
+
+  const canTriggerImport =
+    summary.canImport && !!fileName && !!roundId && !!competitionId && !importing && !importResult;
+
+  const runImport = async () => {
+    if (!canTriggerImport || !fileName) return;
+    setImporting(true);
+    setImportError(null);
+    setConfirmOpen(false);
+    try {
+      const payload = buildPairImportPayload(rows.map((r) => ({ pair: r.pair, fourball: r.fourball })));
+      const { data, error } = await supabase.rpc('import_pair_results_batch', {
+        p_round_id: roundId,
+        p_source_filename: fileName,
+        p_pairs: payload as unknown as never,
+      });
+      if (error) throw error;
+      setImportResult((data ?? {}) as PairImportRpcSummary);
+      toast({ title: 'Resultados de parejas importados correctamente.' });
+      queryClient.invalidateQueries({ queryKey: ['admin-pair-import-players'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-pair-import-pairs', competitionId] });
+      queryClient.invalidateQueries({ queryKey: ['admin-pair-results', roundId] });
+      queryClient.invalidateQueries({ queryKey: ['admin-import-logs', roundId] });
+      queryClient.invalidateQueries({ queryKey: ['admin-rounds'] });
+    } catch (err) {
+      const raw = err instanceof Error ? err.message : String(err);
+      console.error('[PairResultsImport] import_pair_results_batch failed', err);
+      setImportError(mapPairImportError(raw));
+      toast({ title: 'No se ha podido importar el archivo.', variant: 'destructive' });
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const handleFinish = () => {
+    onCompleted?.();
+    setParsed(null);
+    setFileName(null);
+    setExpanded(new Set());
+    setImportResult(null);
+    setImportError(null);
+    onClose?.();
+  };
+
 
   return (
     <div className="space-y-5">
