@@ -174,12 +174,15 @@ const CompetitionStats = ({ results, rankings, bestN, showScratch = true, onPlay
             <h4 className="pano-stats__h2">Stableford Hándicap</h4>
             {renderEntries(stats.bestHandicapRounds, 'pts')}
           </div>
-          <div className="pano-stats__block">
-            <h4 className="pano-stats__h2">Scratch</h4>
-            {renderEntries(stats.bestScratchRounds, 'pts')}
-          </div>
+          {showScratch && (
+            <div className="pano-stats__block">
+              <h4 className="pano-stats__h2">Scratch</h4>
+              {renderEntries(stats.bestScratchRounds, 'pts')}
+            </div>
+          )}
         </div>
       </section>
+
 
       {/* D. Regularidad y Birdies */}
       <section className="pano-stats__section">
