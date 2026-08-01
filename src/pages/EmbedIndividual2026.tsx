@@ -26,11 +26,12 @@ const TABS: { key: TabKey; label: string }[] = [
 
 type SectionKey = 'ranking' | 'rounds' | 'stats';
 
-const SECTIONS: { key: SectionKey; label: string; disabled?: boolean }[] = [
+const SECTIONS: { key: SectionKey; label: string }[] = [
   { key: 'ranking', label: 'Orden del mérito' },
   { key: 'rounds', label: 'Pruebas' },
-  { key: 'stats', label: 'Estadísticas', disabled: true },
+  { key: 'stats', label: 'Estadísticas' },
 ];
+
 
 const MAX_MATRIX_ROUNDS = 8;
 
