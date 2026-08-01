@@ -196,10 +196,11 @@
 }
 
 .pano-embed__state--lead {
-  font-family: var(--pano-serif, 'Fraunces', Georgia, serif);
+  font-family: 'Fraunces', Georgia, serif;
   font-style: italic;
   font-size: 20px;
-  color: var(--pano-ivory, #f3eee3);
+  color: var(--pano-ivory);
+
   padding: 48px 0 8px;
 }
 
