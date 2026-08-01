@@ -21,6 +21,8 @@ type Props = {
   categoryThreshold: number;
   /** Hándicap de la primera participación por jugador (mismo mapa que el ranking acumulado). */
   categoryHandicapMap: Map<string, number | null>;
+  /** Mostrar la categoría Scratch (Individual: true; Liga de Verano: false). */
+  showScratch?: boolean;
   /** Obre la fitxa del jugador (opcional). */
   onPlayerClick?: (playerId: string) => void;
 };
@@ -28,11 +30,12 @@ type Props = {
 
 type CatKey = 'hcpLow' | 'hcpHigh' | 'scratch';
 
-const CATS: { key: CatKey; label: string }[] = [
+const ALL_CATS: { key: CatKey; label: string }[] = [
   { key: 'hcpLow', label: '1ª Categoría' },
   { key: 'hcpHigh', label: '2ª Categoría' },
   { key: 'scratch', label: 'Scratch' },
 ];
+
 
 const getHcp = (r: PublicResult) => r.handicap_at_round ?? r.players_public?.current_handicap ?? null;
 
@@ -50,9 +53,14 @@ const formatDate = (date: string | null) => {
   return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
 };
 
-const CompetitionRounds = ({ rounds, results, categoryThreshold, categoryHandicapMap, onPlayerClick }: Props) => {
+const CompetitionRounds = ({ rounds, results, categoryThreshold, categoryHandicapMap, showScratch = true, onPlayerClick }: Props) => {
+  const CATS = useMemo(
+    () => (showScratch ? ALL_CATS : ALL_CATS.filter((c) => c.key !== 'scratch')),
+    [showScratch]
+  );
   const [openRound, setOpenRound] = useState<string | null>(null);
   const [catByRound, setCatByRound] = useState<Record<string, CatKey>>({});
+
 
   // Agrupación de resultados por round_id a partir del array ya cargado.
   const resultsByRound = useMemo(() => {

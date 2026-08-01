@@ -13,13 +13,16 @@ type Props = {
   results: PublicResult[];
   rankings: CompetitionRankings;
   bestN: number;
+  /** Mostrar els blocs Scratch (Individual: true; Liga de Verano: false). */
+  showScratch?: boolean;
   onPlayerClick?: (playerId: string) => void;
 };
 
 const NO_DATA = 'Sin datos suficientes';
 const TOP = 5;
 
-const CompetitionStats = ({ results, rankings, bestN, onPlayerClick }: Props) => {
+const CompetitionStats = ({ results, rankings, bestN, showScratch = true, onPlayerClick }: Props) => {
+
   const stats = useMemo(() => computeCompetitionStats(results), [results]);
 
   const PlayerName = ({ id, name }: { id: string; name: string }) => (
@@ -96,9 +99,10 @@ const CompetitionStats = ({ results, rankings, bestN, onPlayerClick }: Props) =>
     return [
       pick('1ª Categoría', rankings.hcpLow),
       pick('2ª Categoría', rankings.hcpHigh),
-      pick('Scratch', rankings.scratch),
+      ...(showScratch ? [pick('Scratch', rankings.scratch)] : []),
     ];
-  }, [rankings]);
+  }, [rankings, showScratch]);
+
 
   if (!results.length) {
     return <p className="pano-embed__state">Todavía no hay resultados publicados.</p>;
@@ -136,7 +140,7 @@ const CompetitionStats = ({ results, rankings, bestN, onPlayerClick }: Props) =>
       {/* B. Líderes actuales */}
       <section className="pano-stats__section">
         <h3 className="pano-stats__h1">Líderes actuales</h3>
-        <div className="pano-stats__strip pano-stats__strip--3">
+        <div className={`pano-stats__strip pano-stats__strip--${leaders.length === 2 ? '2' : '3'}`}>
           {leaders.map((l) => (
             <div key={l.label} className="pano-stats__leader">
               <span className="pano-stats__cat">{l.label}</span>
@@ -170,12 +174,15 @@ const CompetitionStats = ({ results, rankings, bestN, onPlayerClick }: Props) =>
             <h4 className="pano-stats__h2">Stableford Hándicap</h4>
             {renderEntries(stats.bestHandicapRounds, 'pts')}
           </div>
-          <div className="pano-stats__block">
-            <h4 className="pano-stats__h2">Scratch</h4>
-            {renderEntries(stats.bestScratchRounds, 'pts')}
-          </div>
+          {showScratch && (
+            <div className="pano-stats__block">
+              <h4 className="pano-stats__h2">Scratch</h4>
+              {renderEntries(stats.bestScratchRounds, 'pts')}
+            </div>
+          )}
         </div>
       </section>
+
 
       {/* D. Regularidad y Birdies */}
       <section className="pano-stats__section">

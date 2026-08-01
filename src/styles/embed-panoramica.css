@@ -195,6 +195,20 @@
   text-align: center;
 }
 
+.pano-embed__state--lead {
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic;
+  font-size: 20px;
+  color: var(--pano-ivory);
+
+  padding: 48px 0 8px;
+}
+
+.pano-embed__state--lead + .pano-embed__state {
+  padding-top: 0;
+}
+
+
 .pano-embed__sr {
   position: absolute;
   width: 1px;
