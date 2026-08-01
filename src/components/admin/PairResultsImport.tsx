@@ -109,12 +109,18 @@ const CONTRIB_MARK: Record<FourballContributor, string> = {
 };
 
 const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Props) => {
-  void onCompleted;
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [parsed, setParsed] = useState<ParsePairExcelResult | null>(null);
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<PairImportRpcSummary | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [warningsOpen, setWarningsOpen] = useState(false);
+
 
   const { data: round } = useQuery({
     queryKey: ['admin-pair-import-round', roundId],
