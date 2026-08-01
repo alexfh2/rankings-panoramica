@@ -354,7 +354,17 @@ const EmbedCompetitionView = ({
         competitionData={competitionData}
         variant="panoramica"
       />
+
+      {rules && (
+        <CompetitionRulesDialog
+          open={rulesOpen}
+          onOpenChange={setRulesOpen}
+          rules={rules}
+          officialPdfUrl={officialPdfUrl}
+        />
+      )}
     </div>
+
   );
 };
 
