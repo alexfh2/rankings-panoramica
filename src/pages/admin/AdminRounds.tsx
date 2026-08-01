@@ -1092,17 +1092,25 @@ const AdminRounds = () => {
 
       {/* Results import dialog */}
       <Dialog open={!!resultsRound} onOpenChange={(open) => !open && setResultsRound(null)}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="font-display">
               Importar resultats — {resultsRound?.name}
             </DialogTitle>
           </DialogHeader>
           {resultsRound && (
-            <RoundResultsImport
-              round={resultsRound}
-              onClose={() => setResultsRound(null)}
-            />
+            competitions?.find((c) => c.id === resultsRound.competition_id)?.format === 'pairs' ? (
+              <PairResultsImport
+                roundId={resultsRound.id}
+                competitionId={resultsRound.competition_id}
+                onClose={() => setResultsRound(null)}
+              />
+            ) : (
+              <RoundResultsImport
+                round={resultsRound}
+                onClose={() => setResultsRound(null)}
+              />
+            )
           )}
         </DialogContent>
       </Dialog>
