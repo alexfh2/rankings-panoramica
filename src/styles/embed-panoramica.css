@@ -555,9 +555,10 @@
 }
 .pano-player-dialog tbody td { background-color: var(--pano-cell) !important; }
 
-/* Fila "Golpes" en las tarjetas de escritorio (variante Panorámica) */
-.pano-player-dialog .pano-sc tbody tr:first-child td {
-  background-color: #171D19 !important;
+/* Fila "Golpes" en las tarjetas de escritorio (variante Panorámica).
+   Usa una classe semàntica estable en lloc de depenir de l'ordre del DOM. */
+.pano-player-dialog .pano-sc .sc-row--strokes > td {
+  background-color: #1E271F !important;
 }
 .pano-player-dialog .pano-sc .font-mono { color: var(--pano-ink); }
 .pano-player-dialog .pano-sc .text-muted-foreground { color: var(--pano-ink-2) !important; }
