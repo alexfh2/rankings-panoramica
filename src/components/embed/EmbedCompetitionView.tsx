@@ -10,6 +10,9 @@ import {
 } from '@/hooks/useCompetitionIndividualRanking';
 import CompetitionRounds from '@/components/embed/CompetitionRounds';
 import CompetitionStats from '@/components/embed/CompetitionStats';
+import CompetitionRulesDialog from '@/components/embed/CompetitionRulesDialog';
+import type { CompetitionRules } from '@/data/competitionRules';
+
 
 import PlayerProfileDialog, { type PlayerProfileCompetitionData } from '@/components/PlayerProfileDialog';
 import { formatPlayerDisplayName } from '@/lib/formatPlayerDisplayName';
@@ -42,8 +45,10 @@ export type EmbedCompetitionViewProps = {
   emptyRankingTitle?: string;
   emptyRankingSubtitle?: string;
   emptyStatsText?: string;
-  /** Enllaç públic al reglament (PDF). Si no hi és, no es renderitza res. */
-  regulationUrl?: string;
+  /** Reglament resumit; si no hi és, no es renderitza el botó. */
+  rules?: CompetitionRules;
+  /** PDF oficial enllaçat com a acció secundària dins del modal. */
+  officialPdfUrl?: string;
   regulationLabel?: string;
   regulationAriaLabel?: string;
 };
@@ -59,9 +64,11 @@ const EmbedCompetitionView = ({
   emptyRankingTitle = 'Todavía no hay resultados publicados.',
   emptyRankingSubtitle,
   emptyStatsText = 'Todavía no hay resultados publicados.',
-  regulationUrl,
-  regulationLabel = 'VER REGLAMENTO',
+  rules,
+  officialPdfUrl,
+  regulationLabel = 'REGLAMENTO',
   regulationAriaLabel,
+
 
 }: EmbedCompetitionViewProps) => {
   const {
@@ -95,6 +102,8 @@ const EmbedCompetitionView = ({
   const [section, setSection] = useState<SectionKey>('ranking');
   const [tab, setTab] = useState<TabKey>('hcpLow');
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const [rulesOpen, setRulesOpen] = useState(false);
+
 
   // Jugadors derivats dels resultats ja carregats (cap consulta nova).
   const players = useMemo<PublicPlayer[]>(() => {
@@ -313,18 +322,17 @@ const EmbedCompetitionView = ({
               </button>
             ))}
           </nav>
-          {regulationUrl && (
-            <a
+          {rules && (
+            <button
+              type="button"
               className="pano-embed__regulation-link"
-              href={regulationUrl}
-              target="_blank"
-              rel="noopener noreferrer"
               aria-label={regulationAriaLabel ?? regulationLabel}
+              onClick={() => setRulesOpen(true)}
             >
               {regulationLabel}
-              <span className="pano-embed__regulation-arrow" aria-hidden="true">↗</span>
-            </a>
+            </button>
           )}
+
         </div>
 
 
@@ -346,7 +354,17 @@ const EmbedCompetitionView = ({
         competitionData={competitionData}
         variant="panoramica"
       />
+
+      {rules && (
+        <CompetitionRulesDialog
+          open={rulesOpen}
+          onOpenChange={setRulesOpen}
+          rules={rules}
+          officialPdfUrl={officialPdfUrl}
+        />
+      )}
     </div>
+
   );
 };
 

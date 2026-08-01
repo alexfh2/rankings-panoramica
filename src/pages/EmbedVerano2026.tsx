@@ -4,6 +4,7 @@
  * Sense categoria Scratch: 5 proves, millors 4, llindar de categoria des de rules_config.
  */
 import EmbedCompetitionView from '@/components/embed/EmbedCompetitionView';
+import { verano2026Rules } from '@/data/competitionRules';
 
 const EmbedVerano2026 = () => (
   <EmbedCompetitionView
@@ -16,10 +17,10 @@ const EmbedVerano2026 = () => (
     emptyRankingTitle="La Liga de Verano comenzará el 10 de agosto."
     emptyRankingSubtitle="La clasificación se actualizará después de la publicación de la primera prueba."
     emptyStatsText="Las estadísticas estarán disponibles después de la primera prueba."
-    regulationUrl="/reglamentos/reglamento-liga-verano-2026.pdf"
-    regulationLabel="VER REGLAMENTO"
+    rules={verano2026Rules}
+    officialPdfUrl="/reglamentos/reglamento-liga-verano-2026.pdf"
+    regulationLabel="REGLAMENTO"
     regulationAriaLabel="Abrir reglamento de la Liga de Verano 2026"
-
   />
 );
 
