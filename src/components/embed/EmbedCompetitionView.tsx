@@ -42,8 +42,10 @@ export type EmbedCompetitionViewProps = {
   emptyRankingTitle?: string;
   emptyRankingSubtitle?: string;
   emptyStatsText?: string;
-  /** Enllaç públic al reglament (PDF). Si no hi és, no es renderitza res. */
-  regulationUrl?: string;
+  /** Reglament resumit; si no hi és, no es renderitza el botó. */
+  rules?: CompetitionRules;
+  /** PDF oficial enllaçat com a acció secundària dins del modal. */
+  officialPdfUrl?: string;
   regulationLabel?: string;
   regulationAriaLabel?: string;
 };
@@ -59,9 +61,11 @@ const EmbedCompetitionView = ({
   emptyRankingTitle = 'Todavía no hay resultados publicados.',
   emptyRankingSubtitle,
   emptyStatsText = 'Todavía no hay resultados publicados.',
-  regulationUrl,
-  regulationLabel = 'VER REGLAMENTO',
+  rules,
+  officialPdfUrl,
+  regulationLabel = 'REGLAMENTO',
   regulationAriaLabel,
+
 
 }: EmbedCompetitionViewProps) => {
   const {
