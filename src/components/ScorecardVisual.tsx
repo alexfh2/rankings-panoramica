@@ -1,4 +1,10 @@
 import React, { useState } from 'react';
+import {
+  calcPlayingHcp as stablefordCalcPlayingHcp,
+  calcExtraStrokes as stablefordCalcExtraStrokes,
+  calcStablefordPoints as stablefordCalcPoints,
+} from '@/lib/stableford';
+
 
 const DEFAULT_PAR = [4, 4, 5, 3, 5, 3, 4, 4, 4, 4, 5, 3, 4, 5, 4, 4, 3, 5];
 
