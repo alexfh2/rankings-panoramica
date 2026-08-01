@@ -984,7 +984,7 @@
 
 /* ── Modal de reglamento ─────────────────────────────────────── */
 .pano-rules-dialog {
-  display: flex;
+  display: flex !important;
   flex-direction: column;
   gap: 0;
   width: min(960px, calc(100vw - 32px)) !important;
@@ -999,6 +999,7 @@
   color: #f3eee3;
   font-family: Inter, system-ui, sans-serif;
 }
+
 
 .pano-rules-dialog button[type='button'].absolute {
   color: rgba(255, 255, 255, 0.62);
@@ -1055,6 +1056,8 @@
   overflow-y: auto;
   overflow-x: hidden;
   flex: 1 1 auto;
+  min-height: 0;
+  overscroll-behavior: contain;
 }
 
 .pano-rules-dialog__summary {
