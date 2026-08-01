@@ -12,6 +12,10 @@ const EmbedIndividual2026 = () => (
     rankingLabel="Orden del mérito"
     rankingCaption="Orden del mérito individual"
     showScratch
+    regulationUrl="/reglamentos/reglamento-omi-2026.pdf"
+    regulationLabel="VER REGLAMENTO"
+    regulationAriaLabel="Abrir reglamento de la Orden del Mérito Individual 2026"
+
   />
 );
 
