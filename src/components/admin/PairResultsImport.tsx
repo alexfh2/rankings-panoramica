@@ -1,10 +1,20 @@
 import { useMemo, useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as XLSX from 'xlsx';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertTriangle,
@@ -13,6 +23,7 @@ import {
   ChevronRight,
   FileSpreadsheet,
   HelpCircle,
+  Loader2,
   MinusCircle,
   Upload,
   X,
@@ -31,6 +42,12 @@ import {
   type FourballValidationStatus,
   type FourballContributor,
 } from '@/lib/buildFourballScorecard';
+import {
+  buildPairImportPayload,
+  mapPairImportError,
+  type PairImportRpcSummary,
+} from '@/lib/buildPairImportPayload';
+
 
 interface Props {
   roundId: string;
