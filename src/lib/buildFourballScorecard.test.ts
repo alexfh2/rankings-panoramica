@@ -148,7 +148,7 @@ describe('buildFourballScorecard', () => {
   });
 
   it('marca provisional el fallback femenino', () => {
-    const r = base({ player1: player({ playerId: 'p1', gender: 'F', playingHandicap: 1 }) });
+    const r = base({ player1: player({ playerId: 'p1', gender: 'F', playingHandicap: 1 }), officialNetPoints: 37 });
     expect(r.provisional).toBe(true);
     expect(r.validationStatus).toBe('provisional');
     expect(r.warnings.some((w) => w.code === 'WOMEN_HOLE_HANDICAP_FALLBACK')).toBe(true);
