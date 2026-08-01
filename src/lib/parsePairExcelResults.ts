@@ -427,8 +427,8 @@ export function parsePairExcelResults(
     blankrows: true,
   });
 
-  const header = detectHeader(rows);
-  if (!header.ok) {
+  const header: HeaderDetection = detectHeader(rows);
+  if (header.ok !== true) {
     errors.push(
       issue(
         'HEADER_NOT_FOUND',
@@ -438,6 +438,7 @@ export function parsePairExcelResults(
     );
     return emptyResult(null);
   }
+
 
   const { columns, headerRow } = header;
 
