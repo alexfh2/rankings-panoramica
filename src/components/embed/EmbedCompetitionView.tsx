@@ -59,6 +59,10 @@ const EmbedCompetitionView = ({
   emptyRankingTitle = 'Todavía no hay resultados publicados.',
   emptyRankingSubtitle,
   emptyStatsText = 'Todavía no hay resultados publicados.',
+  regulationUrl,
+  regulationLabel = 'VER REGLAMENTO',
+  regulationAriaLabel,
+
 }: EmbedCompetitionViewProps) => {
   const {
     rounds,
