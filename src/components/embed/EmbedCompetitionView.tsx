@@ -228,7 +228,7 @@ const EmbedCompetitionView = ({
 
     if (competitionNotFound) return state('Competición no disponible.');
     if (error) return state('No se ha podido cargar la clasificación. Inténtalo de nuevo más tarde.');
-    if (!rounds.length) return state('Esta competición todavía no tiene pruebas programadas.');
+    // Sense jornades encara: cada secció mostra el seu propi estat editorial.
 
     if (section === 'stats') {
       if (!results.length) return state(emptyStatsText);
