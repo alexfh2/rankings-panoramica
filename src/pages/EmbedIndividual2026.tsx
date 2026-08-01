@@ -8,6 +8,8 @@ import {
   type CompetitionRankedPlayer,
 } from '@/hooks/useCompetitionIndividualRanking';
 import CompetitionRounds from '@/components/embed/CompetitionRounds';
+import CompetitionStats from '@/components/embed/CompetitionStats';
+
 import PlayerProfileDialog, { type PlayerProfileCompetitionData } from '@/components/PlayerProfileDialog';
 import { formatPlayerDisplayName } from '@/lib/formatPlayerDisplayName';
 import type { PublicPlayer } from '@/lib/publicCircuitData';
