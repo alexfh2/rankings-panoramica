@@ -99,9 +99,10 @@ const CompetitionStats = ({ results, rankings, bestN, showScratch = true, onPlay
     return [
       pick('1ª Categoría', rankings.hcpLow),
       pick('2ª Categoría', rankings.hcpHigh),
-      pick('Scratch', rankings.scratch),
+      ...(showScratch ? [pick('Scratch', rankings.scratch)] : []),
     ];
-  }, [rankings]);
+  }, [rankings, showScratch]);
+
 
   if (!results.length) {
     return <p className="pano-embed__state">Todavía no hay resultados publicados.</p>;
