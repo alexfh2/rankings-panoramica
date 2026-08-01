@@ -102,6 +102,8 @@ const EmbedCompetitionView = ({
   const [section, setSection] = useState<SectionKey>('ranking');
   const [tab, setTab] = useState<TabKey>('hcpLow');
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const [rulesOpen, setRulesOpen] = useState(false);
+
 
   // Jugadors derivats dels resultats ja carregats (cap consulta nova).
   const players = useMemo<PublicPlayer[]>(() => {
