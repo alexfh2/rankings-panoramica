@@ -289,20 +289,35 @@ const EmbedCompetitionView = ({
         <p className="pano-embed__eyebrow">{eyebrow}</p>
         <h1 className="pano-embed__title">{title}</h1>
 
-        <nav className="pano-embed__nav" role="tablist" aria-label="Secciones">
-          {SECTIONS.map((sec) => (
-            <button
-              key={sec.key}
-              type="button"
-              role="tab"
-              aria-selected={section === sec.key}
-              className="pano-embed__tab"
-              onClick={() => setSection(sec.key)}
+        <div className="pano-embed__primary-nav">
+          <nav className="pano-embed__nav" role="tablist" aria-label="Secciones">
+            {SECTIONS.map((sec) => (
+              <button
+                key={sec.key}
+                type="button"
+                role="tab"
+                aria-selected={section === sec.key}
+                className="pano-embed__tab"
+                onClick={() => setSection(sec.key)}
+              >
+                {sec.label}
+              </button>
+            ))}
+          </nav>
+          {regulationUrl && (
+            <a
+              className="pano-embed__regulation-link"
+              href={regulationUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={regulationAriaLabel ?? regulationLabel}
             >
-              {sec.label}
-            </button>
-          ))}
-        </nav>
+              {regulationLabel}
+              <span className="pano-embed__regulation-arrow" aria-hidden="true">↗</span>
+            </a>
+          )}
+        </div>
+
 
         <section
           id="pano-ranking-panel"
