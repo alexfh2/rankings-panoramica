@@ -254,7 +254,7 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
         )}
       </thead>
       <tbody>
-        <tr>
+        <tr className="sc-row--strokes">
           <td className={`${resultLabelClass} font-semibold text-foreground`}>{L.strokes}</td>
           {halfScores.map((s, i) => (
             <td key={i} className={`${resultCellClass} bg-background`}>
