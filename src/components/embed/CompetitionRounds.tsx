@@ -53,9 +53,14 @@ const formatDate = (date: string | null) => {
   return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
 };
 
-const CompetitionRounds = ({ rounds, results, categoryThreshold, categoryHandicapMap, onPlayerClick }: Props) => {
+const CompetitionRounds = ({ rounds, results, categoryThreshold, categoryHandicapMap, showScratch = true, onPlayerClick }: Props) => {
+  const CATS = useMemo(
+    () => (showScratch ? ALL_CATS : ALL_CATS.filter((c) => c.key !== 'scratch')),
+    [showScratch]
+  );
   const [openRound, setOpenRound] = useState<string | null>(null);
   const [catByRound, setCatByRound] = useState<Record<string, CatKey>>({});
+
 
   // Agrupación de resultados por round_id a partir del array ya cargado.
   const resultsByRound = useMemo(() => {
