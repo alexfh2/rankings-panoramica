@@ -984,7 +984,7 @@
 
 /* ── Modal de reglamento ─────────────────────────────────────── */
 .pano-rules-dialog {
-  display: flex;
+  display: flex !important;
   flex-direction: column;
   gap: 0;
   width: min(960px, calc(100vw - 32px)) !important;
