@@ -41,7 +41,7 @@ const FOREIGN_LICENSE =
   'Las licencias extranjeras requieren obtener obligatoriamente la Licencia Temporal de la FVG y presentar justificante de hándicap de su federación.';
 
 const REGISTRATION =
-  'Inscripción en recepción del club, llamando al 964 493 072 o enviando un correo con nombre y número de licencia a golf@panoramicagrupo.com. El plazo se cierra el día antes de la competición a las 12:00 h.';
+  'Inscripción a través de GolfDirecto (golfdirecto.com), en recepción del club, llamando al 964 493 072 o enviando un correo con nombre y número de licencia a golf@panoramicagrupo.com. El plazo se cierra el día antes de la competición a las 12:00 h.';
 
 const NO_SHOW =
   'La cancelación de la inscripción a menos de 24 horas del inicio se considerará No Presentado y la tarjeta se presentará a la Federación como No Presentado.';
