@@ -246,4 +246,24 @@ describe('parsePairExcelResults', () => {
     });
     expect(result.pairs[0].category).toBe('hcp_low');
   });
+
+  it('reads Hpu from each own row (9 / 1)', () => {
+    const result = parsePairExcelResults(buildWorkbook(onePair({ a: { hpu: 9 }, b: { hpu: 1 } })));
+    expect(result.pairs[0].player1.playingHandicap).toBe(9);
+    expect(result.pairs[0].player2.playingHandicap).toBe(1);
+  });
+
+  it('does not copy player 1 Hpu to player 2 when they differ', () => {
+    const result = parsePairExcelResults(buildWorkbook(onePair({ a: { hpu: 22 }, b: { hpu: 30 } })));
+    expect(result.pairs[0].player1.playingHandicap).toBe(22);
+    expect(result.pairs[0].player2.playingHandicap).toBe(30);
+  });
+
+  it('keeps player 2 Hpu null when its own row is empty (no fallback to player 1)', () => {
+    const result = parsePairExcelResults(buildWorkbook(onePair({ a: { hpu: 9 }, b: { hpu: '' } })));
+    expect(result.pairs[0].player1.playingHandicap).toBe(9);
+    expect(result.pairs[0].player2.playingHandicap).toBeNull();
+    expect(result.errors.filter((e) => e.blocking)).toHaveLength(0);
+  });
 });
+
