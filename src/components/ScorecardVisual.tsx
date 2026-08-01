@@ -1,4 +1,10 @@
 import React, { useState } from 'react';
+import {
+  calcPlayingHcp as stablefordCalcPlayingHcp,
+  calcExtraStrokes as stablefordCalcExtraStrokes,
+  calcStablefordPoints as stablefordCalcPoints,
+} from '@/lib/stableford';
+
 
 const DEFAULT_PAR = [4, 4, 5, 3, 5, 3, 4, 4, 4, 4, 5, 3, 4, 5, 4, 4, 3, 5];
 
@@ -33,33 +39,11 @@ const LABELS = {
   },
 } as const;
 
+// Helpers Stableford compartidos (misma fórmula, extraída a src/lib/stableford.ts)
+const calcPlayingHcp = stablefordCalcPlayingHcp;
+const calcExtraStrokes = stablefordCalcExtraStrokes;
+const calcStablefordPoints = stablefordCalcPoints;
 
-const calcPlayingHcp = (hcp: number): number => Math.round(hcp);
-
-const calcExtraStrokes = (strokeIndex: number, playerHcp: number): number => {
-  const playingHcp = calcPlayingHcp(playerHcp);
-  const fullStrokes = Math.floor(playingHcp / 18);
-  const remainder = playingHcp % 18;
-  return fullStrokes + (strokeIndex <= remainder ? 1 : 0);
-};
-
-const calcStablefordPoints = (
-  gross: number,
-  holePar: number,
-  strokeIndex: number,
-  playerHcp: number
-): number | null => {
-  if (gross == null || gross === 0) return null;
-  const extra = calcExtraStrokes(strokeIndex, playerHcp);
-  const net = gross - extra;
-  const diff = net - holePar;
-  if (diff <= -3) return 5;
-  if (diff === -2) return 4;
-  if (diff === -1) return 3;
-  if (diff === 0) return 2;
-  if (diff === 1) return 1;
-  return 0;
-};
 
 /** Classe semàntica (hook CSS) segons els punts Stableford. No altera cap càlcul. */
 const stbBucket = (pts: number | null): string => {
