@@ -313,18 +313,17 @@ const EmbedCompetitionView = ({
               </button>
             ))}
           </nav>
-          {regulationUrl && (
-            <a
+          {rules && (
+            <button
+              type="button"
               className="pano-embed__regulation-link"
-              href={regulationUrl}
-              target="_blank"
-              rel="noopener noreferrer"
               aria-label={regulationAriaLabel ?? regulationLabel}
+              onClick={() => setRulesOpen(true)}
             >
               {regulationLabel}
-              <span className="pano-embed__regulation-arrow" aria-hidden="true">↗</span>
-            </a>
+            </button>
           )}
+
         </div>
 
 
