@@ -46,6 +46,8 @@ const App = () => (
           <Routes>
             {/* Embed públic (sense Layout) */}
             <Route path="/embed/individual-2026" element={<EmbedIndividual2026 />} />
+            <Route path="/embed/verano-2026" element={<EmbedVerano2026 />} />
+
 
             {/* Public routes */}
             <Route element={<Layout />}>
