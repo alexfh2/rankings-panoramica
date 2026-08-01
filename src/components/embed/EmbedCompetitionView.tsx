@@ -42,7 +42,12 @@ export type EmbedCompetitionViewProps = {
   emptyRankingTitle?: string;
   emptyRankingSubtitle?: string;
   emptyStatsText?: string;
+  /** Enllaç públic al reglament (PDF). Si no hi és, no es renderitza res. */
+  regulationUrl?: string;
+  regulationLabel?: string;
+  regulationAriaLabel?: string;
 };
+
 
 const EmbedCompetitionView = ({
   slug,
