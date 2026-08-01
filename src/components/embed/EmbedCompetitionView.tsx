@@ -10,6 +10,9 @@ import {
 } from '@/hooks/useCompetitionIndividualRanking';
 import CompetitionRounds from '@/components/embed/CompetitionRounds';
 import CompetitionStats from '@/components/embed/CompetitionStats';
+import CompetitionRulesDialog from '@/components/embed/CompetitionRulesDialog';
+import type { CompetitionRules } from '@/data/competitionRules';
+
 
 import PlayerProfileDialog, { type PlayerProfileCompetitionData } from '@/components/PlayerProfileDialog';
 import { formatPlayerDisplayName } from '@/lib/formatPlayerDisplayName';
