@@ -140,7 +140,7 @@ const CompetitionStats = ({ results, rankings, bestN, showScratch = true, onPlay
       {/* B. Líderes actuales */}
       <section className="pano-stats__section">
         <h3 className="pano-stats__h1">Líderes actuales</h3>
-        <div className="pano-stats__strip pano-stats__strip--3">
+        <div className={`pano-stats__strip pano-stats__strip--${leaders.length === 2 ? '2' : '3'}`}>
           {leaders.map((l) => (
             <div key={l.label} className="pano-stats__leader">
               <span className="pano-stats__cat">{l.label}</span>
