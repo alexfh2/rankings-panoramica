@@ -907,3 +907,8 @@
   text-transform: uppercase;
   color: var(--pano-brass);
 }
+
+.pano-stats__strip + .pano-stats__note {
+  margin-top: 16px;
+  margin-bottom: 0;
+}
