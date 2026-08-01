@@ -21,6 +21,8 @@ type Props = {
   categoryThreshold: number;
   /** Hándicap de la primera participación por jugador (mismo mapa que el ranking acumulado). */
   categoryHandicapMap: Map<string, number | null>;
+  /** Mostrar la categoría Scratch (Individual: true; Liga de Verano: false). */
+  showScratch?: boolean;
   /** Obre la fitxa del jugador (opcional). */
   onPlayerClick?: (playerId: string) => void;
 };
@@ -28,11 +30,12 @@ type Props = {
 
 type CatKey = 'hcpLow' | 'hcpHigh' | 'scratch';
 
-const CATS: { key: CatKey; label: string }[] = [
+const ALL_CATS: { key: CatKey; label: string }[] = [
   { key: 'hcpLow', label: '1ª Categoría' },
   { key: 'hcpHigh', label: '2ª Categoría' },
   { key: 'scratch', label: 'Scratch' },
 ];
+
 
 const getHcp = (r: PublicResult) => r.handicap_at_round ?? r.players_public?.current_handicap ?? null;
 
