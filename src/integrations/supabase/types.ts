@@ -167,6 +167,157 @@ export type Database = {
           },
         ]
       }
+      pair_results: {
+        Row: {
+          created_at: string
+          gross_points: number | null
+          id: string
+          net_points: number
+          pair_handicap: number | null
+          pair_id: string
+          player_1_exact_handicap: number | null
+          player_1_playing_handicap: number | null
+          player_1_scorecard: Json
+          player_2_exact_handicap: number | null
+          player_2_playing_handicap: number | null
+          player_2_scorecard: Json
+          position: number | null
+          round_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          gross_points?: number | null
+          id?: string
+          net_points: number
+          pair_handicap?: number | null
+          pair_id: string
+          player_1_exact_handicap?: number | null
+          player_1_playing_handicap?: number | null
+          player_1_scorecard?: Json
+          player_2_exact_handicap?: number | null
+          player_2_playing_handicap?: number | null
+          player_2_scorecard?: Json
+          position?: number | null
+          round_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          gross_points?: number | null
+          id?: string
+          net_points?: number
+          pair_handicap?: number | null
+          pair_id?: string
+          player_1_exact_handicap?: number | null
+          player_1_playing_handicap?: number | null
+          player_1_scorecard?: Json
+          player_2_exact_handicap?: number | null
+          player_2_playing_handicap?: number | null
+          player_2_scorecard?: Json
+          position?: number | null
+          round_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pair_results_pair_id_fkey"
+            columns: ["pair_id"]
+            isOneToOne: false
+            referencedRelation: "pairs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pair_results_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "rounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pairs: {
+        Row: {
+          competition_id: string
+          created_at: string
+          first_round_id: string | null
+          fixed_category: Database["public"]["Enums"]["player_category"]
+          id: string
+          initial_pair_handicap: number | null
+          pair_key: string
+          player_1_id: string
+          player_2_id: string
+          updated_at: string
+        }
+        Insert: {
+          competition_id: string
+          created_at?: string
+          first_round_id?: string | null
+          fixed_category: Database["public"]["Enums"]["player_category"]
+          id?: string
+          initial_pair_handicap?: number | null
+          pair_key: string
+          player_1_id: string
+          player_2_id: string
+          updated_at?: string
+        }
+        Update: {
+          competition_id?: string
+          created_at?: string
+          first_round_id?: string | null
+          fixed_category?: Database["public"]["Enums"]["player_category"]
+          id?: string
+          initial_pair_handicap?: number | null
+          pair_key?: string
+          player_1_id?: string
+          player_2_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pairs_competition_id_fkey"
+            columns: ["competition_id"]
+            isOneToOne: false
+            referencedRelation: "competitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pairs_first_round_id_fkey"
+            columns: ["first_round_id"]
+            isOneToOne: false
+            referencedRelation: "rounds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pairs_player_1_id_fkey"
+            columns: ["player_1_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pairs_player_1_id_fkey"
+            columns: ["player_1_id"]
+            isOneToOne: false
+            referencedRelation: "players_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pairs_player_2_id_fkey"
+            columns: ["player_2_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pairs_player_2_id_fkey"
+            columns: ["player_2_id"]
+            isOneToOne: false
+            referencedRelation: "players_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       photos: {
         Row: {
           caption: string | null
