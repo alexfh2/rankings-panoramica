@@ -28,6 +28,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import RoundResultsImport from '@/components/admin/RoundResultsImport';
+import PairResultsImport from '@/components/admin/PairResultsImport';
 import NewsGenerationDialog from '@/components/admin/NewsGenerationDialog';
 import type { Tables, TablesInsert } from '@/integrations/supabase/types';
 import type { Database } from '@/integrations/supabase/types';
