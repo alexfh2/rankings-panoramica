@@ -16,6 +16,10 @@ const EmbedVerano2026 = () => (
     emptyRankingTitle="La Liga de Verano comenzará el 10 de agosto."
     emptyRankingSubtitle="La clasificación se actualizará después de la publicación de la primera prueba."
     emptyStatsText="Las estadísticas estarán disponibles después de la primera prueba."
+    regulationUrl="/reglamentos/reglamento-liga-verano-2026.pdf"
+    regulationLabel="VER REGLAMENTO"
+    regulationAriaLabel="Abrir reglamento de la Liga de Verano 2026"
+
   />
 );
 
