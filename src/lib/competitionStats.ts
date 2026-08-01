@@ -17,6 +17,8 @@ export type StatEntry = {
 export type HoleStat = {
   hole: number;
   par: number;
+  /** Índice de dificultad del hoyo (rounds.course_handicap). null si no hay valor válido. */
+  holeHcp: number | null;
   avgStrokes: number;
   avgOverPar: number;
 };
@@ -205,7 +207,15 @@ export function computeCompetitionStats(results: PublicResult[]): CompetitionSta
   };
 
   // ---- El campo: dificultat per forat (bola aixecada = par + 4, com a Stats.tsx) ----
-  const holes = new Map<number, { totalOverPar: number; count: number; parCounts: Record<string, number> }>();
+  const holes = new Map<
+    number,
+    {
+      totalOverPar: number;
+      count: number;
+      parCounts: Record<string, number>;
+      hcpCounts: Record<string, number>;
+    }
+  >();
   const parGroups: Record<3 | 4 | 5, { strokes: number; count: number }> = {
     3: { strokes: 0, count: 0 },
     4: { strokes: 0, count: 0 },
@@ -214,11 +224,16 @@ export function computeCompetitionStats(results: PublicResult[]): CompetitionSta
 
   for (const r of validCards) {
     const pars = getHoleScores(r.rounds?.course_par);
+    const holeHcps = getHoleScores(r.rounds?.course_handicap);
     const scores = getHoleScores(r.scorecard);
     for (let h = 0; h < Math.min(scores.length, pars.length); h++) {
       const par = pars[h];
       if (!par || Number.isNaN(par)) continue;
-      const agg = holes.get(h + 1) ?? { totalOverPar: 0, count: 0, parCounts: {} };
+      const agg = holes.get(h + 1) ?? { totalOverPar: 0, count: 0, parCounts: {}, hcpCounts: {} };
+      const hcp = holeHcps[h];
+      if (hcp && Number.isFinite(hcp) && hcp > 0) {
+        agg.hcpCounts[String(hcp)] = (agg.hcpCounts[String(hcp)] || 0) + 1;
+      }
       const raw = scores[h];
       const holeScore = !raw || Number.isNaN(raw) || raw === 0 ? par + 4 : raw;
       agg.totalOverPar += holeScore - par;
@@ -237,9 +252,11 @@ export function computeCompetitionStats(results: PublicResult[]): CompetitionSta
   const holeList: HoleStat[] = Array.from(holes.entries()).map(([hole, agg]) => {
     const par = Number(Object.entries(agg.parCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 0);
     const avgOverPar = agg.count > 0 ? agg.totalOverPar / agg.count : 0;
+    const hcpEntry = Object.entries(agg.hcpCounts).sort((a, b) => b[1] - a[1] || Number(a[0]) - Number(b[0]))[0];
     return {
       hole,
       par,
+      holeHcp: hcpEntry ? Number(hcpEntry[0]) : null,
       avgStrokes: round2(par + avgOverPar),
       avgOverPar: round2(avgOverPar),
     };
