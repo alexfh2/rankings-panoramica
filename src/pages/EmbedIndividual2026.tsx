@@ -226,13 +226,13 @@ const EmbedIndividual2026 = () => {
               type="button"
               role="tab"
               aria-selected={section === sec.key}
-              disabled={sec.disabled}
               className="pano-embed__tab"
-              onClick={() => !sec.disabled && setSection(sec.key)}
+              onClick={() => setSection(sec.key)}
             >
-              {sec.disabled ? `${sec.label} · Próximamente` : sec.label}
+              {sec.label}
             </button>
           ))}
+
         </nav>
 
         <section
