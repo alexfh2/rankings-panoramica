@@ -8,6 +8,8 @@ import {
   type CompetitionRankedPlayer,
 } from '@/hooks/useCompetitionIndividualRanking';
 import CompetitionRounds from '@/components/embed/CompetitionRounds';
+import CompetitionStats from '@/components/embed/CompetitionStats';
+
 import PlayerProfileDialog, { type PlayerProfileCompetitionData } from '@/components/PlayerProfileDialog';
 import { formatPlayerDisplayName } from '@/lib/formatPlayerDisplayName';
 import type { PublicPlayer } from '@/lib/publicCircuitData';
@@ -26,11 +28,12 @@ const TABS: { key: TabKey; label: string }[] = [
 
 type SectionKey = 'ranking' | 'rounds' | 'stats';
 
-const SECTIONS: { key: SectionKey; label: string; disabled?: boolean }[] = [
+const SECTIONS: { key: SectionKey; label: string }[] = [
   { key: 'ranking', label: 'Orden del mérito' },
   { key: 'rounds', label: 'Pruebas' },
-  { key: 'stats', label: 'Estadísticas', disabled: true },
+  { key: 'stats', label: 'Estadísticas' },
 ];
+
 
 const MAX_MATRIX_ROUNDS = 8;
 
@@ -175,6 +178,17 @@ const EmbedIndividual2026 = () => {
     if (!rounds.length) return state('Esta competición todavía no tiene pruebas programadas.');
     if (!results.length) return state('Todavía no hay resultados publicados.');
 
+    if (section === 'stats') {
+      return (
+        <CompetitionStats
+          results={results}
+          rankings={rankings}
+          bestN={bestN}
+          onPlayerClick={setSelectedPlayerId}
+        />
+      );
+    }
+
     if (section === 'rounds') {
       return (
         <CompetitionRounds
@@ -187,6 +201,7 @@ const EmbedIndividual2026 = () => {
 
       );
     }
+
 
     const activeLabel = TABS.find((t) => t.key === tab)?.label ?? '';
 
@@ -225,13 +240,13 @@ const EmbedIndividual2026 = () => {
               type="button"
               role="tab"
               aria-selected={section === sec.key}
-              disabled={sec.disabled}
               className="pano-embed__tab"
-              onClick={() => !sec.disabled && setSection(sec.key)}
+              onClick={() => setSection(sec.key)}
             >
-              {sec.disabled ? `${sec.label} · Próximamente` : sec.label}
+              {sec.label}
             </button>
           ))}
+
         </nav>
 
         <section
