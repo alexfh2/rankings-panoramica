@@ -34,7 +34,11 @@ export type CompetitionRankings = {
   scratch: CompetitionRankedPlayer[];
 };
 
-export function useCompetitionIndividualRanking(slug: string) {
+export const DEFAULT_COMPETITION_SLUG = 'individual-2026';
+
+export function useCompetitionIndividualRanking(slugArg?: string) {
+  const slug = slugArg?.trim() || DEFAULT_COMPETITION_SLUG;
+
   const competitionQuery = useQuery({
     queryKey: ['competition-by-slug', slug],
     queryFn: async () => {
