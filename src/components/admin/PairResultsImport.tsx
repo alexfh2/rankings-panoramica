@@ -1,10 +1,20 @@
 import { useMemo, useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as XLSX from 'xlsx';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertTriangle,
@@ -13,6 +23,7 @@ import {
   ChevronRight,
   FileSpreadsheet,
   HelpCircle,
+  Loader2,
   MinusCircle,
   Upload,
   X,
@@ -31,6 +42,12 @@ import {
   type FourballValidationStatus,
   type FourballContributor,
 } from '@/lib/buildFourballScorecard';
+import {
+  buildPairImportPayload,
+  mapPairImportError,
+  type PairImportRpcSummary,
+} from '@/lib/buildPairImportPayload';
+
 
 interface Props {
   roundId: string;
@@ -92,12 +109,18 @@ const CONTRIB_MARK: Record<FourballContributor, string> = {
 };
 
 const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Props) => {
-  void onCompleted;
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [parsed, setParsed] = useState<ParsePairExcelResult | null>(null);
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<PairImportRpcSummary | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [warningsOpen, setWarningsOpen] = useState(false);
+
 
   const { data: round } = useQuery({
     queryKey: ['admin-pair-import-round', roundId],
@@ -292,6 +315,8 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
       setParsed(result);
       setFileName(file.name);
       setExpanded(new Set());
+      setImportResult(null);
+      setImportError(null);
       if (result.errors.some((e) => e.blocking)) {
         toast({
           title: 'Archivo con errores',
@@ -316,6 +341,57 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
       return next;
     });
   };
+
+  const fourballWarningPending = rows.some(
+    (r) =>
+      r.fourball?.validationStatus === 'mismatch' ||
+      r.fourball?.validationStatus === 'provisional' ||
+      r.fourball?.validationStatus === 'insufficient_data',
+  );
+
+  const canTriggerImport =
+    summary.canImport && !!fileName && !!roundId && !!competitionId && !importing && !importResult;
+
+  const runImport = async () => {
+    if (!canTriggerImport || !fileName) return;
+    setImporting(true);
+    setImportError(null);
+    setConfirmOpen(false);
+    try {
+      const payload = buildPairImportPayload(rows.map((r) => ({ pair: r.pair, fourball: r.fourball })));
+      const { data, error } = await supabase.rpc('import_pair_results_batch', {
+        p_round_id: roundId,
+        p_source_filename: fileName,
+        p_pairs: payload as unknown as never,
+      });
+      if (error) throw error;
+      setImportResult((data ?? {}) as PairImportRpcSummary);
+      toast({ title: 'Resultados de parejas importados correctamente.' });
+      queryClient.invalidateQueries({ queryKey: ['admin-pair-import-players'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-pair-import-pairs', competitionId] });
+      queryClient.invalidateQueries({ queryKey: ['admin-pair-results', roundId] });
+      queryClient.invalidateQueries({ queryKey: ['admin-import-logs', roundId] });
+      queryClient.invalidateQueries({ queryKey: ['admin-rounds'] });
+    } catch (err) {
+      const raw = err instanceof Error ? err.message : String(err);
+      console.error('[PairResultsImport] import_pair_results_batch failed', err);
+      setImportError(mapPairImportError(raw));
+      toast({ title: 'No se ha podido importar el archivo.', variant: 'destructive' });
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const handleFinish = () => {
+    onCompleted?.();
+    setParsed(null);
+    setFileName(null);
+    setExpanded(new Set());
+    setImportResult(null);
+    setImportError(null);
+    onClose?.();
+  };
+
 
   return (
     <div className="space-y-5">
@@ -576,6 +652,64 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
             })}
           </div>
 
+          {/* Import error */}
+          {importError && (
+            <div role="alert" className="rounded border border-destructive/40 bg-destructive/5 p-3 text-xs">
+              <div className="flex items-center gap-2 font-semibold text-destructive">
+                <X className="h-4 w-4" />
+                No se ha podido importar
+              </div>
+              <p className="mt-1 text-muted-foreground">{importError}</p>
+              <p className="mt-1 text-muted-foreground">
+                No se ha guardado ningún cambio. Puedes corregir el archivo y volver a intentarlo.
+              </p>
+            </div>
+          )}
+
+          {/* Success summary */}
+          {importResult && (
+            <div className="rounded border border-emerald-600/40 bg-emerald-500/5 p-3 text-xs">
+              <div className="flex items-center gap-2 font-semibold text-emerald-700 dark:text-emerald-400">
+                <Check className="h-4 w-4" />
+                Importación completada
+              </div>
+              <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3">
+                <div>Jugadores creados: <strong>{importResult.playersCreated ?? 0}</strong></div>
+                <div>Jugadores reutilizados: <strong>{importResult.playersMatched ?? 0}</strong></div>
+                <div>Parejas creadas: <strong>{importResult.pairsCreated ?? 0}</strong></div>
+                <div>Parejas reutilizadas: <strong>{importResult.pairsReused ?? 0}</strong></div>
+                <div>Resultados insertados: <strong>{importResult.resultsInserted ?? 0}</strong></div>
+                <div>Resultados actualizados: <strong>{importResult.resultsUpdated ?? 0}</strong></div>
+                <div>Warnings: <strong>{importResult.warnings?.length ?? 0}</strong></div>
+              </div>
+              <p className="mt-2 text-muted-foreground">
+                El resultado Net oficial del Excel se ha guardado correctamente.
+              </p>
+              {(importResult.warnings?.length ?? 0) > 0 && (
+                <div className="mt-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-1 text-[11px]"
+                    onClick={() => setWarningsOpen((v) => !v)}
+                  >
+                    {warningsOpen ? <ChevronDown className="mr-1 h-3 w-3" /> : <ChevronRight className="mr-1 h-3 w-3" />}
+                    Ver detalle de warnings
+                  </Button>
+                  {warningsOpen && (
+                    <ul className="mt-1 list-disc space-y-0.5 pl-5 text-[11px] text-amber-700 dark:text-amber-400">
+                      {importResult.warnings?.map((w, i) => (
+                        <li key={i}>
+                          {w.code ?? 'WARNING'} · {w.pairKey ?? '—'} · Net {w.netPoints ?? '—'} / Brt {w.grossPoints ?? '—'}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Footer */}
           <div className="space-y-2 border-t border-border pt-3">
             {!summary.canImport && summary.blockers.length > 0 && (
@@ -585,20 +719,89 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
                 ))}
               </ul>
             )}
-            <div className="flex flex-wrap items-center gap-3">
-              <Button disabled className="text-xs">
-                IMPORTAR RESULTADOS
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+              <Button
+                disabled={!canTriggerImport}
+                className="w-full text-xs sm:w-auto"
+                onClick={() => setConfirmOpen(true)}
+              >
+                {importing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {importing ? 'IMPORTANDO…' : importResult ? 'IMPORTACIÓN COMPLETADA' : 'IMPORTAR RESULTADOS'}
               </Button>
-              <span className="text-[11px] text-muted-foreground">
-                La importación se habilitará después de validar esta previsualización.
-              </span>
-              {onClose && (
-                <Button variant="ghost" size="sm" className="ml-auto text-xs" onClick={onClose}>
-                  Cerrar
+              {!summary.canImport && (
+                <span className="text-[11px] text-muted-foreground">
+                  Resuelve los errores indicados para habilitar la importación.
+                </span>
+              )}
+              {importResult ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-xs sm:ml-auto sm:w-auto"
+                  onClick={handleFinish}
+                >
+                  CERRAR
                 </Button>
+              ) : (
+                onClose && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full text-xs sm:ml-auto sm:w-auto"
+                    disabled={importing}
+                    onClick={onClose}
+                  >
+                    Cerrar
+                  </Button>
+                )
               )}
             </div>
           </div>
+
+          <AlertDialog open={confirmOpen} onOpenChange={(open) => !importing && setConfirmOpen(open)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirmar importación de parejas</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Los resultados se importarán en una única operación. Si ocurre algún error, no se guardará ningún
+                  cambio.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <div className="grid grid-cols-1 gap-x-6 gap-y-1 text-xs sm:grid-cols-2">
+                <div>Archivo: <strong>{fileName}</strong></div>
+                <div>Jornada: <strong>{round?.name ?? '—'}</strong></div>
+                <div>Parejas: <strong>{summary.detected}</strong></div>
+                <div>Jugadores existentes: <strong>{summary.existingPlayers}</strong></div>
+                <div>Jugadores nuevos: <strong>{summary.newPlayers}</strong></div>
+                <div>Parejas existentes: <strong>{rows.filter((r) => r.pairExists).length}</strong></div>
+                <div>Parejas nuevas: <strong>{rows.filter((r) => !r.pairExists).length}</strong></div>
+                <div>Validación Fourball coincidente: <strong>{summary.netMatch}</strong></div>
+                <div>Resultados con warnings: <strong>{summary.netMismatch + summary.weak}</strong></div>
+              </div>
+              {fourballWarningPending && (
+                <p className="rounded border border-amber-600/40 bg-amber-500/5 p-2 text-[11px] text-amber-700 dark:text-amber-400">
+                  Hay validaciones Fourball pendientes o con diferencias. Esto no impide la importación porque el
+                  resultado Net del Excel es la fuente oficial.
+                </p>
+              )}
+              <AlertDialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <AlertDialogCancel disabled={importing} className="w-full sm:w-auto">
+                  CANCELAR
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  disabled={importing}
+                  className="w-full sm:w-auto"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    void runImport();
+                  }}
+                >
+                  CONFIRMAR IMPORTACIÓN
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
         </>
       )}
     </div>
