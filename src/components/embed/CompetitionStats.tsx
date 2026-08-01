@@ -13,13 +13,16 @@ type Props = {
   results: PublicResult[];
   rankings: CompetitionRankings;
   bestN: number;
+  /** Mostrar els blocs Scratch (Individual: true; Liga de Verano: false). */
+  showScratch?: boolean;
   onPlayerClick?: (playerId: string) => void;
 };
 
 const NO_DATA = 'Sin datos suficientes';
 const TOP = 5;
 
-const CompetitionStats = ({ results, rankings, bestN, onPlayerClick }: Props) => {
+const CompetitionStats = ({ results, rankings, bestN, showScratch = true, onPlayerClick }: Props) => {
+
   const stats = useMemo(() => computeCompetitionStats(results), [results]);
 
   const PlayerName = ({ id, name }: { id: string; name: string }) => (
