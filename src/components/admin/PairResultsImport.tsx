@@ -92,6 +92,7 @@ const CONTRIB_MARK: Record<FourballContributor, string> = {
 };
 
 const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Props) => {
+  void onCompleted;
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState<string | null>(null);
@@ -600,7 +601,6 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
           </div>
         </>
       )}
-      {onCompleted === undefined ? null : null}
     </div>
   );
 };
