@@ -665,6 +665,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      import_pair_results_batch: {
+        Args: { p_pairs: Json; p_round_id: string; p_source_filename: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin"
