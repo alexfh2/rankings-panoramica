@@ -21,6 +21,8 @@ import Stats from "./pages/Stats";
 import News from "./pages/News";
 import TestIndividual2026 from "./pages/TestIndividual2026";
 import EmbedIndividual2026 from "./pages/EmbedIndividual2026";
+import EmbedVerano2026 from "./pages/EmbedVerano2026";
+
 
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
