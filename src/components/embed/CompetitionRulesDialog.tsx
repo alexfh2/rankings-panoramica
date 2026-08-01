@@ -14,7 +14,7 @@ export type CompetitionRulesDialogProps = {
 };
 
 const RulesSection = ({ section }: { section: CompetitionRulesSection }) => {
-  const [openSection, setOpenSection] = useState<boolean>(section.defaultOpen ?? false);
+  const [openSection, setOpenSection] = useState<boolean>(section.defaultOpen ?? true);
   const panelId = `pano-rules-panel-${section.id}`;
   const ListTag = section.ordered ? 'ol' : 'ul';
 

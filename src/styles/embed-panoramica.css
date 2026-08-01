@@ -1000,6 +1000,12 @@
   font-family: Inter, system-ui, sans-serif;
 }
 
+/* El cuerpo del modal es la zona desplazable. */
+.pano-rules-dialog__body {
+  min-height: 0;
+  overscroll-behavior: contain;
+}
+
 .pano-rules-dialog button[type='button'].absolute {
   color: rgba(255, 255, 255, 0.62);
   opacity: 1;
