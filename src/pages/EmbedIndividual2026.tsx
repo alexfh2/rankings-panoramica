@@ -176,6 +176,17 @@ const EmbedIndividual2026 = () => {
     if (!rounds.length) return state('Esta competición todavía no tiene pruebas programadas.');
     if (!results.length) return state('Todavía no hay resultados publicados.');
 
+    if (section === 'stats') {
+      return (
+        <CompetitionStats
+          results={results}
+          rankings={rankings}
+          bestN={bestN}
+          onPlayerClick={setSelectedPlayerId}
+        />
+      );
+    }
+
     if (section === 'rounds') {
       return (
         <CompetitionRounds
@@ -188,6 +199,7 @@ const EmbedIndividual2026 = () => {
 
       );
     }
+
 
     const activeLabel = TABS.find((t) => t.key === tab)?.label ?? '';
 
