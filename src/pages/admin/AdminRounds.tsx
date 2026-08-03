@@ -30,6 +30,12 @@ import {
 import RoundResultsImport from '@/components/admin/RoundResultsImport';
 import PairResultsImport from '@/components/admin/PairResultsImport';
 import NewsGenerationDialog from '@/components/admin/NewsGenerationDialog';
+import PairsPublishGuardDialog, { type PairsPublishGuardState } from '@/components/admin/PairsPublishGuardDialog';
+import {
+  validatePairsRoundPublication,
+  type PairValidationResultInput,
+  type PairValidationScorecard,
+} from '@/lib/validatePairsRoundPublication';
 import type { Tables, TablesInsert } from '@/integrations/supabase/types';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -84,6 +90,10 @@ const AdminRounds = () => {
   const [resultsRound, setResultsRound] = useState<Round | null>(null);
   const [deletingRound, setDeletingRound] = useState<Round | null>(null);
   const [newsRound, setNewsRound] = useState<Round | null>(null);
+  // Control previo a publicar jornades de Parelles
+  const [guardRound, setGuardRound] = useState<Round | null>(null);
+  const [guardState, setGuardState] = useState<PairsPublishGuardState | null>(null);
+  const [validating, setValidating] = useState(false);
   const [courseUrl, setCourseUrl] = useState('');
   const [extractingPar, setExtractingPar] = useState(false);
   const [courseFile, setCourseFile] = useState<File | null>(null);
@@ -321,6 +331,110 @@ const AdminRounds = () => {
     },
   });
 
+  // ─── PRE-PUBLISH FOURBALL VALIDATION (només competicions de parelles) ───
+  const toNumberArray = (value: unknown): number[] | null => {
+    if (!Array.isArray(value) || value.length !== 18) return null;
+    const arr = value.map((v) => (typeof v === 'number' ? v : Number(v)));
+    return arr.every((n) => Number.isFinite(n)) ? arr : null;
+  };
+
+  const toScorecard = (value: unknown): PairValidationScorecard | null => {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+    const raw = value as Record<string, unknown>;
+    return {
+      name: typeof raw.name === 'string' ? raw.name : null,
+      gender: typeof raw.gender === 'string' ? raw.gender : null,
+      scores: Array.isArray(raw.scores)
+        ? raw.scores.map((v) => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : null))
+        : undefined,
+      liftedHoles: Array.isArray(raw.liftedHoles)
+        ? raw.liftedHoles.filter((v): v is number => typeof v === 'number')
+        : undefined,
+      playingHandicap:
+        typeof raw.playingHandicap === 'number' && Number.isFinite(raw.playingHandicap)
+          ? raw.playingHandicap
+          : null,
+    };
+  };
+
+  const runPairsValidation = async (round: Round) => {
+    // Consultes agrupades: pair_results → pairs → players. Cap escriptura.
+    const { data: results, error: resErr } = await supabase
+      .from('pair_results')
+      .select(
+        'id, pair_id, net_points, gross_points, player_1_exact_handicap, player_2_exact_handicap, player_1_playing_handicap, player_2_playing_handicap, player_1_scorecard, player_2_scorecard'
+      )
+      .eq('round_id', round.id);
+    if (resErr) throw resErr;
+
+    const pairIds = Array.from(new Set((results ?? []).map((r) => r.pair_id)));
+    const { data: pairs, error: pairErr } = pairIds.length
+      ? await supabase.from('pairs').select('id, player_1_id, player_2_id').in('id', pairIds)
+      : { data: [], error: null as never };
+    if (pairErr) throw pairErr;
+
+    const playerIds = Array.from(
+      new Set((pairs ?? []).flatMap((p) => [p.player_1_id, p.player_2_id]))
+    );
+    const { data: players, error: plErr } = playerIds.length
+      ? await supabase.from('players_public').select('id, name').in('id', playerIds)
+      : { data: [], error: null as never };
+    if (plErr) throw plErr;
+
+    const nameById = new Map((players ?? []).map((p) => [p.id, p.name ?? '—'] as const));
+    const pairById = new Map((pairs ?? []).map((p) => [p.id, p] as const));
+
+    const inputs: PairValidationResultInput[] = (results ?? []).map((r) => {
+      const pair = pairById.get(r.pair_id);
+      const sc1 = toScorecard(r.player_1_scorecard);
+      const sc2 = toScorecard(r.player_2_scorecard);
+      const n1 = (pair && nameById.get(pair.player_1_id)) || sc1?.name || 'Jugador 1';
+      const n2 = (pair && nameById.get(pair.player_2_id)) || sc2?.name || 'Jugador 2';
+      return {
+        id: r.id,
+        pairId: r.pair_id,
+        pairName: `${n1} / ${n2}`,
+        netPoints: r.net_points,
+        grossPoints: r.gross_points ?? null,
+        player1ExactHandicap: r.player_1_exact_handicap ?? null,
+        player2ExactHandicap: r.player_2_exact_handicap ?? null,
+        player1PlayingHandicap: r.player_1_playing_handicap ?? null,
+        player2PlayingHandicap: r.player_2_playing_handicap ?? null,
+        player1Scorecard: sc1,
+        player2Scorecard: sc2,
+      };
+    });
+
+    return validatePairsRoundPublication(
+      {
+        coursePar: toNumberArray((round as any).course_par),
+        courseHandicap: toNumberArray((round as any).course_handicap),
+        courseHandicapWomen: toNumberArray((round as any).course_handicap_women),
+      },
+      inputs
+    );
+  };
+
+  const handlePublishClick = async (round: Round) => {
+    const competition = competitions?.find((c) => c.id === round.competition_id);
+    if (competition?.format !== 'pairs') {
+      publishMutation.mutate(round.id);
+      return;
+    }
+    if (validating) return;
+    setGuardRound(round);
+    setGuardState({ phase: 'validating' });
+    setValidating(true);
+    try {
+      const summary = await runPairsValidation(round);
+      setGuardState({ phase: 'result', summary });
+    } catch (err) {
+      setGuardState({ phase: 'error', message: (err as Error).message });
+    } finally {
+      setValidating(false);
+    }
+  };
+
   // ─── PUBLISH ROUND ───
   const publishMutation = useMutation({
     mutationFn: async (roundId: string) => {
@@ -330,6 +444,8 @@ const AdminRounds = () => {
     onSuccess: () => {
       invalidateRounds();
       toast({ title: 'Jornada publicada!' });
+      setGuardRound(null);
+      setGuardState(null);
     },
     onError: (err: Error) => {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
@@ -770,8 +886,8 @@ const AdminRounds = () => {
                       {/* Publish / Unpublish */}
                       {round.status !== 'published' ? (
                         <button
-                          onClick={() => publishMutation.mutate(round.id)}
-                          disabled={publishMutation.isPending}
+                          onClick={() => handlePublishClick(round)}
+                          disabled={publishMutation.isPending || validating}
                           className="text-left p-4 rounded-lg border border-accent/40 bg-accent/5 hover:border-accent hover:bg-accent/10 transition-all group disabled:opacity-50"
                         >
                           <div className="flex items-start gap-3">
@@ -779,7 +895,9 @@ const AdminRounds = () => {
                               <Send className="h-5 w-5" />
                             </div>
                             <div className="flex-1">
-                              <div className="font-semibold text-sm mb-1">Publicar jornada</div>
+                              <div className="font-semibold text-sm mb-1">
+                                {validating && guardRound?.id === round.id ? 'VALIDANT…' : 'Publicar jornada'}
+                              </div>
                               <div className="text-xs text-muted-foreground leading-relaxed">
                                 Fa visible la jornada al públic. Un cop publicada podràs generar la notícia.
                               </div>
@@ -831,6 +949,19 @@ const AdminRounds = () => {
           ))}
         </div>
       )}
+
+      <PairsPublishGuardDialog
+        open={!!guardRound}
+        onOpenChange={(o) => {
+          if (!o && !publishMutation.isPending) {
+            setGuardRound(null);
+            setGuardState(null);
+          }
+        }}
+        state={guardState}
+        isPublishing={publishMutation.isPending}
+        onConfirm={() => guardRound && publishMutation.mutate(guardRound.id)}
+      />
 
       {/* Edit/Create dialog — no status selector, just data */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
