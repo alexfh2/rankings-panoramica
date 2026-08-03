@@ -528,7 +528,17 @@ const AdminRounds = () => {
               </SelectContent>
             </Select>
           )}
+          {competitions?.find((c) => c.id === activeCompetitionId)?.slug === 'parejas-2026' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => window.open('/admin/preview/parejas-2026', '_blank', 'noopener')}
+            >
+              Vista prèvia
+            </Button>
+          )}
           <Button
+
             variant="outline"
             onClick={() => setShowImport(!showImport)}
             disabled={!activeSeasonId || !activeCompetitionId}
