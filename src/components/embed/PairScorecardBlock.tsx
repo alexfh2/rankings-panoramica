@@ -140,7 +140,7 @@ const PairScorecardBlock = ({ result, round, player1, player2 }: Props) => {
       <GrossCard name={name2} scores={sc2?.scores} hex={result.player2ExactHandicap} hpu={hpu2} />
 
       {fourballUsable ? (
-        <div className="pano-pairs-card">
+        <div className="pano-pairs-card pano-pairs-card--fourball">
           <div className="pano-pairs-card__head">
             <span className="pano-pairs-card__name">Stableford neto Fourball</span>
             <span className="pano-pairs-card__meta">
