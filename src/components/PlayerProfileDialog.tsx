@@ -214,6 +214,12 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
 
   const positions = preloadedPositions ?? computedPositions;
 
+  useEffect(() => {
+    if (open && isPano) requestPanoramicaParentViewport();
+  }, [open, isPano]);
+
+
+
   if (!player) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
