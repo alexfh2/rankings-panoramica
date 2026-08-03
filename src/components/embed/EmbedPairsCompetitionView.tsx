@@ -4,6 +4,7 @@
  */
 import { useMemo, useRef, useState } from 'react';
 import { usePanoramicaEmbedHeight } from '@/hooks/usePanoramicaEmbedHeight';
+import { usePanoramicaParentViewport } from '@/hooks/usePanoramicaParentViewport';
 import { useCompetitionPairsRanking } from '@/hooks/useCompetitionPairsRanking';
 import PairProfileDialog from '@/components/embed/PairProfileDialog';
 import PairScorecardBlock from '@/components/embed/PairScorecardBlock';
@@ -11,6 +12,7 @@ import PairsCompetitionStats from '@/components/embed/PairsCompetitionStats';
 import type { PairRankingRow } from '@/lib/buildPairsRanking';
 import '@/styles/embed-panoramica.css';
 import '@/styles/embed-pairs.css';
+import '@/styles/embed-dialog.css';
 
 type SectionKey = 'ranking' | 'rounds' | 'stats';
 type TabKey = 'hcpLow' | 'hcpHigh';
@@ -61,6 +63,7 @@ const EmbedPairsCompetitionView = ({
   const [selectedPairId, setSelectedPairId] = useState<string | null>(null);
   const embedRootRef = useRef<HTMLDivElement>(null);
   usePanoramicaEmbedHeight(embedRootRef);
+  usePanoramicaParentViewport();
   const [openRound, setOpenRound] = useState<string | null>(null);
   const [openResult, setOpenResult] = useState<string | null>(null);
 

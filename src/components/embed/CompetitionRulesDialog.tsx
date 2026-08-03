@@ -2,8 +2,9 @@
  * Modal editorial con el reglamento resumido de una competición.
  * Contenido 100% estático (src/data/competitionRules.ts): sin consultas.
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { requestPanoramicaParentViewport } from '@/hooks/usePanoramicaParentViewport';
 import type { CompetitionRules, CompetitionRulesSection } from '@/data/competitionRules';
 
 export type CompetitionRulesDialogProps = {
@@ -62,9 +63,14 @@ const CompetitionRulesDialog = ({
   onOpenChange,
   rules,
   officialPdfUrl,
-}: CompetitionRulesDialogProps) => (
+}: CompetitionRulesDialogProps) => {
+  useEffect(() => {
+    if (open) requestPanoramicaParentViewport();
+  }, [open]);
+
+  return (
   <Dialog open={open} onOpenChange={onOpenChange}>
-    <DialogContent className="pano-rules-dialog">
+    <DialogContent className="pano-rules-dialog pano-embed-dialog">
       <header className="pano-rules-dialog__header">
         <p className="pano-rules-dialog__eyebrow">Panorámica Golf · Temporada 2026</p>
         <DialogTitle className="pano-rules-dialog__title">{rules.title}</DialogTitle>
@@ -107,6 +113,7 @@ const CompetitionRulesDialog = ({
       </div>
     </DialogContent>
   </Dialog>
-);
+  );
+};
 
 export default CompetitionRulesDialog;

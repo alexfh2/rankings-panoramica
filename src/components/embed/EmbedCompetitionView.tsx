@@ -5,6 +5,7 @@
  */
 import { useMemo, useRef, useState } from 'react';
 import { usePanoramicaEmbedHeight } from '@/hooks/usePanoramicaEmbedHeight';
+import { usePanoramicaParentViewport } from '@/hooks/usePanoramicaParentViewport';
 import {
   useCompetitionIndividualRanking,
   type CompetitionRankedPlayer,
@@ -19,6 +20,7 @@ import PlayerProfileDialog, { type PlayerProfileCompetitionData } from '@/compon
 import { formatPlayerDisplayName } from '@/lib/formatPlayerDisplayName';
 import type { PublicPlayer } from '@/lib/publicCircuitData';
 import '@/styles/embed-panoramica.css';
+import '@/styles/embed-dialog.css';
 
 type TabKey = 'hcpLow' | 'hcpHigh' | 'scratch';
 
@@ -106,6 +108,7 @@ const EmbedCompetitionView = ({
   const [rulesOpen, setRulesOpen] = useState(false);
   const embedRootRef = useRef<HTMLDivElement>(null);
   usePanoramicaEmbedHeight(embedRootRef);
+  usePanoramicaParentViewport();
 
 
 

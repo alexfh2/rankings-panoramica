@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -9,6 +9,7 @@ import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/
 import { User, TrendingUp, Trophy, Bird, Target, Square, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ca, es } from 'date-fns/locale';
+import { requestPanoramicaParentViewport } from '@/hooks/usePanoramicaParentViewport';
 import ScorecardVisual from '@/components/ScorecardVisual';
 import HcpEvolutionChart from '@/components/HcpEvolutionChart';
 import { fetchPublicCircuitData, publicCircuitDataQueryKey, type PublicPlayer, type PublicResult } from '@/lib/publicCircuitData';
@@ -216,7 +217,7 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
   if (!player) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className={`max-w-3xl${isPano ? ' pano-player-dialog' : ''}`}>
+        <DialogContent className={`max-w-3xl${isPano ? ' pano-player-dialog pano-embed-dialog' : ''}`}>
           <DialogTitle className="sr-only">{tx('players.profile', 'Ficha de jugador')}</DialogTitle>
           <p className="text-sm text-muted-foreground py-8 text-center">{tx('common.loading', 'Cargando…')}</p>
         </DialogContent>
@@ -306,7 +307,7 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`w-full max-w-none min-w-0 h-[100dvh] max-h-[100dvh] rounded-none translate-x-[-50%] translate-y-[-50%] p-0 gap-0 bg-card border-border flex flex-col overflow-hidden sm:max-w-3xl sm:h-auto sm:max-h-[90vh] sm:rounded-lg${isPano ? ' pano-player-dialog sm:max-w-[960px]' : ''}`}>
+      <DialogContent className={`w-full max-w-none min-w-0 h-[100dvh] max-h-[100dvh] rounded-none translate-x-[-50%] translate-y-[-50%] p-0 gap-0 bg-card border-border flex flex-col overflow-hidden sm:max-w-3xl sm:h-auto sm:max-h-[90vh] sm:rounded-lg${isPano ? ' pano-player-dialog pano-embed-dialog sm:max-w-[960px]' : ''}`}>
         <DialogHeader className="shrink-0 h-14 justify-center px-4 sm:px-6 border-b border-border/50 bg-card">
           <DialogTitle className="flex items-center gap-2 font-display text-foreground text-base sm:text-lg">
             <User className="h-5 w-5 text-accent shrink-0" />
