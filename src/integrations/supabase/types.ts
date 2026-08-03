@@ -658,6 +658,13 @@ export type Database = {
       }
     }
     Functions: {
+      get_published_pair_player_names: {
+        Args: { p_competition_slug: string }
+        Returns: {
+          display_name: string
+          player_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
