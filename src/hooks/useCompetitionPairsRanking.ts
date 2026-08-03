@@ -290,12 +290,15 @@ export function useCompetitionPairsRanking(slug: string, includeUnpublished = fa
       roundsQuery.isLoading ||
       pairsQuery.isLoading ||
       resultsQuery.isLoading ||
-      playersQuery.isLoading,
+      playersQuery.isLoading ||
+      publicNamesQuery.isLoading,
     error: (competitionQuery.error ||
       roundsQuery.error ||
       pairsQuery.error ||
       resultsQuery.error ||
-      playersQuery.error) as Error | null,
+      playersQuery.error ||
+      publicNamesQuery.error) as Error | null,
+
     competitionNotFound: competitionQuery.isSuccess && !competitionQuery.data,
   };
 }
