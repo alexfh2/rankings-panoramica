@@ -515,8 +515,9 @@ const PairsCompetitionStats = ({
 
             <h4 className="pano-stats__h2">Distribución de contribución a la tarjeta Fourball</h4>
             <ul className="pano-stats__list">
-              {fourball.contributions.slice(0, 8).map((c) => (
+              {fourball.contributions.slice(0, 8).map((c, i) => (
                 <li key={c.pairId} className="pano-stats__row">
+                  <span className="pano-stats__pos">{String(i + 1).padStart(2, '0')}</span>
                   <span className="pano-stats__player">
                     <PairName pairId={c.pairId} name={c.displayName} />
                     <span className="pano-stats__meta">
@@ -537,8 +538,9 @@ const PairsCompetitionStats = ({
               <div className="pano-stats__block">
                 <h4 className="pano-stats__h2">Hoyos con menor media Fourball</h4>
                 <ul className="pano-stats__list">
-                  {fourball.lowestHoles.map((h) => (
+                  {fourball.lowestHoles.map((h, i) => (
                     <li key={h.hole} className="pano-stats__row">
+                      <span className="pano-stats__pos">{String(i + 1).padStart(2, '0')}</span>
                       <span className="pano-stats__player">
                         <span className="pano-stats__holename">Hoyo {h.hole}</span>
                         <span className="pano-stats__meta">{`Par ${h.par || '—'} · HCP ${h.holeHcp || '—'}`}</span>
@@ -554,8 +556,9 @@ const PairsCompetitionStats = ({
               <div className="pano-stats__block">
                 <h4 className="pano-stats__h2">Hoyos con mayor media Fourball</h4>
                 <ul className="pano-stats__list">
-                  {fourball.highestHoles.map((h) => (
+                  {fourball.highestHoles.map((h, i) => (
                     <li key={h.hole} className="pano-stats__row">
+                      <span className="pano-stats__pos">{String(i + 1).padStart(2, '0')}</span>
                       <span className="pano-stats__player">
                         <span className="pano-stats__holename">Hoyo {h.hole}</span>
                         <span className="pano-stats__meta">{`Par ${h.par || '—'} · HCP ${h.holeHcp || '—'}`}</span>
