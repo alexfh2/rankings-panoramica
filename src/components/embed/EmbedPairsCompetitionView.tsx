@@ -4,6 +4,7 @@
  */
 import { useMemo, useRef, useState } from 'react';
 import { usePanoramicaEmbedHeight } from '@/hooks/usePanoramicaEmbedHeight';
+import { usePanoramicaEmbedScrollBridge } from '@/hooks/usePanoramicaEmbedScrollBridge';
 import { usePanoramicaParentViewport } from '@/hooks/usePanoramicaParentViewport';
 import { useCompetitionPairsRanking } from '@/hooks/useCompetitionPairsRanking';
 import PairProfileDialog from '@/components/embed/PairProfileDialog';
@@ -63,6 +64,7 @@ const EmbedPairsCompetitionView = ({
   const [selectedPairId, setSelectedPairId] = useState<string | null>(null);
   const embedRootRef = useRef<HTMLDivElement>(null);
   usePanoramicaEmbedHeight(embedRootRef);
+  usePanoramicaEmbedScrollBridge();
   usePanoramicaParentViewport();
   const [openRound, setOpenRound] = useState<string | null>(null);
   const [openResult, setOpenResult] = useState<string | null>(null);
