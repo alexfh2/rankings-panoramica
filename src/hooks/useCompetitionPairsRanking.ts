@@ -189,6 +189,17 @@ export function useCompetitionPairsRanking(slug: string, includeUnpublished = fa
 
   const playersById = useMemo(() => {
     const map = new Map<string, PairMember>();
+    // Público: solo id + nombre desde la RPC (sin licencia ni datos personales).
+    for (const p of publicNamesQuery.data ?? []) {
+      if (!p.player_id) continue;
+      map.set(p.player_id, {
+        id: p.player_id,
+        name: p.display_name ?? '—',
+        license: null,
+        gender: null,
+        currentHandicap: null,
+      });
+    }
     for (const p of playersQuery.data ?? []) {
       if (!p.id) continue;
       map.set(p.id, {
@@ -200,7 +211,8 @@ export function useCompetitionPairsRanking(slug: string, includeUnpublished = fa
       });
     }
     return map;
-  }, [playersQuery.data]);
+  }, [playersQuery.data, publicNamesQuery.data]);
+
 
   const pairs = useMemo<PairEntity[]>(
     () =>
