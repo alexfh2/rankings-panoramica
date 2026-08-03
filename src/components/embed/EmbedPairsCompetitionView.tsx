@@ -153,11 +153,23 @@ const EmbedPairsCompetitionView = ({
                   style={gridStyle}
                 >
                   <span className="pano-embed__pos">{String(i + 1).padStart(2, '0')}</span>
-                  {nameButton(row, row.displayName)}
-                  <span className="pano-pairs-ranking__hcp">
-                    {row.initialPairHandicap != null ? row.initialPairHandicap.toFixed(1) : '—'}
+                  <span className="pano-embed__name pano-pairs-ranking__pair">
+                    <button
+                      type="button"
+                      className="pano-pairs-ranking__pairbtn"
+                      title={row.displayName}
+                      aria-label={`Ver ficha de ${row.displayName}`}
+                      onClick={() => setSelectedPairId(row.pairId)}
+                    >
+                      {row.displayName}
+                    </button>
+                    {formatPairHcp(row.initialPairHandicap) && (
+                      <span className="pano-pairs-ranking__pairhcp">
+                        ({formatPairHcp(row.initialPairHandicap)})
+                      </span>
+                    )}
                   </span>
-                  <span className="pano-pairs-ranking__played">{row.roundsPlayed}</span>
+
                   <span className="pano-pairs-ranking__grid">
                     {columns.map((c) => {
                       const score = row.scoresByRoundId[c.id];
