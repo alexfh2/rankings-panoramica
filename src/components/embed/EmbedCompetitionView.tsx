@@ -307,7 +307,7 @@ const EmbedCompetitionView = ({
   };
 
   return (
-    <div className="pano-embed">
+    <div className="pano-embed" ref={embedRootRef}>
       <div className="pano-embed__inner">
         <p className="pano-embed__eyebrow">{eyebrow}</p>
         <h1 className="pano-embed__title">{title}</h1>
