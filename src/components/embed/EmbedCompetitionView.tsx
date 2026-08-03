@@ -104,6 +104,10 @@ const EmbedCompetitionView = ({
   const [tab, setTab] = useState<TabKey>('hcpLow');
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [rulesOpen, setRulesOpen] = useState(false);
+  const embedRootRef = useRef<HTMLDivElement>(null);
+  usePanoramicaEmbedHeight(embedRootRef);
+
+
 
 
   // Jugadors derivats dels resultats ja carregats (cap consulta nova).
