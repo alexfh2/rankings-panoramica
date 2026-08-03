@@ -48,8 +48,6 @@
   grid-template-columns:
     30px
     minmax(0, 1fr)
-    38px
-    26px
     repeat(var(--pano-round-count, 2), 30px)
     64px;
   gap: 6px;
@@ -60,9 +58,7 @@
   .pano-pairs-ranking__line {
     grid-template-columns:
       44px
-      minmax(0, 1fr)
-      52px
-      36px
+      minmax(220px, 1.6fr)
       repeat(var(--pano-round-count, 2), 38px)
       86px;
     gap: 10px;
@@ -76,17 +72,6 @@
 
 .pano-pairs-ranking__grid { display: contents; }
 
-.pano-pairs-ranking__hcp,
-.pano-pairs-ranking__played {
-  font-family: 'Inter', sans-serif;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.55);
-  font-variant-numeric: tabular-nums;
-  text-align: center;
-}
-
-.pano-pairs-ranking__head .pano-pairs-ranking__hcp,
-.pano-pairs-ranking__head .pano-pairs-ranking__played,
 .pano-pairs-ranking__head .pano-embed__points {
   font-size: 10px;
   letter-spacing: 0.1em;
@@ -104,13 +89,47 @@
   font-family: 'Inter', sans-serif;
 }
 
+/* Pareja: nombres + Hcp inicial con menor protagonismo */
+.pano-pairs-ranking__pair {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
+.pano-pairs-ranking__pairbtn {
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.pano-pairs-ranking__pairbtn:hover,
+.pano-pairs-ranking__pairbtn:focus-visible {
+  color: var(--pano-gold, #C8A24A);
+  outline: none;
+}
+
+.pano-pairs-ranking__pairhcp {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 @media (max-width: 599px) {
   .pano-pairs-ranking__line.pano-pairs-ranking__head,
   .pano-pairs-ranking__line.pano-pairs-ranking__row {
     grid-template-columns: 30px minmax(0, 1fr) auto;
     grid-template-areas:
       'pos name total'
-      'hcp played played'
       'grid grid grid';
     row-gap: 6px;
     column-gap: 10px;
@@ -118,18 +137,19 @@
   .pano-pairs-ranking__line .pano-embed__pos { grid-area: pos; }
   .pano-pairs-ranking__line .pano-embed__name { grid-area: name; }
   .pano-pairs-ranking__line .pano-embed__points { grid-area: total; text-align: right; }
-  .pano-pairs-ranking__line .pano-pairs-ranking__hcp { grid-area: hcp; text-align: left; }
-  .pano-pairs-ranking__line .pano-pairs-ranking__played { grid-area: played; text-align: left; }
+  .pano-pairs-ranking__pair { flex-direction: column; gap: 2px; }
   .pano-pairs-ranking__line .pano-pairs-ranking__grid {
     grid-area: grid;
     display: flex;
     gap: 8px;
     overflow-x: auto;
     scrollbar-width: none;
+    max-width: 100%;
   }
   .pano-pairs-ranking__line .pano-pairs-ranking__grid::-webkit-scrollbar { display: none; }
   .pano-pairs-ranking__line .pano-pairs-ranking__grid > * { flex: 0 0 auto; min-width: 22px; }
 }
+
 
 /* ── Pruebas ─────────────────────────────────────────────────── */
 .pano-pairs-round__item {

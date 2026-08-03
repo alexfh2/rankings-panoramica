@@ -122,9 +122,26 @@ export function useCompetitionPairsRanking(slug: string, includeUnpublished = fa
     return Array.from(set).sort();
   }, [pairsQuery.data]);
 
+  /**
+   * Vista pública: RPC segura que devuelve SOLO player_id + display_name de jugadores
+   * con resultados en jornadas publicadas. No expone licencia, género ni hándicap.
+   * Vista admin (includeUnpublished): consulta autenticada existente sobre players_public.
+   */
+  const publicNamesQuery = useQuery({
+    queryKey: ['pairs-public-names', slug],
+    enabled: !includeUnpublished && !!competitionId,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_published_pair_player_names', {
+        p_competition_slug: slug,
+      });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   const playersQuery = useQuery({
     queryKey: ['pairs-players', playerIds],
-    enabled: playerIds.length > 0,
+    enabled: includeUnpublished && playerIds.length > 0,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('players_public')
@@ -134,6 +151,7 @@ export function useCompetitionPairsRanking(slug: string, includeUnpublished = fa
       return data ?? [];
     },
   });
+
 
   const roundIds = useMemo(() => (roundsQuery.data ?? []).map((r) => r.id).sort(), [roundsQuery.data]);
 
@@ -171,6 +189,17 @@ export function useCompetitionPairsRanking(slug: string, includeUnpublished = fa
 
   const playersById = useMemo(() => {
     const map = new Map<string, PairMember>();
+    // Público: solo id + nombre desde la RPC (sin licencia ni datos personales).
+    for (const p of publicNamesQuery.data ?? []) {
+      if (!p.player_id) continue;
+      map.set(p.player_id, {
+        id: p.player_id,
+        name: p.display_name ?? '—',
+        license: null,
+        gender: null,
+        currentHandicap: null,
+      });
+    }
     for (const p of playersQuery.data ?? []) {
       if (!p.id) continue;
       map.set(p.id, {
@@ -182,7 +211,8 @@ export function useCompetitionPairsRanking(slug: string, includeUnpublished = fa
       });
     }
     return map;
-  }, [playersQuery.data]);
+  }, [playersQuery.data, publicNamesQuery.data]);
+
 
   const pairs = useMemo<PairEntity[]>(
     () =>
@@ -260,12 +290,15 @@ export function useCompetitionPairsRanking(slug: string, includeUnpublished = fa
       roundsQuery.isLoading ||
       pairsQuery.isLoading ||
       resultsQuery.isLoading ||
-      playersQuery.isLoading,
+      playersQuery.isLoading ||
+      publicNamesQuery.isLoading,
     error: (competitionQuery.error ||
       roundsQuery.error ||
       pairsQuery.error ||
       resultsQuery.error ||
-      playersQuery.error) as Error | null,
+      playersQuery.error ||
+      publicNamesQuery.error) as Error | null,
+
     competitionNotFound: competitionQuery.isSuccess && !competitionQuery.data,
   };
 }
