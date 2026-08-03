@@ -4,8 +4,9 @@
  * En la vista pública nunca muestra licencias.
  * Solo presentación: no altera Net/Brt oficiales ni el ranking.
  */
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { requestPanoramicaParentViewport } from '@/hooks/usePanoramicaParentViewport';
 import PairScorecardBlock from '@/components/embed/PairScorecardBlock';
 import type { PairRankingRow, PairResultEntity } from '@/lib/buildPairsRanking';
 import type { PairsRound } from '@/hooks/useCompetitionPairsRanking';
@@ -60,13 +61,17 @@ const PairProfileDialog = ({
       .sort((a, b) => (order.get(a.roundId) ?? 0) - (order.get(b.roundId) ?? 0));
   }, [row, pairResults, rounds]);
 
+  useEffect(() => {
+    if (open) requestPanoramicaParentViewport();
+  }, [open]);
+
   if (!row) return null;
 
   const counted = new Set(row.countedRoundIds);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="pano-pair-dialog overflow-y-auto">
+      <DialogContent className="pano-pair-dialog pano-embed-dialog overflow-y-auto">
         <DialogHeader className="pano-pair-dialog__header">
           <span className="pano-pair-dialog__eyebrow">Orden del Mérito de Parejas</span>
           <DialogTitle className="pano-pair-dialog__title">{row.displayName}</DialogTitle>
