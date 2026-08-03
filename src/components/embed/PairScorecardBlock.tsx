@@ -5,6 +5,7 @@
  * Componente puro: no consulta el backend y no recalcula el Net oficial.
  */
 import { useMemo } from 'react';
+import { resolvePairsWomenHoleHandicap } from '@/lib/panoramicaPairsCourse';
 import { buildFourballScorecard, type FourballContributor } from '@/lib/buildFourballScorecard';
 import type { PairResultEntity, PairMember } from '@/lib/buildPairsRanking';
 import type { PairsRound } from '@/hooks/useCompetitionPairsRanking';
@@ -44,14 +45,6 @@ const sumComplete = (
 };
 
 const fmt = (value: number | null): string => (value == null ? '—' : String(value));
-
-/** Normaliza el género a 'M' | 'F'; cualquier otro valor devuelve null (nunca se infiere). */
-const normalizeGender = (gender: string | null | undefined): 'M' | 'F' | null => {
-  const g = (gender ?? '').trim().toUpperCase();
-  if (g === 'M' || g === 'H' || g === 'MALE' || g === 'HOMBRE') return 'M';
-  if (g === 'F' || g === 'W' || g === 'FEMALE' || g === 'MUJER') return 'F';
-  return null;
-};
 
 /** Solo devuelve el array si contiene los 18 índices; si no, null → se muestra "—". */
 const complete18 = (values: readonly number[] | null | undefined): readonly number[] | null => {
@@ -175,7 +168,7 @@ const PairScorecardBlock = ({
       },
       coursePar: round.coursePar,
       courseHandicap: round.courseHandicap,
-      courseHandicapWomen: round.courseHandicapWomen,
+      courseHandicapWomen: resolvePairsWomenHoleHandicap(round.courseHandicap, round.courseHandicapWomen),
       officialNetPoints: result.netPoints,
       officialGrossPoints: result.grossPoints,
     });
@@ -184,17 +177,12 @@ const PairScorecardBlock = ({
   const fourballUsable = fourball && fourball.calculatedNetPoints != null;
 
   const par = complete18(round?.coursePar);
-  const menHcp = complete18(round?.courseHandicap);
-  const womenHcp = complete18(round?.courseHandicapWomen);
-  /** Índices del hoyo según el sexo del jugador; nunca se sustituyen por los masculinos. */
-  const hcpFor = (gender: string | null | undefined): readonly number[] | null => {
-    const g = normalizeGender(gender);
-    if (g === 'M') return menHcp;
-    if (g === 'F') return womenHcp;
-    return null;
-  };
-  const hcp1 = hcpFor(player1?.gender ?? sc1?.gender ?? null);
-  const hcp2 = hcpFor(player2?.gender ?? sc2?.gender ?? null);
+  /** En Panorámica la distribución de HCP por hoyo es la misma para hombres y mujeres. */
+  const holeHcp = complete18(
+    resolvePairsWomenHoleHandicap(round?.courseHandicap, round?.courseHandicap),
+  );
+
+
 
   /**
    * Público: la tabla Fourball solo se muestra si la validación interna es correcta.
@@ -211,7 +199,7 @@ const PairScorecardBlock = ({
         hex={result.player1ExactHandicap}
         hpu={hpu1}
         par={par}
-        holeHandicap={hcp1}
+        holeHandicap={holeHcp}
       />
       <GrossCard
         name={name2}
@@ -219,7 +207,7 @@ const PairScorecardBlock = ({
         hex={result.player2ExactHandicap}
         hpu={hpu2}
         par={par}
-        holeHandicap={hcp2}
+        holeHandicap={holeHcp}
       />
 
 
