@@ -337,7 +337,7 @@ const EmbedPairsCompetitionView = ({
 
 
   return (
-    <div className="pano-embed pano-pairs">
+    <div className="pano-embed pano-pairs" ref={embedRootRef}>
       <div className="pano-embed__inner">
         <p className="pano-embed__eyebrow">Panorámica Golf · Temporada 2026</p>
         <h1 className="pano-embed__title">Orden del Mérito de Parejas 2026</h1>
