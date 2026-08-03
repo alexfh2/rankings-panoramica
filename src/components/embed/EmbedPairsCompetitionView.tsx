@@ -64,6 +64,7 @@ const EmbedPairsCompetitionView = ({
   const [selectedPairId, setSelectedPairId] = useState<string | null>(null);
   const embedRootRef = useRef<HTMLDivElement>(null);
   usePanoramicaEmbedHeight(embedRootRef);
+  usePanoramicaEmbedScrollBridge();
   usePanoramicaParentViewport();
   const [openRound, setOpenRound] = useState<string | null>(null);
   const [openResult, setOpenResult] = useState<string | null>(null);
