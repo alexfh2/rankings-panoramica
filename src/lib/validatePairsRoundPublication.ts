@@ -5,6 +5,7 @@
  * El Net oficial del Excel sigue siendo la fuente de verdad; aquí únicamente
  * se compara con la tarjeta Fourball derivada para detectar discrepancias.
  */
+import { resolvePairsWomenHoleHandicap } from '@/lib/panoramicaPairsCourse';
 import { buildFourballScorecard, type FourballValidationStatus } from './buildFourballScorecard';
 
 export interface PairValidationRoundInput {
@@ -116,7 +117,7 @@ export function validatePairsRoundPublication(
       },
       coursePar: round.coursePar,
       courseHandicap: round.courseHandicap,
-      courseHandicapWomen: round.courseHandicapWomen,
+      courseHandicapWomen: resolvePairsWomenHoleHandicap(round.courseHandicap, round.courseHandicapWomen),
       officialNetPoints: res.netPoints,
       officialGrossPoints: res.grossPoints,
     });

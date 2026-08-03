@@ -9,6 +9,7 @@
  * - Las estadísticas Fourball hoyo a hoyo solo usan resultados con HPU de ambos
  *   jugadores y recorrido completo, descartando `insufficient_data`.
  */
+import { resolvePairsWomenHoleHandicap } from '@/lib/panoramicaPairsCourse';
 import {
   buildFourballScorecard,
   type FourballContributor,
@@ -399,7 +400,7 @@ export function computePairsCompetitionStats(input: PairsStatsInput): PairsCompe
       },
       coursePar: round.coursePar,
       courseHandicap: round.courseHandicap,
-      courseHandicapWomen: round.courseHandicapWomen,
+      courseHandicapWomen: resolvePairsWomenHoleHandicap(round.courseHandicap, round.courseHandicapWomen),
       officialNetPoints: res.netPoints,
       officialGrossPoints: res.grossPoints,
     });

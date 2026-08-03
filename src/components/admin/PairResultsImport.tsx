@@ -1,3 +1,4 @@
+import { resolvePairsWomenHoleHandicap } from '@/lib/panoramicaPairsCourse';
 import { useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import * as XLSX from 'xlsx';
@@ -233,7 +234,7 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
               },
               coursePar,
               courseHandicap,
-              courseHandicapWomen,
+              courseHandicapWomen: resolvePairsWomenHoleHandicap(courseHandicap, courseHandicapWomen),
               officialNetPoints: pair.netPoints,
               officialGrossPoints: pair.grossPoints,
             })
