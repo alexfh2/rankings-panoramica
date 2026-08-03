@@ -109,6 +109,7 @@ const EmbedCompetitionView = ({
   const [rulesOpen, setRulesOpen] = useState(false);
   const embedRootRef = useRef<HTMLDivElement>(null);
   usePanoramicaEmbedHeight(embedRootRef);
+  usePanoramicaEmbedScrollBridge();
   usePanoramicaParentViewport();
 
 
