@@ -3,7 +3,8 @@
  * Extret literalment de EmbedIndividual2026 i parametritzat per slug/títol/Scratch.
  * No afegeix consultes: tota la dada ve de useCompetitionIndividualRanking(slug).
  */
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { usePanoramicaEmbedHeight } from '@/hooks/usePanoramicaEmbedHeight';
 import {
   useCompetitionIndividualRanking,
   type CompetitionRankedPlayer,
