@@ -182,6 +182,20 @@ const PairScorecardBlock = ({
   }, [hpu1, hpu2, round, sc1, sc2, name1, name2, player1, player2, result]);
 
   const fourballUsable = fourball && fourball.calculatedNetPoints != null;
+
+  const par = complete18(round?.coursePar);
+  const menHcp = complete18(round?.courseHandicap);
+  const womenHcp = complete18(round?.courseHandicapWomen);
+  /** Índices del hoyo según el sexo del jugador; nunca se sustituyen por los masculinos. */
+  const hcpFor = (gender: string | null | undefined): readonly number[] | null => {
+    const g = normalizeGender(gender);
+    if (g === 'M') return menHcp;
+    if (g === 'F') return womenHcp;
+    return null;
+  };
+  const hcp1 = hcpFor(player1?.gender ?? sc1?.gender ?? null);
+  const hcp2 = hcpFor(player2?.gender ?? sc2?.gender ?? null);
+
   /**
    * Público: la tabla Fourball solo se muestra si la validación interna es correcta.
    * Admin: se muestra siempre que se pueda reconstruir, junto al detalle técnico.
@@ -191,8 +205,23 @@ const PairScorecardBlock = ({
 
   return (
     <div className="pano-fourball-card">
-      <GrossCard name={name1} scores={sc1?.scores} hex={result.player1ExactHandicap} hpu={hpu1} />
-      <GrossCard name={name2} scores={sc2?.scores} hex={result.player2ExactHandicap} hpu={hpu2} />
+      <GrossCard
+        name={name1}
+        scores={sc1?.scores}
+        hex={result.player1ExactHandicap}
+        hpu={hpu1}
+        par={par}
+        holeHandicap={hcp1}
+      />
+      <GrossCard
+        name={name2}
+        scores={sc2?.scores}
+        hex={result.player2ExactHandicap}
+        hpu={hpu2}
+        par={par}
+        holeHandicap={hcp2}
+      />
+
 
       {showFourballTable ? (
         <div className="pano-pairs-card pano-pairs-card--fourball">
