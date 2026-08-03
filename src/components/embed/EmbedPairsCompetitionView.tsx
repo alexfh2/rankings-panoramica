@@ -316,8 +316,22 @@ const EmbedPairsCompetitionView = ({
     if (competitionNotFound) return state('Competición no disponible.');
     if (error) return state('No se ha podido cargar la clasificación. Inténtalo de nuevo más tarde.');
     if (previewMode && !pairResults.length) return state('No hay resultados de parejas importados todavía.');
-    return section === 'rounds' ? renderRounds() : renderRanking();
+    if (section === 'rounds') return renderRounds();
+    if (section === 'stats') {
+      return (
+        <PairsCompetitionStats
+          rounds={rounds}
+          pairResults={pairResults}
+          ranking={ranking}
+          bestNScores={bestNScores}
+          previewMode={previewMode}
+          onPairClick={(pairId) => setSelectedPairId(pairId)}
+        />
+      );
+    }
+    return renderRanking();
   };
+
 
   return (
     <div className="pano-embed pano-pairs">
