@@ -45,16 +45,37 @@ const sumComplete = (
 
 const fmt = (value: number | null): string => (value == null ? '—' : String(value));
 
+/** Normaliza el género a 'M' | 'F'; cualquier otro valor devuelve null (nunca se infiere). */
+const normalizeGender = (gender: string | null | undefined): 'M' | 'F' | null => {
+  const g = (gender ?? '').trim().toUpperCase();
+  if (g === 'M' || g === 'H' || g === 'MALE' || g === 'HOMBRE') return 'M';
+  if (g === 'F' || g === 'W' || g === 'FEMALE' || g === 'MUJER') return 'F';
+  return null;
+};
+
+/** Solo devuelve el array si contiene los 18 índices; si no, null → se muestra "—". */
+const complete18 = (values: readonly number[] | null | undefined): readonly number[] | null => {
+  if (!values || values.length < 18) return null;
+  for (let i = 0; i < 18; i += 1) {
+    if (typeof values[i] !== 'number' || Number.isNaN(values[i])) return null;
+  }
+  return values;
+};
+
 const GrossCard = ({
   name,
   scores,
   hex,
   hpu,
+  par,
+  holeHandicap,
 }: {
   name: string;
   scores: readonly (number | null)[] | undefined;
   hex: number | null;
   hpu: number | null;
+  par: readonly number[] | null;
+  holeHandicap: readonly number[] | null;
 }) => (
   <div className="pano-pairs-card">
     <div className="pano-pairs-card__head">
@@ -77,7 +98,25 @@ const GrossCard = ({
           </tr>
         </thead>
         <tbody>
-          <tr>
+          <tr className="pano-pairs-table__ref">
+            <th scope="row">Par</th>
+            {holeIndexes.map((i) => (
+              <td key={i}>{par ? par[i] : '—'}</td>
+            ))}
+            <td>{par ? sumComplete(par, 0, 9) : '—'}</td>
+            <td>{par ? sumComplete(par, 9, 18) : '—'}</td>
+            <td>{par ? sumComplete(par, 0, 18) : '—'}</td>
+          </tr>
+          <tr className="pano-pairs-table__ref">
+            <th scope="row">HCP</th>
+            {holeIndexes.map((i) => (
+              <td key={i}>{holeHandicap ? holeHandicap[i] : '—'}</td>
+            ))}
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+          </tr>
+          <tr className="pano-pairs-table__strokes">
             <th scope="row">Golpes</th>
             {holeIndexes.map((i) => {
               const v = scores?.[i];
