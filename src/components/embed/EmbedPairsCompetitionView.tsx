@@ -6,17 +6,20 @@ import { useMemo, useState } from 'react';
 import { useCompetitionPairsRanking } from '@/hooks/useCompetitionPairsRanking';
 import PairProfileDialog from '@/components/embed/PairProfileDialog';
 import PairScorecardBlock from '@/components/embed/PairScorecardBlock';
+import PairsCompetitionStats from '@/components/embed/PairsCompetitionStats';
 import type { PairRankingRow } from '@/lib/buildPairsRanking';
 import '@/styles/embed-panoramica.css';
 import '@/styles/embed-pairs.css';
 
-type SectionKey = 'ranking' | 'rounds';
+type SectionKey = 'ranking' | 'rounds' | 'stats';
 type TabKey = 'hcpLow' | 'hcpHigh';
 
 const SECTIONS: { key: SectionKey; label: string }[] = [
   { key: 'ranking', label: 'Clasificación' },
   { key: 'rounds', label: 'Pruebas' },
+  { key: 'stats', label: 'Estadísticas' },
 ];
+
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: 'hcpLow', label: '1ª Categoría' },
@@ -313,8 +316,22 @@ const EmbedPairsCompetitionView = ({
     if (competitionNotFound) return state('Competición no disponible.');
     if (error) return state('No se ha podido cargar la clasificación. Inténtalo de nuevo más tarde.');
     if (previewMode && !pairResults.length) return state('No hay resultados de parejas importados todavía.');
-    return section === 'rounds' ? renderRounds() : renderRanking();
+    if (section === 'rounds') return renderRounds();
+    if (section === 'stats') {
+      return (
+        <PairsCompetitionStats
+          rounds={rounds}
+          pairResults={pairResults}
+          ranking={ranking}
+          bestNScores={bestNScores}
+          previewMode={previewMode}
+          onPairClick={(pairId) => setSelectedPairId(pairId)}
+        />
+      );
+    }
+    return renderRanking();
   };
+
 
   return (
     <div className="pano-embed pano-pairs">
