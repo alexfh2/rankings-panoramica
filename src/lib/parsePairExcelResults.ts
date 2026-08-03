@@ -283,7 +283,13 @@ function detectHeader(rows: unknown[][]): HeaderDetection {
 
 /* ----------------------------------------------------------------- grouping */
 
-type RawBlock = { rows: number[]; posRow: number | null; position: number | null };
+type RawBlock = {
+  rows: number[];
+  posRow: number | null;
+  headerRowIndex: number;
+  position: number | null;
+  positionInferred: boolean;
+};
 
 function cell(rows: unknown[][], r: number, c: number | null): unknown {
   if (c === null) return null;
