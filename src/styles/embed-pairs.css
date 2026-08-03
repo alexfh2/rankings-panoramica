@@ -437,18 +437,6 @@
 }
 
 /* ── Estadísticas de Parejas ──────────────────────────────────── */
-.pano-pairs-stats .pano-stats__strip--2 {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 14px;
-}
-
-@media (min-width: 700px) {
-  .pano-pairs-stats .pano-stats__strip--2 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 .pano-pairs-stats__legend {
   display: flex;
   flex-wrap: wrap;
