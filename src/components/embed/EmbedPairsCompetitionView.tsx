@@ -4,6 +4,7 @@
  */
 import { useMemo, useRef, useState } from 'react';
 import { usePanoramicaEmbedHeight } from '@/hooks/usePanoramicaEmbedHeight';
+import { usePanoramicaEmbedScrollBridge } from '@/hooks/usePanoramicaEmbedScrollBridge';
 import { usePanoramicaParentViewport } from '@/hooks/usePanoramicaParentViewport';
 import { useCompetitionPairsRanking } from '@/hooks/useCompetitionPairsRanking';
 import PairProfileDialog from '@/components/embed/PairProfileDialog';
