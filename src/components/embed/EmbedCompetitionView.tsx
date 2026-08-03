@@ -3,7 +3,8 @@
  * Extret literalment de EmbedIndividual2026 i parametritzat per slug/títol/Scratch.
  * No afegeix consultes: tota la dada ve de useCompetitionIndividualRanking(slug).
  */
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { usePanoramicaEmbedHeight } from '@/hooks/usePanoramicaEmbedHeight';
 import {
   useCompetitionIndividualRanking,
   type CompetitionRankedPlayer,
@@ -103,6 +104,10 @@ const EmbedCompetitionView = ({
   const [tab, setTab] = useState<TabKey>('hcpLow');
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [rulesOpen, setRulesOpen] = useState(false);
+  const embedRootRef = useRef<HTMLDivElement>(null);
+  usePanoramicaEmbedHeight(embedRootRef);
+
+
 
 
   // Jugadors derivats dels resultats ja carregats (cap consulta nova).
@@ -302,7 +307,7 @@ const EmbedCompetitionView = ({
   };
 
   return (
-    <div className="pano-embed">
+    <div className="pano-embed" ref={embedRootRef}>
       <div className="pano-embed__inner">
         <p className="pano-embed__eyebrow">{eyebrow}</p>
         <h1 className="pano-embed__title">{title}</h1>
