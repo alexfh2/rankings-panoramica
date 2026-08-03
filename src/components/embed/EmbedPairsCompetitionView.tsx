@@ -75,6 +75,10 @@ const EmbedPairsCompetitionView = ({
 
   const state = (msg: string) => <p className="pano-embed__state">{msg}</p>;
 
+  /** Hcp inicial de la pareja (pairs.initial_pair_handicap), un decimal y coma decimal. */
+  const formatPairHcp = (value: number | null): string | null =>
+    value == null ? null : `HCP ${value.toFixed(1).replace('.', ',')}`;
+
   const nameButton = (row: PairRankingRow | undefined, fallback: string) =>
     row ? (
       <button
@@ -94,8 +98,6 @@ const EmbedPairsCompetitionView = ({
     <div className="pano-pairs-ranking__line pano-pairs-ranking__head" style={gridStyle}>
       <span className="pano-embed__pos" aria-hidden="true" />
       <span className="pano-embed__name" aria-hidden="true" />
-      <span className="pano-pairs-ranking__hcp">Hcp</span>
-      <span className="pano-pairs-ranking__played">Pr.</span>
       <span className="pano-pairs-ranking__grid">
         {columns.map((c) => (
           <span
@@ -110,6 +112,7 @@ const EmbedPairsCompetitionView = ({
       <span className="pano-embed__points">Total</span>
     </div>
   );
+
 
   const renderRanking = () => {
     const list = ranking.rankings[tab];
