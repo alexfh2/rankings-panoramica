@@ -206,7 +206,9 @@ const PairScorecardBlock = ({
                   {fourball!.holes.map((h) => (
                     <td key={h.hole}>{h.pairNetPoints}</td>
                   ))}
-                  <td className="pano-pairs-table__total">{fourball!.calculatedNetPoints}</td>
+                  <td className="pano-pairs-table__total">
+                    {showInternalValidation ? fourball!.calculatedNetPoints : result.netPoints}
+                  </td>
                 </tr>
                 <tr>
                   <th scope="row">Aporta</th>
@@ -220,16 +222,32 @@ const PairScorecardBlock = ({
               </tbody>
             </table>
           </div>
+          {!showInternalValidation && (
+            <p className="pano-pairs-card__foot">Total: Net oficial {result.netPoints}</p>
+          )}
+          {showInternalValidation && fourball!.warnings.length > 0 && (
+            <ul className="pano-pairs-card__warnings">
+              {fourball!.warnings.map((w) => (
+                <li key={w.code}>
+                  {w.code}: {w.message}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       ) : (
         <div className="pano-pairs-notice">
           <strong>Resultado Net oficial: {result.netPoints}</strong>
           <span>
-            No se puede reconstruir la tarjeta Fourball neta porque faltan datos de hándicap de juego o del
-            recorrido.
+            {showInternalValidation
+              ? fourballUsable
+                ? `VALIDACIÓN INTERNA · estado ${fourball!.validationStatus} · Net calculado ${fourball!.calculatedNetPoints} · diferencia ${fourball!.netDifference ?? '—'}`
+                : 'VALIDACIÓN INTERNA · datos insuficientes: faltan HPU individuales o datos del recorrido.'
+              : 'Detalle Fourball no disponible para esta prueba.'}
           </span>
         </div>
       )}
+
     </div>
   );
 };
