@@ -5,6 +5,7 @@
  */
 import { useMemo, useRef, useState } from 'react';
 import { usePanoramicaEmbedHeight } from '@/hooks/usePanoramicaEmbedHeight';
+import { usePanoramicaEmbedScrollBridge } from '@/hooks/usePanoramicaEmbedScrollBridge';
 import { usePanoramicaParentViewport } from '@/hooks/usePanoramicaParentViewport';
 import {
   useCompetitionIndividualRanking,
