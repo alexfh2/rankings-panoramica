@@ -267,3 +267,71 @@ describe('parsePairExcelResults', () => {
   });
 });
 
+
+describe('parsePairExcelResults · empats amb Pos buida', () => {
+  const pairRows = (opts: {
+    pos?: string | number | null;
+    n1: string; l1: string; h1: string;
+    n2: string; l2: string; h2: string;
+    brt?: number; net?: number; hpu?: number | null;
+  }): Row[] => [
+    playerRow({
+      pos: opts.pos ?? '',
+      name: opts.n1,
+      license: opts.l1,
+      hex: opts.h1,
+      brt: opts.brt ?? 30,
+      net: opts.net ?? 40,
+      hpu: opts.hpu ?? 9,
+    }),
+    playerRow({ name: opts.n2, license: opts.l2, hex: opts.h2 }),
+  ];
+
+  it('detecta una segona parella empatada amb Pos buida i hereta la posició', () => {
+    const rows = [
+      ...pairRows({ pos: 1, n1: 'A UNO', l1: 'CB10000001', h1: '8,7', n2: 'A DOS', l2: 'CB10000002', h2: '2,2' }),
+      ...pairRows({ n1: 'B UNO', l1: 'CB20000001', h1: '9,1', n2: 'B DOS', l2: 'CB20000002', h2: '3,3' }),
+      ...pairRows({ pos: 3, n1: 'C UNO', l1: 'CB30000001', h1: '20,1', n2: 'C DOS', l2: 'CB30000002', h2: '25,0' }),
+    ];
+    const result = parsePairExcelResults(buildWorkbook(rows));
+    expect(result.summary.totalPairs).toBe(3);
+    expect(result.pairs.map((p) => p.position)).toEqual([1, 1, 3]);
+    expect(result.pairs.every((p) => p.player1.name && p.player2.name)).toBe(true);
+    expect(result.errors.filter((e) => e.blocking)).toHaveLength(0);
+    expect(result.pairs[1].warnings.some((w) => w.code === 'POSITION_INFERRED_FROM_TIE')).toBe(true);
+    expect(result.pairs[0].warnings.some((w) => w.code === 'POSITION_INFERRED_FROM_TIE')).toBe(false);
+  });
+
+  it('no converteix dues parelles empatades en un bloc de 4 jugadors', () => {
+    const rows = [
+      ...pairRows({ pos: 5, n1: 'A UNO', l1: 'CB10000001', h1: '8,7', n2: 'A DOS', l2: 'CB10000002', h2: '2,2' }),
+      ...pairRows({ n1: 'B UNO', l1: 'CB20000001', h1: '9,1', n2: 'B DOS', l2: 'CB20000002', h2: '3,3' }),
+    ];
+    const result = parsePairExcelResults(buildWorkbook(rows));
+    expect(result.summary.totalPairs).toBe(2);
+    expect(result.summary.totalPlayers).toBe(4);
+    expect(result.errors.some((e) => e.code === 'UNEXPECTED_PAIR_SIZE')).toBe(false);
+  });
+
+  it('no converteix tres parelles empatades en un bloc de 6 jugadors', () => {
+    const rows = [
+      ...pairRows({ pos: 7, n1: 'A UNO', l1: 'CB10000001', h1: '8,7', n2: 'A DOS', l2: 'CB10000002', h2: '2,2' }),
+      ...pairRows({ n1: 'B UNO', l1: 'CB20000001', h1: '9,1', n2: 'B DOS', l2: 'CB20000002', h2: '3,3' }),
+      ...pairRows({ n1: 'C UNO', l1: 'CB30000001', h1: '10,1', n2: 'C DOS', l2: 'CB30000002', h2: '4,4' }),
+    ];
+    const result = parsePairExcelResults(buildWorkbook(rows));
+    expect(result.summary.totalPairs).toBe(3);
+    expect(result.pairs.map((p) => p.position)).toEqual([7, 7, 7]);
+    expect(result.errors.some((e) => e.code === 'UNEXPECTED_PAIR_SIZE')).toBe(false);
+  });
+
+  it('manté el segon jugador (Pos/Net/Brt buits) dins de la seva parella tot i faltar-li el Hpu', () => {
+    const rows = pairRows({ pos: 1, n1: 'A UNO', l1: 'CB10000001', h1: '8,7', n2: 'A DOS', l2: 'CB10000002', h2: '2,2' });
+    const result = parsePairExcelResults(buildWorkbook(rows));
+    expect(result.summary.totalPairs).toBe(1);
+    expect(result.pairs[0].player2.name).toBe('A DOS');
+    expect(result.pairs[0].player1.playingHandicap).toBe(9);
+    expect(result.pairs[0].player2.playingHandicap).toBeNull();
+    expect(result.errors.filter((e) => e.blocking)).toHaveLength(0);
+  });
+});
