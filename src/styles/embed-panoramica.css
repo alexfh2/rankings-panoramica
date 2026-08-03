@@ -13,7 +13,9 @@
 
   background-color: var(--pano-bg);
   color: var(--pano-fg);
-  min-height: 100vh;
+  /* Sin min-height de viewport: el contenedor crece con su contenido
+     para poder medir y comunicar la altura real al iframe padre. */
+  height: auto;
   width: 100%;
   overflow-x: hidden;
   font-family: 'Inter', system-ui, sans-serif;
