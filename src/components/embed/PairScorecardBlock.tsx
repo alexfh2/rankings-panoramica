@@ -97,7 +97,14 @@ const GrossCard = ({
   </div>
 );
 
-const PairScorecardBlock = ({ result, round, player1, player2 }: Props) => {
+const PairScorecardBlock = ({
+  result,
+  round,
+  player1,
+  player2,
+  showInternalValidation = false,
+}: Props) => {
+
   const sc1 = result.player1Scorecard;
   const sc2 = result.player2Scorecard;
   const name1 = player1?.name ?? sc1?.name ?? 'Jugador 1';
