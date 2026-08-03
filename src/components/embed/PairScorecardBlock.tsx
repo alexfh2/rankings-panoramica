@@ -21,7 +21,10 @@ type Props = {
   round: PairsRound | undefined;
   player1: PairMember | null;
   player2: PairMember | null;
+  /** Solo en administración: muestra Net/Brt calculados, diferencias y estado de validación. */
+  showInternalValidation?: boolean;
 };
+
 
 const holeIndexes = Array.from({ length: 18 }, (_, i) => i);
 
@@ -94,7 +97,14 @@ const GrossCard = ({
   </div>
 );
 
-const PairScorecardBlock = ({ result, round, player1, player2 }: Props) => {
+const PairScorecardBlock = ({
+  result,
+  round,
+  player1,
+  player2,
+  showInternalValidation = false,
+}: Props) => {
+
   const sc1 = result.player1Scorecard;
   const sc2 = result.player2Scorecard;
   const name1 = player1?.name ?? sc1?.name ?? 'Jugador 1';
@@ -133,21 +143,38 @@ const PairScorecardBlock = ({ result, round, player1, player2 }: Props) => {
   }, [hpu1, hpu2, round, sc1, sc2, name1, name2, player1, player2, result]);
 
   const fourballUsable = fourball && fourball.calculatedNetPoints != null;
+  /**
+   * Público: la tabla Fourball solo se muestra si la validación interna es correcta.
+   * Admin: se muestra siempre que se pueda reconstruir, junto al detalle técnico.
+   */
+  const showFourballTable =
+    fourballUsable && (showInternalValidation || fourball!.validationStatus === 'valid');
 
   return (
     <div className="pano-fourball-card">
       <GrossCard name={name1} scores={sc1?.scores} hex={result.player1ExactHandicap} hpu={hpu1} />
       <GrossCard name={name2} scores={sc2?.scores} hex={result.player2ExactHandicap} hpu={hpu2} />
 
-      {fourballUsable ? (
+      {showFourballTable ? (
         <div className="pano-pairs-card pano-pairs-card--fourball">
           <div className="pano-pairs-card__head">
-            <span className="pano-pairs-card__name">Stableford neto Fourball</span>
+            <span className="pano-pairs-card__name">Tarjeta Fourball</span>
             <span className="pano-pairs-card__meta">
-              Net oficial {result.netPoints} · Net calculado {fourball!.calculatedNetPoints} ·{' '}
-              {fourball!.netMatchesOfficial ? 'Coincide' : 'Revisar diferencia'}
+              {showInternalValidation ? (
+                <>
+                  <span className="pano-pairs-card__internal">VALIDACIÓN INTERNA</span> Net oficial{' '}
+                  {result.netPoints} · Net calculado {fourball!.calculatedNetPoints} · Brt oficial{' '}
+                  {result.grossPoints ?? '—'} · Brt calculado {fourball!.calculatedGrossPoints ?? '—'} ·
+                  Diferencia {fourball!.netDifference ?? '—'} ·{' '}
+                  {fourball!.netMatchesOfficial ? 'Coincide' : 'Revisar diferencia'} ·{' '}
+                  {fourball!.validationStatus}
+                </>
+              ) : (
+                <>Net oficial: {result.netPoints}</>
+              )}
             </span>
           </div>
+
           <div className="pano-pairs-card__scroll">
             <table className="pano-pairs-table">
               <thead>
@@ -179,7 +206,9 @@ const PairScorecardBlock = ({ result, round, player1, player2 }: Props) => {
                   {fourball!.holes.map((h) => (
                     <td key={h.hole}>{h.pairNetPoints}</td>
                   ))}
-                  <td className="pano-pairs-table__total">{fourball!.calculatedNetPoints}</td>
+                  <td className="pano-pairs-table__total">
+                    {showInternalValidation ? fourball!.calculatedNetPoints : result.netPoints}
+                  </td>
                 </tr>
                 <tr>
                   <th scope="row">Aporta</th>
@@ -193,16 +222,32 @@ const PairScorecardBlock = ({ result, round, player1, player2 }: Props) => {
               </tbody>
             </table>
           </div>
+          {!showInternalValidation && (
+            <p className="pano-pairs-card__foot">Total: Net oficial {result.netPoints}</p>
+          )}
+          {showInternalValidation && fourball!.warnings.length > 0 && (
+            <ul className="pano-pairs-card__warnings">
+              {fourball!.warnings.map((w) => (
+                <li key={w.code}>
+                  {w.code}: {w.message}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       ) : (
         <div className="pano-pairs-notice">
           <strong>Resultado Net oficial: {result.netPoints}</strong>
           <span>
-            No se puede reconstruir la tarjeta Fourball neta porque faltan datos de hándicap de juego o del
-            recorrido.
+            {showInternalValidation
+              ? fourballUsable
+                ? `VALIDACIÓN INTERNA · estado ${fourball!.validationStatus} · Net calculado ${fourball!.calculatedNetPoints} · diferencia ${fourball!.netDifference ?? '—'}`
+                : 'VALIDACIÓN INTERNA · datos insuficientes: faltan HPU individuales o datos del recorrido.'
+              : 'Detalle Fourball no disponible para esta prueba.'}
           </span>
         </div>
       )}
+
     </div>
   );
 };

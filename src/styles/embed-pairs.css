@@ -617,3 +617,33 @@
 .pano-pairs-stats__roundrow .pano-stats__pos {
   color: #B6945B;
 }
+
+/* Pie neutro del total público de la tarjeta Fourball */
+.pano-pairs-card__foot {
+  margin: 8px 0 0;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(240, 236, 227, 0.55);
+}
+
+/* Etiqueta y avisos: solo visibles en la preview administrativa */
+.pano-pairs-card__internal {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 1px 6px;
+  border: 1px solid rgba(240, 236, 227, 0.25);
+  border-radius: 2px;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(240, 236, 227, 0.6);
+}
+
+.pano-pairs-card__warnings {
+  margin: 8px 0 0;
+  padding-left: 16px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: rgba(240, 236, 227, 0.55);
+}
