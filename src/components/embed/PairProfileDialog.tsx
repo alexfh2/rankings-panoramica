@@ -2,6 +2,7 @@
  * Ficha de pareja del Orden del Mérito de Parejas.
  * Recibe todos los datos ya cargados: no ejecuta ninguna consulta al abrir.
  * En la vista pública nunca muestra licencias.
+ * Solo presentación: no altera Net/Brt oficiales ni el ranking.
  */
 import { useMemo, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -63,8 +64,12 @@ const PairProfileDialog = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="pano-pair-dialog overflow-y-auto">
-        <DialogHeader>
+        <DialogHeader className="pano-pair-dialog__header">
+          <span className="pano-pair-dialog__eyebrow">Orden del Mérito de Parejas</span>
           <DialogTitle className="pano-pair-dialog__title">{row.displayName}</DialogTitle>
+          <p className="pano-pair-dialog__lede">
+            {CATEGORY_LABEL[row.category]} · Hcp inicial de pareja {num(row.initialPairHandicap)}
+          </p>
         </DialogHeader>
 
         <div className="pano-pair-dialog__stats">
@@ -73,7 +78,7 @@ const PairProfileDialog = ({
             {CATEGORY_LABEL[row.category]}
           </span>
           <span>
-            <em>Hcp inicial de pareja</em>
+            <em>Hcp inicial</em>
             {num(row.initialPairHandicap)}
           </span>
           <span>
@@ -110,78 +115,87 @@ const PairProfileDialog = ({
               const isCounted = counted.has(res.roundId);
               const isOpen = openRound === res.roundId;
               return (
-                <div key={res.id} className="pano-pairs-history__item">
+                <div
+                  key={res.id}
+                  className={`pano-pairs-history__item${isOpen ? ' pano-pairs-history__item--open' : ''}`}
+                >
                   <button
                     type="button"
                     className="pano-pairs-history__head"
                     aria-expanded={isOpen}
                     onClick={() => setOpenRound(isOpen ? null : res.roundId)}
                   >
-                    <span className="pano-pairs-history__title">
-                      {round?.label ?? '—'} · {round?.name ?? '—'}
-                      {previewMode && round && !round.isPublished && (
-                        <span className="pano-pairs__tag">NO PUBLICADA</span>
-                      )}
+                    <span className="pano-pairs-history__main">
+                      <span className="pano-pairs-history__title">
+                        {round?.label ?? '—'} · {round?.name ?? '—'}
+                        {previewMode && round && !round.isPublished && (
+                          <span className="pano-pairs__tag">NO PUBLICADA</span>
+                        )}
+                      </span>
+                      <span className="pano-pairs-history__sub">
+                        {formatDate(round?.date ?? null)} · Pos. {res.position ?? '—'}
+                      </span>
                     </span>
-                    <span className="pano-pairs-history__sub">{formatDate(round?.date ?? null)}</span>
-                    <span
-                      className={`pano-pairs-history__net${isCounted ? '' : ' pano-pairs--discarded'}`}
-                    >
-                      Net {res.netPoints}
+                    <span className="pano-pairs-history__right">
+                      <span
+                        className={`pano-pairs-history__net${isCounted ? '' : ' pano-pairs--discarded'}`}
+                      >
+                        {res.netPoints}
+                        <em>Net</em>
+                      </span>
+                      <span
+                        className={`pano-pairs-history__state${
+                          isCounted ? '' : ' pano-pairs-history__state--out'
+                        }`}
+                      >
+                        {isCounted ? 'Cuenta' : 'Descartado'}
+                      </span>
+                      <span className="pano-pairs-history__chev">{isOpen ? '−' : '+'}</span>
                     </span>
-                    <span className="pano-pairs-history__chev">{isOpen ? '−' : '+'}</span>
                   </button>
 
-                  <dl className="pano-pairs-history__grid">
-                    <div>
-                      <dt>Posición</dt>
-                      <dd>{res.position ?? '—'}</dd>
-                    </div>
-                    <div>
-                      <dt>Hex J1</dt>
-                      <dd>{num(res.player1ExactHandicap)}</dd>
-                    </div>
-                    <div>
-                      <dt>Hex J2</dt>
-                      <dd>{num(res.player2ExactHandicap)}</dd>
-                    </div>
-                    <div>
-                      <dt>HPU J1</dt>
-                      <dd>{res.player1PlayingHandicap ?? '—'}</dd>
-                    </div>
-                    <div>
-                      <dt>HPU J2</dt>
-                      <dd>{res.player2PlayingHandicap ?? '—'}</dd>
-                    </div>
-                    <div>
-                      <dt>Hcp pareja</dt>
-                      <dd>{num(res.pairHandicap, 2)}</dd>
-                    </div>
-                    <div>
-                      <dt>Brt</dt>
-                      <dd>{res.grossPoints ?? '—'}</dd>
-                    </div>
-                    <div>
-                      <dt>Net</dt>
-                      <dd>
-                        <strong>{res.netPoints}</strong>
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>Estado</dt>
-                      <dd className={isCounted ? undefined : 'pano-pairs--discarded'}>
-                        {isCounted ? 'Cuenta' : 'Descartado'}
-                      </dd>
-                    </div>
-                  </dl>
-
                   {isOpen && (
-                    <PairScorecardBlock
-                      result={res}
-                      round={round}
-                      player1={row.player1}
-                      player2={row.player2}
-                    />
+                    <div className="pano-pairs-history__body">
+                      <dl className="pano-pairs-history__grid">
+                        <div>
+                          <dt>Hex J1</dt>
+                          <dd>{num(res.player1ExactHandicap)}</dd>
+                        </div>
+                        <div>
+                          <dt>Hex J2</dt>
+                          <dd>{num(res.player2ExactHandicap)}</dd>
+                        </div>
+                        <div>
+                          <dt>HPU J1</dt>
+                          <dd>{res.player1PlayingHandicap ?? '—'}</dd>
+                        </div>
+                        <div>
+                          <dt>HPU J2</dt>
+                          <dd>{res.player2PlayingHandicap ?? '—'}</dd>
+                        </div>
+                        <div>
+                          <dt>Hcp pareja</dt>
+                          <dd>{num(res.pairHandicap, 2)}</dd>
+                        </div>
+                        <div>
+                          <dt>Brt</dt>
+                          <dd>{res.grossPoints ?? '—'}</dd>
+                        </div>
+                        <div>
+                          <dt>Net</dt>
+                          <dd>
+                            <strong>{res.netPoints}</strong>
+                          </dd>
+                        </div>
+                      </dl>
+
+                      <PairScorecardBlock
+                        result={res}
+                        round={round}
+                        player1={row.player1}
+                        player2={row.player2}
+                      />
+                    </div>
                   )}
                 </div>
               );
