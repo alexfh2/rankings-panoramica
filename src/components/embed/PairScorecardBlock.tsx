@@ -84,9 +84,9 @@ const GrossCard = ({
                 </td>
               );
             })}
-            <td>{sumKnown(scores, 0, 9)}</td>
-            <td>{sumKnown(scores, 9, 18)}</td>
-            <td className="pano-pairs-table__total">{sumKnown(scores, 0, 18)}</td>
+            <td>{fmt(sumComplete(scores, 0, 9))}</td>
+            <td>{fmt(sumComplete(scores, 9, 18))}</td>
+            <td className="pano-pairs-table__total">{fmt(sumComplete(scores, 0, 18))}</td>
           </tr>
         </tbody>
       </table>
