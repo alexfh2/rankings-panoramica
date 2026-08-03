@@ -647,3 +647,16 @@
   line-height: 1.5;
   color: rgba(240, 236, 227, 0.55);
 }
+
+/* Filas de referencia (Par / HCP) y fila principal de golpes en las tarjetas de pareja */
+.pano-pairs-table__ref td,
+.pano-pairs-table__ref th {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.68rem;
+  font-weight: 400;
+}
+.pano-pairs-table__strokes th,
+.pano-pairs-table__strokes td {
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  font-weight: 600;
+}
