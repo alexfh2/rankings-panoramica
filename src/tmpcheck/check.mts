@@ -1,7 +1,8 @@
+import { readFileSync } from 'fs';
 import * as XLSX from 'xlsx';
 import { parsePairExcelResults } from '../lib/parsePairExcelResults';
 for (const f of process.argv.slice(2)) {
-  const wb = XLSX.read(require('fs').readFileSync(f));
+  const wb = XLSX.read(readFileSync(f));
   const r = parsePairExcelResults(wb);
   const bad = r.pairs.filter(p => [p.player1.name, p.player2.name].filter(Boolean).length !== 2);
   console.log('==', f);
