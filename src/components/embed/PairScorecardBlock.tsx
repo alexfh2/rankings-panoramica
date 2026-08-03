@@ -175,7 +175,7 @@ const PairScorecardBlock = ({
       },
       coursePar: round.coursePar,
       courseHandicap: round.courseHandicap,
-      courseHandicapWomen: round.courseHandicapWomen,
+      courseHandicapWomen: resolvePairsWomenHoleHandicap(round.courseHandicap, round.courseHandicapWomen),
       officialNetPoints: result.netPoints,
       officialGrossPoints: result.grossPoints,
     });
@@ -184,17 +184,12 @@ const PairScorecardBlock = ({
   const fourballUsable = fourball && fourball.calculatedNetPoints != null;
 
   const par = complete18(round?.coursePar);
-  const menHcp = complete18(round?.courseHandicap);
-  const womenHcp = complete18(round?.courseHandicapWomen);
-  /** Índices del hoyo según el sexo del jugador; nunca se sustituyen por los masculinos. */
-  const hcpFor = (gender: string | null | undefined): readonly number[] | null => {
-    const g = normalizeGender(gender);
-    if (g === 'M') return menHcp;
-    if (g === 'F') return womenHcp;
-    return null;
-  };
-  const hcp1 = hcpFor(player1?.gender ?? sc1?.gender ?? null);
-  const hcp2 = hcpFor(player2?.gender ?? sc2?.gender ?? null);
+  /** En Panorámica la distribución de HCP por hoyo es la misma para hombres y mujeres. */
+  const holeHcp = complete18(
+    resolvePairsWomenHoleHandicap(round?.courseHandicap, round?.courseHandicap),
+  );
+
+
 
   /**
    * Público: la tabla Fourball solo se muestra si la validación interna es correcta.
