@@ -122,9 +122,26 @@ export function useCompetitionPairsRanking(slug: string, includeUnpublished = fa
     return Array.from(set).sort();
   }, [pairsQuery.data]);
 
+  /**
+   * Vista pública: RPC segura que devuelve SOLO player_id + display_name de jugadores
+   * con resultados en jornadas publicadas. No expone licencia, género ni hándicap.
+   * Vista admin (includeUnpublished): consulta autenticada existente sobre players_public.
+   */
+  const publicNamesQuery = useQuery({
+    queryKey: ['pairs-public-names', slug],
+    enabled: !includeUnpublished && !!competitionId,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_published_pair_player_names', {
+        p_competition_slug: slug,
+      });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   const playersQuery = useQuery({
     queryKey: ['pairs-players', playerIds],
-    enabled: playerIds.length > 0,
+    enabled: includeUnpublished && playerIds.length > 0,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('players_public')
@@ -134,6 +151,7 @@ export function useCompetitionPairsRanking(slug: string, includeUnpublished = fa
       return data ?? [];
     },
   });
+
 
   const roundIds = useMemo(() => (roundsQuery.data ?? []).map((r) => r.id).sort(), [roundsQuery.data]);
 
