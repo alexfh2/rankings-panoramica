@@ -536,12 +536,12 @@ export function parsePairExcelResults(
 
     const p1Row = playerRows[0];
     const p2Row = playerRows[1];
-    const player1 = buildPlayer(rows, p1Row ?? (block.posRow ?? block.rows[0]), columns);
+    const player1 = buildPlayer(rows, p1Row ?? (block.headerRowIndex), columns);
     const player2 =
       p2Row !== undefined
         ? buildPlayer(rows, p2Row, columns)
         : {
-            ...buildPlayer(rows, p1Row ?? (block.posRow ?? block.rows[0]), columns),
+            ...buildPlayer(rows, p1Row ?? (block.headerRowIndex), columns),
             name: '',
             licenseRaw: null,
             licenseNormalized: null,
@@ -593,7 +593,7 @@ export function parsePairExcelResults(
     const category: ParsedPairCategory | null =
       pairHandicap === null ? null : pairHandicap <= categoryThreshold ? 'hcp_low' : 'hcp_high';
 
-    const mainRow = block.posRow ?? block.rows[0];
+    const mainRow = block.headerRowIndex;
     const grossParsed = parseIntegerCell(cell(rows, mainRow, columns.gross));
     const netParsed = parseIntegerCell(cell(rows, mainRow, columns.net));
 
