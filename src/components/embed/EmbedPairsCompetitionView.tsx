@@ -59,6 +59,8 @@ const EmbedPairsCompetitionView = ({
   const [section, setSection] = useState<SectionKey>('ranking');
   const [tab, setTab] = useState<TabKey>('hcpLow');
   const [selectedPairId, setSelectedPairId] = useState<string | null>(null);
+  const embedRootRef = useRef<HTMLDivElement>(null);
+  usePanoramicaEmbedHeight(embedRootRef);
   const [openRound, setOpenRound] = useState<string | null>(null);
   const [openResult, setOpenResult] = useState<string | null>(null);
 
