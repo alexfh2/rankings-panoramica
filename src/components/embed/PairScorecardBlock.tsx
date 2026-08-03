@@ -143,21 +143,38 @@ const PairScorecardBlock = ({
   }, [hpu1, hpu2, round, sc1, sc2, name1, name2, player1, player2, result]);
 
   const fourballUsable = fourball && fourball.calculatedNetPoints != null;
+  /**
+   * Público: la tabla Fourball solo se muestra si la validación interna es correcta.
+   * Admin: se muestra siempre que se pueda reconstruir, junto al detalle técnico.
+   */
+  const showFourballTable =
+    fourballUsable && (showInternalValidation || fourball!.validationStatus === 'valid');
 
   return (
     <div className="pano-fourball-card">
       <GrossCard name={name1} scores={sc1?.scores} hex={result.player1ExactHandicap} hpu={hpu1} />
       <GrossCard name={name2} scores={sc2?.scores} hex={result.player2ExactHandicap} hpu={hpu2} />
 
-      {fourballUsable ? (
+      {showFourballTable ? (
         <div className="pano-pairs-card pano-pairs-card--fourball">
           <div className="pano-pairs-card__head">
-            <span className="pano-pairs-card__name">Stableford neto Fourball</span>
+            <span className="pano-pairs-card__name">Tarjeta Fourball</span>
             <span className="pano-pairs-card__meta">
-              Net oficial {result.netPoints} · Net calculado {fourball!.calculatedNetPoints} ·{' '}
-              {fourball!.netMatchesOfficial ? 'Coincide' : 'Revisar diferencia'}
+              {showInternalValidation ? (
+                <>
+                  <span className="pano-pairs-card__internal">VALIDACIÓN INTERNA</span> Net oficial{' '}
+                  {result.netPoints} · Net calculado {fourball!.calculatedNetPoints} · Brt oficial{' '}
+                  {result.grossPoints ?? '—'} · Brt calculado {fourball!.calculatedGrossPoints ?? '—'} ·
+                  Diferencia {fourball!.netDifference ?? '—'} ·{' '}
+                  {fourball!.netMatchesOfficial ? 'Coincide' : 'Revisar diferencia'} ·{' '}
+                  {fourball!.validationStatus}
+                </>
+              ) : (
+                <>Net oficial: {result.netPoints}</>
+              )}
             </span>
           </div>
+
           <div className="pano-pairs-card__scroll">
             <table className="pano-pairs-table">
               <thead>
