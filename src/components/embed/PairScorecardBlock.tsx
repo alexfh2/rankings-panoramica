@@ -21,7 +21,10 @@ type Props = {
   round: PairsRound | undefined;
   player1: PairMember | null;
   player2: PairMember | null;
+  /** Solo en administración: muestra Net/Brt calculados, diferencias y estado de validación. */
+  showInternalValidation?: boolean;
 };
+
 
 const holeIndexes = Array.from({ length: 18 }, (_, i) => i);
 
