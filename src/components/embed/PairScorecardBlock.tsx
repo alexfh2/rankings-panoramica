@@ -25,8 +25,22 @@ type Props = {
 
 const holeIndexes = Array.from({ length: 18 }, (_, i) => i);
 
-const sumKnown = (scores: readonly (number | null)[] | undefined, from: number, to: number): number =>
-  (scores ?? []).slice(from, to).reduce((s, v) => s + (typeof v === 'number' ? v : 0), 0);
+/** Suma solo si el tramo está completo; si falta un golpe devuelve null (se muestra "—"). */
+const sumComplete = (
+  scores: readonly (number | null)[] | undefined,
+  from: number,
+  to: number,
+): number | null => {
+  let total = 0;
+  for (let i = from; i < to; i += 1) {
+    const v = scores?.[i];
+    if (typeof v !== 'number') return null;
+    total += v;
+  }
+  return total;
+};
+
+const fmt = (value: number | null): string => (value == null ? '—' : String(value));
 
 const GrossCard = ({
   name,
@@ -70,9 +84,9 @@ const GrossCard = ({
                 </td>
               );
             })}
-            <td>{sumKnown(scores, 0, 9)}</td>
-            <td>{sumKnown(scores, 9, 18)}</td>
-            <td className="pano-pairs-table__total">{sumKnown(scores, 0, 18)}</td>
+            <td>{fmt(sumComplete(scores, 0, 9))}</td>
+            <td>{fmt(sumComplete(scores, 9, 18))}</td>
+            <td className="pano-pairs-table__total">{fmt(sumComplete(scores, 0, 18))}</td>
           </tr>
         </tbody>
       </table>
