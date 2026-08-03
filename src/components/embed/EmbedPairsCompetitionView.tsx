@@ -375,6 +375,7 @@ const EmbedPairsCompetitionView = ({
         pairResults={pairResults}
         bestNScores={bestNScores}
         previewMode={previewMode}
+        showInternalValidation={previewMode}
       />
     </div>
   );

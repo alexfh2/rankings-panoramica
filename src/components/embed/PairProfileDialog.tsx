@@ -19,6 +19,8 @@ type Props = {
   pairResults: PairResultEntity[];
   bestNScores: number;
   previewMode?: boolean;
+  /** Solo en la preview administrativa: muestra la validación interna Fourball. */
+  showInternalValidation?: boolean;
 };
 
 const CATEGORY_LABEL: Record<'hcp_low' | 'hcp_high', string> = {
@@ -45,6 +47,7 @@ const PairProfileDialog = ({
   pairResults,
   bestNScores,
   previewMode = false,
+  showInternalValidation = false,
 }: Props) => {
   const [openRound, setOpenRound] = useState<string | null>(null);
   const [showAdmin, setShowAdmin] = useState(false);
@@ -194,6 +197,7 @@ const PairProfileDialog = ({
                         round={round}
                         player1={row.player1}
                         player2={row.player2}
+                        showInternalValidation={showInternalValidation}
                       />
                     </div>
                   )}
