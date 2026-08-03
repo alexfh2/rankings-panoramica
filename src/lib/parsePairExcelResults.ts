@@ -448,9 +448,11 @@ export function parsePairExcelResults(
 
   const { columns, headerRow } = header;
 
-  // Agrupació: un bloc nou s'obre quan Pos té valor.
+  // Agrupació: un bloc nou s'obre quan la fila té Nombre i Net/Brt de parella.
+  // Pos pot estar buida (parelles empatades) i s'hereta de l'última posició explícita.
   const blocks: RawBlock[] = [];
   let current: RawBlock | null = null;
+  let lastExplicitPosition: number | null = null;
   for (let r = headerRow + 1; r < rows.length; r++) {
     const row = rows[r] ?? [];
     const allBlank = row.every(isBlank);
@@ -458,17 +460,35 @@ export function parsePairExcelResults(
 
     const posValue = cell(rows, r, columns.pos);
     const nameValue = cell(rows, r, columns.name);
+    const hasPos = !isBlank(posValue);
+    const hasPairTotals =
+      !isBlank(cell(rows, r, columns.net)) || !isBlank(cell(rows, r, columns.gross));
+    const isPairHeader = !isBlank(nameValue) && (hasPos || hasPairTotals);
 
-    if (!isBlank(posValue)) {
-      const pos = parseIntegerCell(posValue);
-      current = { rows: [r], posRow: r, position: pos.value };
+    if (isPairHeader) {
+      let position: number | null = null;
+      let positionInferred = false;
+      if (hasPos) {
+        position = parseIntegerCell(posValue).value;
+        if (position !== null) lastExplicitPosition = position;
+      } else {
+        position = lastExplicitPosition;
+        positionInferred = position !== null;
+      }
+      current = {
+        rows: [r],
+        posRow: hasPos ? r : null,
+        headerRowIndex: r,
+        position,
+        positionInferred,
+      };
       blocks.push(current);
       continue;
     }
 
     if (!current) {
       if (isBlank(nameValue)) continue;
-      current = { rows: [r], posRow: null, position: null };
+      current = { rows: [r], posRow: null, headerRowIndex: r, position: null, positionInferred: false };
       blocks.push(current);
       continue;
     }
@@ -481,11 +501,24 @@ export function parsePairExcelResults(
     const blockErrors: PairParseIssue[] = [];
     const blockWarnings: PairParseIssue[] = [];
     const playerRows = block.rows.filter((r) => !isBlank(cell(rows, r, columns.name)));
-    const firstRow = (block.posRow ?? block.rows[0]) + 1;
+    const firstRow = block.headerRowIndex + 1;
 
     if (block.posRow === null) {
-      blockErrors.push(issue('MISSING_POSITION', 'Bloc sense columna Pos identificable', true, firstRow, 'pos'));
+      if (block.positionInferred) {
+        blockWarnings.push(
+          issue(
+            'POSITION_INFERRED_FROM_TIE',
+            `Posició inferida per empat (${block.position}) a la fila ${firstRow}`,
+            false,
+            firstRow,
+            'pos',
+          ),
+        );
+      } else {
+        blockErrors.push(issue('MISSING_POSITION', 'Bloc sense columna Pos identificable', true, firstRow, 'pos'));
+      }
     }
+
 
     if (playerRows.length !== 2) {
       const code = playerRows.length < 2 ? 'PAIR_INCOMPLETE' : 'UNEXPECTED_PAIR_SIZE';
