@@ -435,3 +435,59 @@
   color: #F3EEE3;
   font-variant-numeric: tabular-nums;
 }
+
+/* ── Estadísticas de Parejas ──────────────────────────────────── */
+.pano-pairs-stats .pano-stats__strip--2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+@media (min-width: 700px) {
+  .pano-pairs-stats .pano-stats__strip--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.pano-pairs-stats__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 6px 0 14px;
+}
+
+.pano-pairs-stats__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid rgba(243, 238, 227, 0.18);
+  color: rgba(243, 238, 227, 0.5);
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  padding: 4px 9px;
+  cursor: pointer;
+}
+
+.pano-pairs-stats__chip.is-on {
+  color: #F3EEE3;
+  border-color: rgba(182, 148, 91, 0.6);
+}
+
+.pano-pairs-stats__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid rgba(243, 238, 227, 0.45);
+}
+
+.pano-pairs-stats__chart {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.pano-pairs-stats__roundrow .pano-stats__pos {
+  color: #B6945B;
+}
