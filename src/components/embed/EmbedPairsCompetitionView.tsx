@@ -2,7 +2,8 @@
  * Vista compartida del Orden del Mérito de Parejas (pública y preview admin).
  * Solo lectura. El Net oficial de pair_results alimenta siempre la clasificación.
  */
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { usePanoramicaEmbedHeight } from '@/hooks/usePanoramicaEmbedHeight';
 import { useCompetitionPairsRanking } from '@/hooks/useCompetitionPairsRanking';
 import PairProfileDialog from '@/components/embed/PairProfileDialog';
 import PairScorecardBlock from '@/components/embed/PairScorecardBlock';
