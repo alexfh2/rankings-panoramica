@@ -49,6 +49,18 @@ const App = () => (
             {/* Embed públic (sense Layout) */}
             <Route path="/embed/individual-2026" element={<EmbedIndividual2026 />} />
             <Route path="/embed/verano-2026" element={<EmbedVerano2026 />} />
+            <Route path="/embed/parejas-2026" element={<EmbedParejas2026 />} />
+
+            {/* Vista previa protegida (admin) */}
+            <Route
+              path="/admin/preview/parejas-2026"
+              element={
+                <ProtectedRoute>
+                  <AdminPreviewParejas2026 />
+                </ProtectedRoute>
+              }
+            />
+
 
 
             {/* Public routes */}
