@@ -3,6 +3,7 @@
  * No consulta Supabase, no muta argumentos, no recalcula Net.
  * El Net oficial (pair_results.net_points) es siempre la fuente de verdad.
  */
+import { formatPlayerDisplayName } from '@/lib/formatPlayerDisplayName';
 
 export type PairCategory = 'hcp_low' | 'hcp_high';
 
@@ -105,7 +106,8 @@ export interface PairsRankingOutput {
 
 export const DEFAULT_PAIRS_BEST_N = 6;
 
-export const formatPairMemberName = (member: PairMember | null): string => member?.name?.trim() || '—';
+export const formatPairMemberName = (member: PairMember | null): string =>
+  member?.name ? formatPlayerDisplayName(member.name) : '—';
 
 export const orderRoundColumns = (rounds: readonly RoundColumn[]): RoundColumn[] =>
   [...rounds].sort((a, b) => {
