@@ -22,6 +22,8 @@ import News from "./pages/News";
 import TestIndividual2026 from "./pages/TestIndividual2026";
 import EmbedIndividual2026 from "./pages/EmbedIndividual2026";
 import EmbedVerano2026 from "./pages/EmbedVerano2026";
+import EmbedParejas2026 from "./pages/EmbedParejas2026";
+import AdminPreviewParejas2026 from "./pages/admin/AdminPreviewParejas2026";
 
 
 import AdminLogin from "./pages/admin/AdminLogin";
@@ -47,6 +49,18 @@ const App = () => (
             {/* Embed públic (sense Layout) */}
             <Route path="/embed/individual-2026" element={<EmbedIndividual2026 />} />
             <Route path="/embed/verano-2026" element={<EmbedVerano2026 />} />
+            <Route path="/embed/parejas-2026" element={<EmbedParejas2026 />} />
+
+            {/* Vista previa protegida (admin) */}
+            <Route
+              path="/admin/preview/parejas-2026"
+              element={
+                <ProtectedRoute>
+                  <AdminPreviewParejas2026 />
+                </ProtectedRoute>
+              }
+            />
+
 
 
             {/* Public routes */}
