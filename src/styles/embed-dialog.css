@@ -35,3 +35,11 @@ html[data-pano-embedded] .pano-embed-dialog {
     );
   }
 }
+
+/* Cuerpo interno con scroll propio: no propaga el gesto al fondo. */
+.pano-embed-dialog,
+.pano-embed-dialog__body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
