@@ -1216,3 +1216,159 @@ html[data-pano-embed-route] .pano-embed {
   .pano-rules-dialog__summaryitem:nth-child(-n + 2) { border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
   .pano-rules-dialog button[type='button'].absolute { width: 40px; height: 40px; }
 }
+
+/* ==== Directorios públicos (Jugadores / Parejas) ==== */
+.pano-dir {
+  margin-top: 18px;
+}
+
+.pano-dir__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pano-dir__search {
+  position: relative;
+  flex: 1 1 260px;
+  max-width: 340px;
+}
+
+.pano-dir__input {
+  width: 100%;
+  padding: 10px 34px 10px 14px;
+  background: #202a21;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #f3eee3;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  border-radius: 2px;
+  outline: none;
+}
+
+.pano-dir__input::placeholder {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.pano-dir__input:focus-visible {
+  border-color: #b6945b;
+}
+
+.pano-dir__input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.pano-dir__clear {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  background: none;
+  border: 0;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pano-dir__clear:hover {
+  color: #b97452;
+}
+
+.pano-dir__count {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.62);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.pano-dir__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  column-gap: 28px;
+}
+
+@media (min-width: 720px) {
+  .pano-dir__list {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.pano-dir__item {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pano-dir__row {
+  display: grid;
+  grid-template-columns: 1fr auto 14px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 58px;
+  padding: 12px 4px;
+  background: none;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.pano-dir__row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.pano-dir__row:focus-visible {
+  outline: 1px solid #b6945b;
+  outline-offset: -1px;
+}
+
+.pano-dir__name {
+  color: #f3eee3;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pano-dir__hcp {
+  color: rgba(255, 255, 255, 0.62);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+}
+
+.pano-dir__chev {
+  color: rgba(255, 255, 255, 0.34);
+  font-size: 15px;
+  line-height: 1;
+  text-align: right;
+}
+
+@media (max-width: 600px) {
+  .pano-dir__row {
+    grid-template-columns: 1fr 14px;
+    grid-template-areas:
+      'name chev'
+      'hcp chev';
+    row-gap: 4px;
+    min-height: 64px;
+  }
+  .pano-dir__name { grid-area: name; white-space: normal; }
+  .pano-dir__hcp { grid-area: hcp; }
+  .pano-dir__chev { grid-area: chev; align-self: center; }
+}

@@ -11,6 +11,8 @@ import {
 } from '@/hooks/useCompetitionIndividualRanking';
 import CompetitionRounds from '@/components/embed/CompetitionRounds';
 import CompetitionStats from '@/components/embed/CompetitionStats';
+import CompetitionPlayersDirectory from '@/components/embed/CompetitionPlayersDirectory';
+
 import CompetitionRulesDialog from '@/components/embed/CompetitionRulesDialog';
 import type { CompetitionRules } from '@/data/competitionRules';
 
@@ -23,7 +25,7 @@ import '@/styles/embed-dialog.css';
 
 type TabKey = 'hcpLow' | 'hcpHigh' | 'scratch';
 
-type SectionKey = 'ranking' | 'rounds' | 'stats';
+type SectionKey = 'ranking' | 'rounds' | 'stats' | 'players';
 
 const SECTIONS_DEFAULT: { key: SectionKey; label: string }[] = [
   { key: 'ranking', label: 'Orden del mérito' },
@@ -32,6 +34,7 @@ const SECTIONS_DEFAULT: { key: SectionKey; label: string }[] = [
 ];
 
 const MAX_MATRIX_ROUNDS = 8;
+
 
 export type EmbedCompetitionViewProps = {
   slug: string;
@@ -47,6 +50,11 @@ export type EmbedCompetitionViewProps = {
   emptyRankingTitle?: string;
   emptyRankingSubtitle?: string;
   emptyStatsText?: string;
+  /** Pestanya opcional de directori de jugadors. */
+  showPlayersTab?: boolean;
+  playersTabLabel?: string;
+  playersEmptyText?: string;
+  playersSearchPlaceholder?: string;
   /** Reglament resumit; si no hi és, no es renderitza el botó. */
   rules?: CompetitionRules;
   /** PDF oficial enllaçat com a acció secundària dins del modal. */
@@ -54,6 +62,7 @@ export type EmbedCompetitionViewProps = {
   regulationLabel?: string;
   regulationAriaLabel?: string;
 };
+
 
 
 const EmbedCompetitionView = ({
@@ -66,6 +75,10 @@ const EmbedCompetitionView = ({
   emptyRankingTitle = 'Todavía no hay resultados publicados.',
   emptyRankingSubtitle,
   emptyStatsText = 'Todavía no hay resultados publicados.',
+  showPlayersTab = false,
+  playersTabLabel = 'Jugadores',
+  playersEmptyText = 'No hay jugadores publicados todavía.',
+  playersSearchPlaceholder = 'Buscar jugador…',
   rules,
   officialPdfUrl,
   regulationLabel = 'REGLAMENTO',
@@ -97,9 +110,13 @@ const EmbedCompetitionView = ({
   );
 
   const SECTIONS = useMemo(
-    () => SECTIONS_DEFAULT.map((s) => (s.key === 'ranking' ? { ...s, label: rankingLabel } : s)),
-    [rankingLabel]
+    () => [
+      ...SECTIONS_DEFAULT.map((s) => (s.key === 'ranking' ? { ...s, label: rankingLabel } : s)),
+      ...(showPlayersTab ? [{ key: 'players' as SectionKey, label: playersTabLabel }] : []),
+    ],
+    [rankingLabel, showPlayersTab, playersTabLabel]
   );
+
 
   const [section, setSection] = useState<SectionKey>('ranking');
   const [tab, setTab] = useState<TabKey>('hcpLow');
@@ -255,6 +272,20 @@ const EmbedCompetitionView = ({
     if (competitionNotFound) return state('Competición no disponible.');
     if (error) return state('No se ha podido cargar la clasificación. Inténtalo de nuevo más tarde.');
     // Sense jornades encara: cada secció mostra el seu propi estat editorial.
+
+    if (section === 'players') {
+      return (
+        <CompetitionPlayersDirectory
+          results={results}
+          rounds={rounds}
+          players={players}
+          onPlayerSelect={setSelectedPlayerId}
+          searchPlaceholder={playersSearchPlaceholder}
+          emptyText={playersEmptyText}
+        />
+      );
+    }
+
 
     if (section === 'stats') {
       if (!results.length) return state(emptyStatsText);
