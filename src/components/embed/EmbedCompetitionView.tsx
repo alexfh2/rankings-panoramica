@@ -23,7 +23,7 @@ import '@/styles/embed-dialog.css';
 
 type TabKey = 'hcpLow' | 'hcpHigh' | 'scratch';
 
-type SectionKey = 'ranking' | 'rounds' | 'stats';
+type SectionKey = 'ranking' | 'rounds' | 'stats' | 'players';
 
 const SECTIONS_DEFAULT: { key: SectionKey; label: string }[] = [
   { key: 'ranking', label: 'Orden del mérito' },
@@ -32,6 +32,7 @@ const SECTIONS_DEFAULT: { key: SectionKey; label: string }[] = [
 ];
 
 const MAX_MATRIX_ROUNDS = 8;
+
 
 export type EmbedCompetitionViewProps = {
   slug: string;
