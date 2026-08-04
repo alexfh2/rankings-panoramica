@@ -7,6 +7,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { requestPanoramicaParentViewport } from '@/hooks/usePanoramicaParentViewport';
+import { usePanoramicaPublicModal } from '@/hooks/usePanoramicaPublicModalState';
 import PairScorecardBlock from '@/components/embed/PairScorecardBlock';
 import type { PairRankingRow, PairResultEntity } from '@/lib/buildPairsRanking';
 import type { PairsRound } from '@/hooks/useCompetitionPairsRanking';
