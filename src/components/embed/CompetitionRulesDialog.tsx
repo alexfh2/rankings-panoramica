@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { requestPanoramicaParentViewport } from '@/hooks/usePanoramicaParentViewport';
+import { usePanoramicaPublicModal } from '@/hooks/usePanoramicaPublicModalState';
 import type { CompetitionRules, CompetitionRulesSection } from '@/data/competitionRules';
 
 export type CompetitionRulesDialogProps = {
