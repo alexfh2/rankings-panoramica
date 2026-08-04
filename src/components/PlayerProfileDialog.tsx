@@ -325,7 +325,7 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden overscroll-contain">
+        <div className={`flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden overscroll-contain${isPano ? ' pano-embed-dialog__body' : ''}`}>
         {/* Header con gradiente sutil */}
         <div className="from-primary to-primary/80 px-4 py-4 mx-4 mt-4 sm:px-6 sm:py-5 sm:mx-6 sm:mt-5 rounded-lg flex items-center gap-3 sm:gap-4 border border-accent/20 bg-[sidebar-accent-foreground] bg-border">
           <Avatar className="h-12 w-12 sm:h-14 sm:w-14 shrink-0 border-2 border-accent/30">
