@@ -2,10 +2,8 @@
  * Vista compartida del Orden del Mérito de Parejas (pública y preview admin).
  * Solo lectura. El Net oficial de pair_results alimenta siempre la clasificación.
  */
-import { useMemo, useRef, useState } from 'react';
-import { usePanoramicaEmbedHeight } from '@/hooks/usePanoramicaEmbedHeight';
-import { usePanoramicaEmbedScrollBridge } from '@/hooks/usePanoramicaEmbedScrollBridge';
-import { usePanoramicaParentViewport } from '@/hooks/usePanoramicaParentViewport';
+import { useMemo, useState } from 'react';
+import { usePanoramicaEmbedShell } from '@/hooks/usePanoramicaEmbedShell';
 import { useCompetitionPairsRanking } from '@/hooks/useCompetitionPairsRanking';
 import PairProfileDialog from '@/components/embed/PairProfileDialog';
 import PairScorecardBlock from '@/components/embed/PairScorecardBlock';
@@ -62,10 +60,7 @@ const EmbedPairsCompetitionView = ({
   const [section, setSection] = useState<SectionKey>('ranking');
   const [tab, setTab] = useState<TabKey>('hcpLow');
   const [selectedPairId, setSelectedPairId] = useState<string | null>(null);
-  const embedRootRef = useRef<HTMLDivElement>(null);
-  usePanoramicaEmbedHeight(embedRootRef);
-  usePanoramicaEmbedScrollBridge();
-  usePanoramicaParentViewport();
+  const { ref: embedRootRef, scrollToTop } = usePanoramicaEmbedShell();
   const [openRound, setOpenRound] = useState<string | null>(null);
   const [openResult, setOpenResult] = useState<string | null>(null);
 
@@ -139,7 +134,10 @@ const EmbedPairsCompetitionView = ({
               role="tab"
               aria-selected={tab === t.key}
               className="pano-embed__tab"
-              onClick={() => setTab(t.key)}
+              onClick={() => {
+                setTab(t.key);
+                scrollToTop();
+              }}
             >
               {t.label}
             </button>
@@ -360,7 +358,10 @@ const EmbedPairsCompetitionView = ({
                 role="tab"
                 aria-selected={section === sec.key}
                 className="pano-embed__tab"
-                onClick={() => setSection(sec.key)}
+                onClick={() => {
+                  setSection(sec.key);
+                  scrollToTop();
+                }}
               >
                 {sec.label}
               </button>

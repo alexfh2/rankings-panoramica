@@ -6,7 +6,6 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { requestPanoramicaParentViewport } from '@/hooks/usePanoramicaParentViewport';
 import { usePanoramicaPublicModal } from '@/hooks/usePanoramicaPublicModalState';
 import PairScorecardBlock from '@/components/embed/PairScorecardBlock';
 import type { PairRankingRow, PairResultEntity } from '@/lib/buildPairsRanking';
@@ -61,10 +60,6 @@ const PairProfileDialog = ({
       .filter((r) => r.pairId === row.pairId)
       .sort((a, b) => (order.get(a.roundId) ?? 0) - (order.get(b.roundId) ?? 0));
   }, [row, pairResults, rounds]);
-
-  useEffect(() => {
-    if (open) requestPanoramicaParentViewport();
-  }, [open]);
 
   // Estado compartido de modal público.
   usePanoramicaPublicModal(open);
