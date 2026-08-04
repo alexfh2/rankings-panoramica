@@ -11,6 +11,8 @@ import {
 } from '@/hooks/useCompetitionIndividualRanking';
 import CompetitionRounds from '@/components/embed/CompetitionRounds';
 import CompetitionStats from '@/components/embed/CompetitionStats';
+import CompetitionPlayersDirectory from '@/components/embed/CompetitionPlayersDirectory';
+
 import CompetitionRulesDialog from '@/components/embed/CompetitionRulesDialog';
 import type { CompetitionRules } from '@/data/competitionRules';
 
