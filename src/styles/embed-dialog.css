@@ -1,38 +1,24 @@
 /**
- * Posicionamiento de los diálogos públicos de los embeds de Panorámica.
- * Solo se activa cuando la página está dentro de un iframe
- * (html[data-pano-embedded]) y únicamente sobre .pano-embed-dialog.
- * Fuera del iframe se conserva el comportamiento por defecto de shadcn.
+ * Diálogos públicos de los embeds de Panorámica.
+ * Modelo simple: el modal usa el viewport del propio iframe (que la web padre
+ * convierte temporalmente en pantalla completa) y conserva su scroll interno.
+ * Sin variables ni posicionamiento basados en el viewport de la web padre.
  */
 
-html[data-pano-embedded] .pano-embed-dialog {
-  position: absolute;
-  left: 50%;
-  top: calc(
-    var(--pano-parent-visible-top, 0px) + var(--pano-parent-visible-height, 80vh) / 2
-  );
-  transform: translate(-50%, -50%);
-  max-height: max(
-    320px,
-    calc(var(--pano-parent-visible-height, 80vh) - 32px)
-  );
+.pano-embed-dialog {
+  max-height: calc(100dvh - 32px);
   height: auto;
   overflow-y: auto;
   overflow-x: hidden;
-  transition: none;
 }
 
-/* Móvil: ocupar casi toda la zona visible comunicada por el padre. */
 @media (max-width: 640px) {
-  html[data-pano-embedded] .pano-embed-dialog {
+  .pano-embed-dialog {
     width: calc(100% - 16px);
     max-width: calc(100% - 16px);
     min-width: 0;
     border-radius: 8px;
-    max-height: max(
-      280px,
-      calc(var(--pano-parent-visible-height, 80vh) - 16px)
-    );
+    max-height: calc(100dvh - 16px);
   }
 }
 

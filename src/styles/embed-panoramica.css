@@ -243,7 +243,7 @@ html[data-pano-embed-route] .pano-embed {
   border: 0;
 }
 
-/* ── Navegación principal del embed ─────────────────────────── */
+/* ── Navegación principal del embed (sticky) ────────────────── */
 .pano-embed__primary-nav {
   display: flex;
   align-items: center;
@@ -251,6 +251,18 @@ html[data-pano-embed-route] .pano-embed {
   gap: 8px 20px;
   border-bottom: 1px solid var(--pano-line);
   margin-bottom: 4px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background-color: var(--pano-bg);
+}
+
+/* Las pestañas de categoría acompañan a la navegación principal. */
+.pano-embed__tabs {
+  position: sticky;
+  top: 42px;
+  z-index: 19;
+  background-color: var(--pano-bg);
 }
 
 .pano-embed__nav {
