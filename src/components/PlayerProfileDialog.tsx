@@ -219,6 +219,9 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
     if (open && isPano) requestPanoramicaParentViewport();
   }, [open, isPano]);
 
+  // Estado compartido de modal público (solo variante Panorámica).
+  usePanoramicaPublicModal(open && isPano);
+
 
 
   if (!player) {
