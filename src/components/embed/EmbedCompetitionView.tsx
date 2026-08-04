@@ -3,10 +3,8 @@
  * Extret literalment de EmbedIndividual2026 i parametritzat per slug/títol/Scratch.
  * No afegeix consultes: tota la dada ve de useCompetitionIndividualRanking(slug).
  */
-import { useMemo, useRef, useState } from 'react';
-import { usePanoramicaEmbedHeight } from '@/hooks/usePanoramicaEmbedHeight';
-import { usePanoramicaEmbedScrollBridge } from '@/hooks/usePanoramicaEmbedScrollBridge';
-import { usePanoramicaParentViewport } from '@/hooks/usePanoramicaParentViewport';
+import { useMemo, useState } from 'react';
+import { usePanoramicaEmbedShell } from '@/hooks/usePanoramicaEmbedShell';
 import {
   useCompetitionIndividualRanking,
   type CompetitionRankedPlayer,
@@ -107,10 +105,7 @@ const EmbedCompetitionView = ({
   const [tab, setTab] = useState<TabKey>('hcpLow');
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [rulesOpen, setRulesOpen] = useState(false);
-  const embedRootRef = useRef<HTMLDivElement>(null);
-  usePanoramicaEmbedHeight(embedRootRef);
-  usePanoramicaEmbedScrollBridge();
-  usePanoramicaParentViewport();
+  const { ref: embedRootRef, scrollToTop } = usePanoramicaEmbedShell();
 
 
 
@@ -243,7 +238,10 @@ const EmbedCompetitionView = ({
           role="tab"
           aria-selected={tab === t.key}
           className="pano-embed__tab"
-          onClick={() => setTab(t.key)}
+          onClick={() => {
+            setTab(t.key);
+            scrollToTop();
+          }}
         >
           {t.label}
         </button>
@@ -326,7 +324,10 @@ const EmbedCompetitionView = ({
                 role="tab"
                 aria-selected={section === sec.key}
                 className="pano-embed__tab"
-                onClick={() => setSection(sec.key)}
+                onClick={() => {
+                  setSection(sec.key);
+                  scrollToTop();
+                }}
               >
                 {sec.label}
               </button>

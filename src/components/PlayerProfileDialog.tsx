@@ -9,7 +9,6 @@ import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/
 import { User, TrendingUp, Trophy, Bird, Target, Square, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ca, es } from 'date-fns/locale';
-import { requestPanoramicaParentViewport } from '@/hooks/usePanoramicaParentViewport';
 import { usePanoramicaPublicModal } from '@/hooks/usePanoramicaPublicModalState';
 import ScorecardVisual from '@/components/ScorecardVisual';
 import HcpEvolutionChart from '@/components/HcpEvolutionChart';
@@ -214,10 +213,6 @@ const PlayerProfileDialog = ({ playerId, open, onOpenChange, competitionData, va
   }, [preloaded, allResults, playerId, bestN, threshold]);
 
   const positions = preloadedPositions ?? computedPositions;
-
-  useEffect(() => {
-    if (open && isPano) requestPanoramicaParentViewport();
-  }, [open, isPano]);
 
   // Estado compartido de modal público (solo variante Panorámica).
   usePanoramicaPublicModal(open && isPano);

@@ -4,7 +4,6 @@
  */
 import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { requestPanoramicaParentViewport } from '@/hooks/usePanoramicaParentViewport';
 import { usePanoramicaPublicModal } from '@/hooks/usePanoramicaPublicModalState';
 import type { CompetitionRules, CompetitionRulesSection } from '@/data/competitionRules';
 
@@ -65,10 +64,6 @@ const CompetitionRulesDialog = ({
   rules,
   officialPdfUrl,
 }: CompetitionRulesDialogProps) => {
-  useEffect(() => {
-    if (open) requestPanoramicaParentViewport();
-  }, [open]);
-
   // Estado compartido de modal público.
   usePanoramicaPublicModal(open);
 
