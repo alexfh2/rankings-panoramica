@@ -48,6 +48,11 @@ export type EmbedCompetitionViewProps = {
   emptyRankingTitle?: string;
   emptyRankingSubtitle?: string;
   emptyStatsText?: string;
+  /** Pestanya opcional de directori de jugadors. */
+  showPlayersTab?: boolean;
+  playersTabLabel?: string;
+  playersEmptyText?: string;
+  playersSearchPlaceholder?: string;
   /** Reglament resumit; si no hi és, no es renderitza el botó. */
   rules?: CompetitionRules;
   /** PDF oficial enllaçat com a acció secundària dins del modal. */
@@ -55,6 +60,7 @@ export type EmbedCompetitionViewProps = {
   regulationLabel?: string;
   regulationAriaLabel?: string;
 };
+
 
 
 const EmbedCompetitionView = ({
