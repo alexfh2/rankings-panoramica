@@ -273,6 +273,20 @@ const EmbedCompetitionView = ({
     if (error) return state('No se ha podido cargar la clasificación. Inténtalo de nuevo más tarde.');
     // Sense jornades encara: cada secció mostra el seu propi estat editorial.
 
+    if (section === 'players') {
+      return (
+        <CompetitionPlayersDirectory
+          results={results}
+          rounds={rounds}
+          players={players}
+          onPlayerSelect={setSelectedPlayerId}
+          searchPlaceholder={playersSearchPlaceholder}
+          emptyText={playersEmptyText}
+        />
+      );
+    }
+
+
     if (section === 'stats') {
       if (!results.length) return state(emptyStatsText);
       return (
