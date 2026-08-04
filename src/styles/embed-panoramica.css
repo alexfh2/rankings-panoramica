@@ -3,6 +3,15 @@
 /* Estilos aislados y namespaceados para la vista embed de Panorámica.
    No afectan a la paleta ni tipografía global de la aplicación. */
 
+/* Rutas embed: viewport propio y un único contenedor con scroll vertical. */
+html[data-pano-embed-route],
+html[data-pano-embed-route] body,
+html[data-pano-embed-route] #root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
 .pano-embed {
   --pano-bg: #1B2318;
   --pano-fg: #FFFFFF;
@@ -13,14 +22,24 @@
 
   background-color: var(--pano-bg);
   color: var(--pano-fg);
-  /* Sin min-height de viewport: el contenedor crece con su contenido
-     para poder medir y comunicar la altura real al iframe padre. */
-  height: auto;
+  /* Único contenedor scrollable: el navegador gestiona el scroll de forma nativa. */
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
   width: 100%;
+  overflow-y: auto;
   overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
+
+html[data-pano-embed-route] .pano-embed {
+  height: 100%;
+}
+
 
 .pano-embed__inner {
   width: 100%;
