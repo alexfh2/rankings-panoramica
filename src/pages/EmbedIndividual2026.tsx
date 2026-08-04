@@ -15,6 +15,8 @@ const EmbedIndividual2026 = () => (
     showScratch
     rules={individual2026Rules}
     officialPdfUrl="/reglamentos/reglamento-omi-2026.pdf"
+    showPlayersTab
+    playersTabLabel="Jugadores"
     regulationLabel="REGLAMENTO"
     regulationAriaLabel="Abrir reglamento de la Orden del Mérito Individual 2026"
   />

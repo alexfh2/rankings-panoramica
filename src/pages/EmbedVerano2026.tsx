@@ -19,6 +19,8 @@ const EmbedVerano2026 = () => (
     emptyStatsText="Las estadísticas estarán disponibles después de la primera prueba."
     rules={verano2026Rules}
     officialPdfUrl="/reglamentos/reglamento-liga-verano-2026.pdf"
+    showPlayersTab
+    playersTabLabel="Jugadores"
     regulationLabel="REGLAMENTO"
     regulationAriaLabel="Abrir reglamento de la Liga de Verano 2026"
   />
