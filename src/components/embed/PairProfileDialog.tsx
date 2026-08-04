@@ -7,6 +7,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { requestPanoramicaParentViewport } from '@/hooks/usePanoramicaParentViewport';
+import { usePanoramicaPublicModal } from '@/hooks/usePanoramicaPublicModalState';
 import PairScorecardBlock from '@/components/embed/PairScorecardBlock';
 import type { PairRankingRow, PairResultEntity } from '@/lib/buildPairsRanking';
 import type { PairsRound } from '@/hooks/useCompetitionPairsRanking';
@@ -65,13 +66,16 @@ const PairProfileDialog = ({
     if (open) requestPanoramicaParentViewport();
   }, [open]);
 
+  // Estado compartido de modal público.
+  usePanoramicaPublicModal(open);
+
   if (!row) return null;
 
   const counted = new Set(row.countedRoundIds);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="pano-pair-dialog pano-embed-dialog overflow-y-auto">
+      <DialogContent className="pano-pair-dialog pano-embed-dialog pano-embed-dialog__body overflow-y-auto">
         <DialogHeader className="pano-pair-dialog__header">
           <span className="pano-pair-dialog__eyebrow">Orden del Mérito de Parejas</span>
           <DialogTitle className="pano-pair-dialog__title">{row.displayName}</DialogTitle>

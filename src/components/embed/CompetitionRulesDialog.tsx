@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { requestPanoramicaParentViewport } from '@/hooks/usePanoramicaParentViewport';
+import { usePanoramicaPublicModal } from '@/hooks/usePanoramicaPublicModalState';
 import type { CompetitionRules, CompetitionRulesSection } from '@/data/competitionRules';
 
 export type CompetitionRulesDialogProps = {
@@ -68,9 +69,12 @@ const CompetitionRulesDialog = ({
     if (open) requestPanoramicaParentViewport();
   }, [open]);
 
+  // Estado compartido de modal público.
+  usePanoramicaPublicModal(open);
+
   return (
   <Dialog open={open} onOpenChange={onOpenChange}>
-    <DialogContent className="pano-rules-dialog pano-embed-dialog">
+    <DialogContent className="pano-rules-dialog pano-embed-dialog pano-embed-dialog__body">
       <header className="pano-rules-dialog__header">
         <p className="pano-rules-dialog__eyebrow">Panorámica Golf · Temporada 2026</p>
         <DialogTitle className="pano-rules-dialog__title">{rules.title}</DialogTitle>
