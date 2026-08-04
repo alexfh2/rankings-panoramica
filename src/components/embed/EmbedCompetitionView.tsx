@@ -73,6 +73,10 @@ const EmbedCompetitionView = ({
   emptyRankingTitle = 'Todavía no hay resultados publicados.',
   emptyRankingSubtitle,
   emptyStatsText = 'Todavía no hay resultados publicados.',
+  showPlayersTab = false,
+  playersTabLabel = 'Jugadores',
+  playersEmptyText = 'No hay jugadores publicados todavía.',
+  playersSearchPlaceholder = 'Buscar jugador…',
   rules,
   officialPdfUrl,
   regulationLabel = 'REGLAMENTO',
@@ -104,9 +108,13 @@ const EmbedCompetitionView = ({
   );
 
   const SECTIONS = useMemo(
-    () => SECTIONS_DEFAULT.map((s) => (s.key === 'ranking' ? { ...s, label: rankingLabel } : s)),
-    [rankingLabel]
+    () => [
+      ...SECTIONS_DEFAULT.map((s) => (s.key === 'ranking' ? { ...s, label: rankingLabel } : s)),
+      ...(showPlayersTab ? [{ key: 'players' as SectionKey, label: playersTabLabel }] : []),
+    ],
+    [rankingLabel, showPlayersTab, playersTabLabel]
   );
+
 
   const [section, setSection] = useState<SectionKey>('ranking');
   const [tab, setTab] = useState<TabKey>('hcpLow');
