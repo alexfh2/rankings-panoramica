@@ -8,18 +8,20 @@ import { useCompetitionPairsRanking } from '@/hooks/useCompetitionPairsRanking';
 import PairProfileDialog from '@/components/embed/PairProfileDialog';
 import PairScorecardBlock from '@/components/embed/PairScorecardBlock';
 import PairsCompetitionStats from '@/components/embed/PairsCompetitionStats';
+import CompetitionPairsDirectory from '@/components/embed/CompetitionPairsDirectory';
 import type { PairRankingRow } from '@/lib/buildPairsRanking';
 import '@/styles/embed-panoramica.css';
 import '@/styles/embed-pairs.css';
 import '@/styles/embed-dialog.css';
 
-type SectionKey = 'ranking' | 'rounds' | 'stats';
+type SectionKey = 'ranking' | 'rounds' | 'stats' | 'pairs';
 type TabKey = 'hcpLow' | 'hcpHigh';
 
 const SECTIONS: { key: SectionKey; label: string }[] = [
   { key: 'ranking', label: 'Clasificación' },
   { key: 'rounds', label: 'Pruebas' },
   { key: 'stats', label: 'Estadísticas' },
+  { key: 'pairs', label: 'Parejas' },
 ];
 
 
@@ -322,6 +324,20 @@ const EmbedPairsCompetitionView = ({
     if (competitionNotFound) return state('Competición no disponible.');
     if (error) return state('No se ha podido cargar la clasificación. Inténtalo de nuevo más tarde.');
     if (previewMode && !pairResults.length) return state('No hay resultados de parejas importados todavía.');
+    if (section === 'pairs') {
+      return (
+        <CompetitionPairsDirectory
+          rows={Array.from(ranking.rowsByPairId.values())}
+          visibleRoundIds={columns.map((c) => c.id)}
+          onPairSelect={setSelectedPairId}
+          emptyText={
+            previewMode
+              ? 'No hay parejas con resultados importados todavía.'
+              : 'No hay parejas publicadas todavía.'
+          }
+        />
+      );
+    }
     if (section === 'rounds') return renderRounds();
     if (section === 'stats') {
       return (
