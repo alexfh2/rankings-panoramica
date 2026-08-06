@@ -10,6 +10,7 @@ import {
   type CompetitionRankedPlayer,
 } from '@/hooks/useCompetitionIndividualRanking';
 import CompetitionRounds from '@/components/embed/CompetitionRounds';
+import EmbedMobileSectionSelector from '@/components/embed/EmbedMobileSectionSelector';
 import CompetitionStats from '@/components/embed/CompetitionStats';
 import CompetitionPlayersDirectory from '@/components/embed/CompetitionPlayersDirectory';
 
