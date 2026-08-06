@@ -1397,43 +1397,47 @@ html[data-pano-embed-route] .pano-embed {
     width: 100%;
   }
 
-  .pano-embed__mobile-field {
-    position: relative;
-    display: block;
-    width: 100%;
-  }
-
-  .pano-embed__mobile-select {
+  .pano-embed__mobile-trigger {
     appearance: none;
-    -webkit-appearance: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
     width: 100%;
-    min-height: 44px;
-    padding: 10px 38px 10px 14px;
+    min-height: 46px;
+    padding: 10px 15px;
     background-color: #202a21;
-    border: 1px solid var(--pano-line);
-    border-radius: 4px;
+    border: 1px solid rgba(243, 238, 227, 0.18);
+    border-radius: 7px;
     color: var(--pano-ivory);
     font-family: 'Inter', sans-serif;
     font-size: 12px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 160ms ease;
   }
 
-  .pano-embed__mobile-select:focus-visible {
+  .pano-embed__mobile-trigger:focus-visible {
     outline: 1px solid #b97452;
     outline-offset: 2px;
+  }
+
+  .pano-embed__mobile-trigger[data-state='open'] {
     border-color: #b97452;
   }
 
   .pano-embed__mobile-arrow {
-    position: absolute;
-    right: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    pointer-events: none;
+    display: inline-flex;
     color: #b6945b;
-    font-size: 12px;
+    transition: transform 160ms ease;
   }
+
+  .pano-embed__mobile-trigger[data-state='open'] .pano-embed__mobile-arrow {
+    transform: rotate(180deg);
+  }
+
 
   .pano-embed__mobile-hint {
     margin: 6px 0 0;
