@@ -347,6 +347,14 @@ const EmbedCompetitionView = ({
         <h1 className="pano-embed__title">{title}</h1>
 
         <div className="pano-embed__primary-nav">
+          <EmbedMobileSectionSelector
+            value={section}
+            sections={SECTIONS}
+            onChange={(key) => {
+              setSection(key);
+              scrollToTop();
+            }}
+          />
           <nav className="pano-embed__nav" role="tablist" aria-label="Secciones">
             {SECTIONS.map((sec) => (
               <button
