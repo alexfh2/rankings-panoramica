@@ -9,6 +9,7 @@ import PairProfileDialog from '@/components/embed/PairProfileDialog';
 import PairScorecardBlock from '@/components/embed/PairScorecardBlock';
 import PairsCompetitionStats from '@/components/embed/PairsCompetitionStats';
 import CompetitionPairsDirectory from '@/components/embed/CompetitionPairsDirectory';
+import EmbedMobileSectionSelector from '@/components/embed/EmbedMobileSectionSelector';
 import type { PairRankingRow } from '@/lib/buildPairsRanking';
 import '@/styles/embed-panoramica.css';
 import '@/styles/embed-pairs.css';
@@ -366,6 +367,14 @@ const EmbedPairsCompetitionView = ({
         )}
 
         <div className="pano-embed__primary-nav">
+          <EmbedMobileSectionSelector
+            value={section}
+            sections={SECTIONS}
+            onChange={(key) => {
+              setSection(key);
+              scrollToTop();
+            }}
+          />
           <nav className="pano-embed__nav" role="tablist" aria-label="Secciones">
             {SECTIONS.map((sec) => (
               <button
