@@ -10,6 +10,7 @@ import {
   type CompetitionRankedPlayer,
 } from '@/hooks/useCompetitionIndividualRanking';
 import CompetitionRounds from '@/components/embed/CompetitionRounds';
+import EmbedMobileSectionSelector from '@/components/embed/EmbedMobileSectionSelector';
 import CompetitionStats from '@/components/embed/CompetitionStats';
 import CompetitionPlayersDirectory from '@/components/embed/CompetitionPlayersDirectory';
 
@@ -347,6 +348,14 @@ const EmbedCompetitionView = ({
         <h1 className="pano-embed__title">{title}</h1>
 
         <div className="pano-embed__primary-nav">
+          <EmbedMobileSectionSelector
+            value={section}
+            sections={SECTIONS}
+            onChange={(key) => {
+              setSection(key);
+              scrollToTop();
+            }}
+          />
           <nav className="pano-embed__nav" role="tablist" aria-label="Secciones">
             {SECTIONS.map((sec) => (
               <button
