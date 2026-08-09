@@ -37,12 +37,11 @@ const Navbar = () => {
       <div className="container flex h-14 sm:h-16 lg:h-[72px] items-center justify-between gap-3">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 shrink-0">
-          <img
-            src={logo}
-            alt="Gastronòmic Golf"
-            className="h-7 sm:h-9 lg:h-10 w-auto opacity-90 dark:brightness-0 dark:invert"
-          />
+          <span className="font-brand text-[1.15rem] sm:text-[1.4rem] leading-none tracking-tight text-foreground">
+            Panorámica <span className="text-accent">Golf</span>
+          </span>
         </Link>
+
 
 
         {/* Desktop Nav */}
