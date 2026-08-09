@@ -1,4 +1,3 @@
-import logo from '@/assets/logo.png';
 import fairwayDark from '@/assets/fairway-studio-dark.png';
 import fairwayLight from '@/assets/fairway-studio-light.png';
 import { useTranslation } from 'react-i18next';
@@ -13,11 +12,9 @@ const Footer = () => {
 
       {/* Bottom bar */}
       <div className="container py-8 flex flex-col items-center justify-center gap-3 text-center">
-        <img
-          src={logo}
-          alt="Gastronòmic Golf"
-          className="h-7 w-auto opacity-40"
-        />
+        <span className="font-brand text-[1.1rem] leading-none tracking-tight text-foreground/50">
+          Panorámica Golf
+        </span>
         <p className="text-[10px] text-muted-foreground/60 tracking-[0.15em] uppercase">
           {t('footer.officialClassification')}
         </p>
