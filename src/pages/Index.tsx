@@ -1,6 +1,4 @@
-import heroBg from '@/assets/hero-editorial.png';
-import sponsorsLine from '@/assets/sponsors/sponsors-line.png';
-import sponsorsLineLight from '@/assets/sponsors/sponsors-line-light.png';
+import heroBg from '@/assets/hero-panoramica.jpg';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
@@ -288,37 +286,6 @@ const Index = () => {
           </div>
         </div>
       </section>
-
-      {/* ——— SPONSORS ——— */}
-      <section className="container pt-10 pb-10 sm:pt-0 sm:pb-5">
-        <div className="max-w-4xl mx-auto">
-
-          <div className="flex items-center gap-4 mb-4 sm:mb-2.5">
-            <div className="h-px flex-1 bg-border" />
-            <h2 className="font-body text-[12px] font-semibold tracking-[0.16em] uppercase text-text-secondary leading-[1.4]">
-              Patrocinadors
-            </h2>
-            <div className="h-px flex-1 bg-border" />
-          </div>
-          <img
-            src={sponsorsLineLight}
-            alt="Patrocinadors: Escampa Hotels, bonÀrea, Santi Pàmies Joiers, Grup Optimotor, Pruna Car Go - Omoda Jaecoo, Tancat de Codorniu, Garmin"
-            loading="lazy"
-            className="block dark:hidden mx-auto w-full sm:w-[77%] h-auto object-contain opacity-95 hover:opacity-100 transition-opacity duration-200"
-          />
-          <img
-            src={sponsorsLine}
-            alt=""
-            aria-hidden="true"
-            loading="lazy"
-            className="hidden dark:block mx-auto w-full sm:w-[77%] h-auto object-contain opacity-100 contrast-[1.06] transition-opacity duration-200"
-          />
-
-
-        </div>
-      </section>
-
-
 
       {/* ——— RANKING + STATS ——— */}
       <section className="container pb-16 sm:pb-20 hidden sm:block">
