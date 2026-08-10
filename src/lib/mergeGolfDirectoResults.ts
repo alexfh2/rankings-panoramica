@@ -8,6 +8,8 @@
  * Només afecta l'entrada de dades. No toca rànquings ni parelles.
  */
 import { calcStablefordPoints, calcScratchStablefordPoints } from '@/lib/stableford';
+import { computeStrokeTotals } from '@/lib/strokeTotals';
+
 
 export type GolfDirectoWarningCode =
   | 'GOLFDIRECTO_DUPLICATE_PLAYER'
