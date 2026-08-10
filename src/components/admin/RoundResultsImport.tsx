@@ -828,7 +828,7 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
                   <th className="p-2 text-right">Hcp</th>
                   <th className="p-2 text-right">Hpu</th>
                   <th className="p-2 text-right">Stb</th>
-                  <th className="p-2 text-right">Scr</th>
+                  <th className="p-2 text-right" title="Total de golpes de la targeta (18 forats)">Golpes</th>
                   {importTab === 'url' && <th className="p-2 text-right">Net calc.</th>}
                   {importTab === 'url' && <th className="p-2 text-right">Scr calc.</th>}
 
