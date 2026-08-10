@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.enforce_news_status_admin_only() FROM PUBLIC, anon, authenticated;
