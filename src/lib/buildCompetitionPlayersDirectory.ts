@@ -108,48 +108,31 @@ export function buildCompetitionPlayersDirectory(input: {
   rounds: readonly DirectoryRoundLike[];
   players?: readonly DirectoryPlayerLike[];
 }): PlayerDirectoryEntry[] {
-  const roundsById = new Map<string, DirectoryRoundLike>();
-  for (const r of input.rounds) roundsById.set(r.id, r);
-
   const visibleRoundIds = new Set(input.rounds.map((r) => r.id));
   const playersById = new Map<string, DirectoryPlayerLike>();
   for (const p of input.players ?? []) playersById.set(p.id, p);
 
-  type Acc = { fullName: string; currentHandicap: number | null; lastKey: string | null; lastHcp: number | null };
-  const byPlayer = new Map<string, Acc>();
+  // Único cálculo del último hándicap de competición (compartido con el ranking).
+  const lastHandicapByPlayer = buildLatestCompetitionHandicapMap(input);
 
+  const namesByPlayer = new Map<string, string>();
   for (const res of input.results) {
     // Solo resultados de jornadas actualmente visibles en este embed.
     if (visibleRoundIds.size > 0 && !visibleRoundIds.has(res.round_id)) continue;
+    if (namesByPlayer.has(res.player_id)) continue;
 
     const name = res.players_public?.name ?? playersById.get(res.player_id)?.name ?? '';
     if (!name) continue;
-
-    const current = res.players_public?.current_handicap ?? playersById.get(res.player_id)?.current_handicap ?? null;
-    const acc = byPlayer.get(res.player_id) ?? {
-      fullName: name,
-      currentHandicap: current,
-      lastKey: null,
-      lastHcp: null,
-    };
-
-    if (res.handicap_at_round != null) {
-      const key = roundSortKey(roundsById.get(res.round_id), res.round_id);
-      if (acc.lastKey == null || key > acc.lastKey) {
-        acc.lastKey = key;
-        acc.lastHcp = res.handicap_at_round;
-      }
-    }
-
-    byPlayer.set(res.player_id, acc);
+    namesByPlayer.set(res.player_id, name);
   }
 
-  const entries: PlayerDirectoryEntry[] = Array.from(byPlayer.entries()).map(([playerId, acc]) => ({
+  const entries: PlayerDirectoryEntry[] = Array.from(namesByPlayer.entries()).map(([playerId, fullName]) => ({
     playerId,
-    fullName: acc.fullName,
-    displayName: formatPlayerDisplayName(acc.fullName),
-    lastHandicap: acc.lastHcp ?? acc.currentHandicap,
+    fullName,
+    displayName: formatPlayerDisplayName(fullName),
+    lastHandicap: lastHandicapByPlayer.get(playerId) ?? null,
   }));
+
 
   entries.sort((a, b) => {
     const cmp = normalizeForSearch(a.displayName).localeCompare(normalizeForSearch(b.displayName), 'es-ES');
