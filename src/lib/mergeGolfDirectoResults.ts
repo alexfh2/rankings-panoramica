@@ -228,9 +228,18 @@ export const mergeGolfDirectoResults = (
       });
     }
 
+    // Totals de GOLPES: mai sumes parcials. Un forat sense resultat → null.
+    const strokeTotals = computeStrokeTotals(entry.scores || []);
+    entry.out_strokes = strokeTotals.out;
+    entry.in_strokes = strokeTotals.in;
+    entry.total_strokes = strokeTotals.total;
+
+    // Punts Stableford (Net i Scratch): lògica intacta, es calculen igualment
+    // encara que la targeta tingui forats sense resultat.
     const { net, scratch } = computeGolfDirectoStableford(entry);
     entry.computed_net_points = net;
     entry.computed_scratch_points = scratch;
+
 
     const official = entry.official_net_points ?? entry.stableford_points;
     if (net == null || official == null) {
