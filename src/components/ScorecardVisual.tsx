@@ -92,14 +92,12 @@ const ScorecardVisual: React.FC<ScorecardVisualProps> = ({ scores, par = DEFAULT
   const frontStb = stablefordPoints?.slice(0, 9);
   const backStb = stablefordPoints?.slice(9, 18);
 
-  const sumScores = (arr: number[]) => {
-    const valid = arr.filter(s => s > 0);
-    return valid.length === arr.length ? valid.reduce((a, b) => a + b, 0) : null;
-  };
+  // Golpes: un hoyo sin resultado (0/null/no numérico) NO son 0 golpes.
+  // Ida/Vuelta/Total sólo existen si todos sus hoyos tienen golpes válidos.
+  const frontTotal = sumStrokeSegment(front9, 9);
+  const backTotal = sumStrokeSegment(back9, 9);
+  const hasLiftedBall = scores.some(s => !isValidStrokeCount(s));
 
-  const frontTotal = sumScores(front9);
-  const backTotal = sumScores(back9);
-  const hasLiftedBall = scores.some(s => s === 0);
 
   const sumStb = (arr: (number | null)[] | undefined) =>
     arr ? arr.reduce((s: number, v) => s + (v ?? 0), 0) : null;
