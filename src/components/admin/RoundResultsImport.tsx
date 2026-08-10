@@ -822,6 +822,9 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
                   <th className="p-2 text-right">Hpu</th>
                   <th className="p-2 text-right">Stb</th>
                   <th className="p-2 text-right">Scr</th>
+                  {importTab === 'url' && <th className="p-2 text-right">Net calc.</th>}
+                  {importTab === 'url' && <th className="p-2 text-right">Scr calc.</th>}
+
                   {importTab === 'excel' && <th className="p-2 text-center">Edat</th>}
                   <th className="p-2 text-center">Estat</th>
                 </tr>
