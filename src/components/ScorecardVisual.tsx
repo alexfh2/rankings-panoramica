@@ -4,6 +4,8 @@ import {
   calcExtraStrokes as stablefordCalcExtraStrokes,
   calcStablefordPoints as stablefordCalcPoints,
 } from '@/lib/stableford';
+import { sumStrokeSegment, isValidStrokeCount } from '@/lib/strokeTotals';
+
 
 
 const DEFAULT_PAR = [4, 4, 5, 3, 5, 3, 4, 4, 4, 4, 5, 3, 4, 5, 4, 4, 3, 5];
