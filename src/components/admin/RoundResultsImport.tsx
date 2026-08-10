@@ -607,31 +607,25 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
         {/* URL tab */}
         <TabsContent value="url" className="space-y-3 mt-3">
           <div className="space-y-2">
-            <Label className="text-sm font-semibold">URLs dels resultats</Label>
+            <Label className="text-sm font-semibold">URLs dels resultats (una per línia)</Label>
             <p className="text-xs text-muted-foreground">
-              Afegeix una URL per cada dia de joc. Els resultats es fusionaran automàticament (millor resultat per jugador).
+              Pots enganxar un únic enllaç o diversos enllaços de categories del <strong>mateix torneig</strong> de
+              GolfDirecto: els jugadors es fusionaran en una sola jornada. Per a altres fonts, cada línia es tracta
+              com un dia de joc (millor resultat per jugador).
             </p>
-            {urls.map((url, idx) => (
-              <div key={idx} className="flex gap-2">
-                <Input
-                  value={url}
-                  onChange={(e) => updateUrl(idx, e.target.value)}
-                  placeholder={`URL dia ${idx + 1} — https://www.golfdirecto.com/micro/game/...`}
-                  className="flex-1"
-                />
-                {urls.length > 1 && (
-                  <Button variant="ghost" size="icon" onClick={() => removeUrl(idx)}>
-                    <Trash2 className="h-4 w-4 text-muted-foreground" />
-                  </Button>
-                )}
-              </div>
-            ))}
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={addUrl}>
-                <Plus className="h-3 w-3 mr-1" /> Afegir URL
-              </Button>
+            <Textarea
+              value={urlsText}
+              onChange={(e) => setUrlsText(e.target.value)}
+              rows={4}
+              className="font-mono text-xs"
+              placeholder={`https://www.golfdirecto.com/next/game/.../ranking/entry?view=day&category=...\nhttps://www.golfdirecto.com/next/game/.../ranking/entry?view=day&category=...`}
+            />
+            <div className="flex gap-2 items-center">
+              <span className="text-xs text-muted-foreground">
+                {validUrls.length} URL{validUrls.length === 1 ? '' : 's'} detectada{validUrls.length === 1 ? '' : 's'}
+              </span>
               <Select value={format} onValueChange={setFormat}>
-                <SelectTrigger className="w-[140px]">
+                <SelectTrigger className="w-[140px] ml-auto">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -639,12 +633,33 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
                   <SelectItem value="medal">Medal</SelectItem>
                 </SelectContent>
               </Select>
-              <Button onClick={handleFetch} disabled={loading || urls.every(u => !u.trim())} className="ml-auto">
+              <Button onClick={handleFetch} disabled={loading || validUrls.length === 0}>
                 <Search className="h-4 w-4 mr-2" />
                 {loading ? 'Llegint...' : 'Llegir resultats'}
               </Button>
             </div>
           </div>
+
+          {gdSummary && (
+            <Card className="border-muted">
+              <CardContent className="py-3 space-y-1">
+                <p className="text-xs font-semibold">
+                  {gdSummary.categories.length} categories de GolfDirecto detectades
+                  {gdSummary.gameName ? ` · ${gdSummary.gameName}` : ''}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {gdSummary.uniquePlayers} jugadors únics · {gdSummary.fullScorecards} targetes completes ·{' '}
+                  {gdSummary.warnings} avisos
+                </p>
+                <ul className="text-[11px] text-muted-foreground list-disc list-inside">
+                  {gdSummary.categories.map((c) => (
+                    <li key={c.id} className="truncate font-mono">{c.name} — {c.id}</li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
         </TabsContent>
       </Tabs>
 
