@@ -133,10 +133,8 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
       .then(({ count }) => setExistingCount(count ?? 0));
   }, [round.id]);
 
-  const addUrl = () => setUrls(prev => [...prev, '']);
-  const removeUrl = (idx: number) => setUrls(prev => prev.filter((_, i) => i !== idx));
-  const updateUrl = (idx: number, value: string) =>
-    setUrls(prev => prev.map((u, i) => i === idx ? value : u));
+  const validUrls = splitUrlLines(urlsText);
+
 
   const matchPlayers = async (parsed: ParsedResult[]) => {
     const { data: players } = await supabase.from('players').select('id, name, license');
