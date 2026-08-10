@@ -1536,3 +1536,29 @@ html[data-pano-embed-route] .pano-embed {
   color: #b97452;
   font-size: 12px;
 }
+
+/* ── Últim hàndicap de competició al costat del nom del ranking ──
+   Només visual: no participa en cap càlcul de punts ni posicions. */
+.pano-embed__namebtn--hcp {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 6px;
+  row-gap: 0;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+.pano-embed__nametext {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pano-embed__namehcp {
+  flex: 0 0 auto;
+  font-size: 0.86em;
+  font-weight: 400;
+  color: var(--pano-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}

@@ -20,6 +20,10 @@ import type { CompetitionRules } from '@/data/competitionRules';
 
 import PlayerProfileDialog, { type PlayerProfileCompetitionData } from '@/components/PlayerProfileDialog';
 import { formatPlayerDisplayName } from '@/lib/formatPlayerDisplayName';
+import {
+  buildLatestCompetitionHandicapMap,
+  formatHandicapSuffix,
+} from '@/lib/buildCompetitionPlayersDirectory';
 import type { PublicPlayer } from '@/lib/publicCircuitData';
 import '@/styles/embed-panoramica.css';
 import '@/styles/embed-dialog.css';
@@ -142,6 +146,13 @@ const EmbedCompetitionView = ({
     [players, results, rankings, bestN, categoryThreshold]
   );
 
+  // Últim hàndicap de CADA jugador dins d'AQUESTA competició (només jornades
+  // ja visibles/publicades). Cap consulta nova: mateix helper que el directori.
+  const lastHandicapByPlayer = useMemo(
+    () => buildLatestCompetitionHandicapMap({ results, rounds, players }),
+    [results, rounds, players]
+  );
+
   const state = (msg: string) => <p className="pano-embed__state">{msg}</p>;
 
   // Columnes: sempre 1..scheduled_rounds. Si existeix jornada amb aquest
@@ -186,6 +197,7 @@ const EmbedCompetitionView = ({
           {list.map((p, i) => {
             const discarded = new Set(p.discardedRoundIds);
             const displayName = formatPlayerDisplayName(p.name);
+            const hcpLabel = formatHandicapSuffix(lastHandicapByPlayer.get(p.id));
             return (
               <li
                 key={p.id}
@@ -196,12 +208,13 @@ const EmbedCompetitionView = ({
                 <span className="pano-embed__pos">{String(i + 1).padStart(2, '0')}</span>
                 <button
                   type="button"
-                  className="pano-embed__name pano-embed__namebtn"
-                  title={p.name}
-                  aria-label={`Ver ficha de ${p.name}`}
+                  className="pano-embed__name pano-embed__namebtn pano-embed__namebtn--hcp"
+                  title={`${p.name} ${hcpLabel}`}
+                  aria-label={`Ver ficha de ${p.name}, ${hcpLabel.replace(/[()]/g, '')}`}
                   onClick={() => setSelectedPlayerId(p.id)}
                 >
-                  {displayName}
+                  <span className="pano-embed__nametext">{displayName}</span>
+                  <span className="pano-embed__namehcp">{hcpLabel}</span>
                 </button>
 
                 <span className="pano-matrix__grid">
