@@ -126,17 +126,28 @@ function detectSource(url: string): string {
 interface GolfDirectoResult {
   results: ParsedResult[];
   categories: { id: string; name: string; count: number }[];
+  game: { id: string; name?: string; date?: string; course?: string };
+  usedCategories: { id: string; name: string; url: string }[];
 }
 
-async function parseGolfDirecto(url: string, format?: string): Promise<GolfDirectoResult> {
-  const gameMatch = url.match(/game\/([a-f0-9]{24})/);
-  if (!gameMatch) {
+/**
+ * Llegeix una o diverses URLs de categories del MATEIX torneig de GolfDirecto.
+ * Els metadades del torneig es llegeixen una sola vegada.
+ * No es requereix cap categoria SCRATCH.
+ */
+async function parseGolfDirecto(urls: string[], format?: string): Promise<GolfDirectoResult> {
+  const parts = urls.map((u) => ({ url: u, ...extractIds(u) }));
+  const gameIds = Array.from(new Set(parts.map((p) => p.gameId).filter(Boolean))) as string[];
+
+  if (gameIds.length === 0) {
     throw new Error("No s'ha pogut extreure l'ID del torneig de la URL de GolfDirecto");
   }
-  const gameId = gameMatch[1];
-  const categoryMatch = url.match(/category=([a-f0-9]{24})/);
-  const requestedCategoryId = categoryMatch ? categoryMatch[1] : null;
+  if (gameIds.length > 1) {
+    throw new Error("Los enlaces pertenecen a torneos diferentes de GolfDirecto.");
+  }
+  const gameId = gameIds[0];
 
+  // ── Metadades del torneig: una sola petició per gameId ──
   const gameRes = await fetch(
     `https://www.golfdirecto.com/web/home/game/${gameId}/active`,
     { headers: { Accept: "application/json" } }
@@ -145,30 +156,54 @@ async function parseGolfDirecto(url: string, format?: string): Promise<GolfDirec
   const gameData = await gameRes.json();
   const game = gameData.data || gameData;
 
+  const gameMeta = {
+    id: gameId,
+    name: game.name || undefined,
+    date: game.scheduleStartDate || game.finishedDate || undefined,
+    course: game.course?.name || game.club?.name || undefined,
+  };
+
   const allCategories: { id: string; name: string; count: number }[] = (game.categories || []).map(
     (c: { _id: string; name: string; __playersCount: number }) => ({
-      id: c._id,
+      id: String(c._id).toLowerCase(),
       name: c.name || "Sense nom",
       count: c.__playersCount || 0,
     })
   );
 
-  // Always prefer SCRATCH category — it contains ALL players for that day/round.
-  // The URL's own category parameter (e.g. "Handicap Baix") would only return that
-  // subset, which is what caused multi-URL imports to miss players from other categories.
   const scratchCat = allCategories.find((c) => c.name.toUpperCase().includes("SCRATCH"));
-  let categoryId = scratchCat?.id || requestedCategoryId || allCategories[0]?.id;
 
-  if (!categoryId) {
+  // Resolució de categories a llegir:
+  //  - una sola URL: es manté el comportament anterior (SCRATCH si existeix).
+  //  - diverses URLs: es respecta la categoria explícita de cada enllaç.
+  const targetIds: { id: string; url: string }[] = [];
+  if (parts.length === 1) {
+    const id = scratchCat?.id || parts[0].categoryId || allCategories[0]?.id;
+    if (id) targetIds.push({ id, url: parts[0].url });
+  } else {
+    for (const p of parts) {
+      const id = p.categoryId || scratchCat?.id || allCategories[0]?.id;
+      if (id && !targetIds.some((t) => t.id === id)) targetIds.push({ id, url: p.url });
+    }
+  }
+
+  if (targetIds.length === 0) {
     throw new Error("No s'han trobat categories al torneig de GolfDirecto");
   }
-  console.log(`[parse-results] GolfDirecto game=${gameId} → fetching category="${allCategories.find(c=>c.id===categoryId)?.name}" (${categoryId}) from ${allCategories.length} available`);
 
-  // Find SENIOR and FEMENINA category IDs to detect membership
+  const usedCategories = targetIds.map((t) => ({
+    id: t.id,
+    name: allCategories.find((c) => c.id === t.id)?.name || t.id,
+    url: t.url,
+  }));
+  console.log(
+    `[parse-results] GolfDirecto game=${gameId} → categories: ${usedCategories
+      .map((c) => `${c.name}(${c.id})`)
+      .join(", ")} of ${allCategories.length} available`
+  );
+
+  // Senior cross-reference (si el torneig publica una categoria SENIOR)
   const seniorCatId = allCategories.find((c) => c.name.toUpperCase().includes("SENIOR"))?.id;
-  const femCatId = allCategories.find((c) => c.name.toUpperCase().includes("FEMEN"))?.id;
-
-  // Fetch senior player licenses for cross-reference
   const seniorLicenses = new Set<string>();
   if (seniorCatId) {
     try {
@@ -186,62 +221,70 @@ async function parseGolfDirecto(url: string, format?: string): Promise<GolfDirec
     } catch { /* ignore */ }
   }
 
-  // Fetch ranking for selected category
-  const rankRes = await fetch(
-    `https://www.golfdirecto.com/web/home/score/ranking/entry?game=${gameId}&category=${categoryId}`,
-    { headers: { Accept: "application/json" } }
-  );
-  if (!rankRes.ok) throw new Error(`Error obtenint ranking GolfDirecto: ${rankRes.status}`);
-  const rankData = await rankRes.json();
-  const entries = rankData.data || [];
-
-  const selectedCat = allCategories.find((c) => c.id === categoryId);
-  const isNet = selectedCat?.name?.toUpperCase().includes("SCRATCH") === false;
-
   interface EntryData {
     playerId: string;
     result: ParsedResult;
   }
   const entryDataList: EntryData[] = [];
 
-  for (const entry of entries) {
-    const player = entry.player || {};
-    const view = entry.view || {};
-    const dayView = view.day || view.acc || {};
+  for (const target of targetIds) {
+    const rankRes = await fetch(
+      `https://www.golfdirecto.com/web/home/score/ranking/entry?game=${gameId}&category=${target.id}`,
+      { headers: { Accept: "application/json" } }
+    );
+    if (!rankRes.ok) throw new Error(`Error obtenint ranking GolfDirecto: ${rankRes.status}`);
+    const rankData = await rankRes.json();
+    const entries = rankData.data || [];
 
-    // Format: "APELLIDOS, NOMBRE" (federation standard) for consistent alphabetical sorting
-    const surname = (player.surname || "").trim();
-    const firstName = (player.firstName || "").trim();
-    const name = surname && firstName
-      ? `${surname}, ${firstName}`
-      : (surname || firstName);
-    if (!name || name.length < 2) continue;
+    const selectedCat = allCategories.find((c) => c.id === target.id);
+    const isScratchCat = !!selectedCat?.name?.toUpperCase().includes("SCRATCH");
 
-    const positionValue = parseNumber(dayView.rankingPosition ?? dayView.realRanking);
-    const hcpExact = parseNumber(player.hcpExact);
-    const hcpGame = parseNumber(player.hcpGame);
-    const stablefordPoints = parseNumber(dayView.onlyNet ?? (isNet ? dayView.result : null));
-    const scratchScore = parseNumber(dayView.strokeNumber ?? dayView.onlyGross ?? (!isNet ? dayView.result : null));
+    for (const entry of entries) {
+      const player = entry.player || {};
+      const view = entry.view || {};
+      const dayView = view.day || view.acc || {};
 
-    const license = player.license || "";
-    const isSenior = seniorLicenses.has(license);
+      // Format: "APELLIDOS, NOMBRE" (federation standard) for consistent alphabetical sorting
+      const surname = (player.surname || "").trim();
+      const firstName = (player.firstName || "").trim();
+      const name = surname && firstName ? `${surname}, ${firstName}` : (surname || firstName);
+      if (!name || name.length < 2) continue;
 
-    entryDataList.push({
-      playerId: player._id || "",
-      result: {
-        position: positionValue != null ? Math.trunc(positionValue) : 0,
-        name,
-        license,
-        gender: player.gender === "F" ? "F" : player.gender === "M" ? "M" : "",
-        handicap: hcpExact,
-        handicap_play: hcpGame != null ? Math.trunc(hcpGame) : null,
-        stableford_points: stablefordPoints,
-        scratch_score: scratchScore,
-        scores: [],
-        source_url: url,
-        _is_senior: isSenior,
-      },
-    });
+      const positionValue = parseNumber(dayView.rankingPosition ?? dayView.realRanking);
+      const hcpExact = parseNumber(player.hcpExact);
+      const hcpGame = parseNumber(player.hcpGame);
+      const officialNet = parseNumber(dayView.onlyNet ?? (!isScratchCat ? dayView.result : null));
+      const officialGross = parseNumber(dayView.onlyGross ?? (isScratchCat ? dayView.result : null));
+      const officialStrokes = parseNumber(dayView.strokeNumber);
+      const scratchScore = officialStrokes ?? officialGross;
+
+      const license = player.license || "";
+
+      entryDataList.push({
+        playerId: player._id || "",
+        result: {
+          position: positionValue != null ? Math.trunc(positionValue) : 0,
+          name,
+          license,
+          gender: player.gender === "F" ? "F" : player.gender === "M" ? "M" : "",
+          handicap: hcpExact,
+          handicap_play: hcpGame != null ? Math.trunc(hcpGame) : null,
+          stableford_points: officialNet,
+          scratch_score: scratchScore,
+          scores: [],
+          source_url: target.url,
+          source_player_id: player._id || null,
+          category_id: target.id,
+          category_name: selectedCat?.name || null,
+          official_net_points: officialNet,
+          official_gross_points: officialGross,
+          official_strokes: officialStrokes,
+          pars: null,
+          hole_hcp: null,
+          _is_senior: seniorLicenses.has(license),
+        },
+      });
+    }
   }
 
   // Fetch hole-by-hole scorecards in parallel (batches of 10)
@@ -259,6 +302,7 @@ async function parseGolfDirecto(url: string, format?: string): Promise<GolfDirec
         const cardData = await cardRes.json();
         const data = cardData.data || cardData;
         const score = data.score || {};
+        const tee = data.gameTee || {};
 
         const holes: number[] = [];
         for (let h = 1; h <= 18; h++) {
@@ -266,13 +310,24 @@ async function parseGolfDirecto(url: string, format?: string): Promise<GolfDirec
           if (val != null) holes.push(Number(val));
           else holes.push(0);
         }
+
+        const pars: number[] = [];
+        const holeHcp: number[] = [];
+        for (let h = 1; h <= 18; h++) {
+          const p = parseNumber(tee[`par${h}`]);
+          const hc = parseNumber(tee[`hcp${h}`]);
+          if (p != null) pars.push(p);
+          if (hc != null) holeHcp.push(hc);
+        }
+        if (pars.length === 18) ed.result.pars = pars;
+        if (holeHcp.length === 18) ed.result.hole_hcp = holeHcp;
+
         const hasData = holes.some((v) => v > 0);
         if (hasData) {
           ed.result.scores = holes;
-          // If any hole is 0 (ball picked up), scratch is invalid
-          const hasLiftedBall = holes.some((v) => v === 0);
-          if (hasLiftedBall) {
-            ed.result.scratch_score = null;
+          // If any hole is 0 (ball picked up), the strokes total is not comparable
+          if (holes.some((v) => v === 0)) {
+            ed.result.scratch_score = ed.result.official_gross_points ?? null;
           }
         }
       } catch {
@@ -285,8 +340,9 @@ async function parseGolfDirecto(url: string, format?: string): Promise<GolfDirec
   const results = entryDataList.map((ed) => ed.result);
   results.sort((a, b) => a.position - b.position);
 
-  return { results, categories: allCategories };
+  return { results, categories: allCategories, game: gameMeta, usedCategories };
 }
+
 
 // ─── TEEONE ────────────────────────────────────────────────────────────────────
 
