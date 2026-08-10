@@ -13,7 +13,23 @@ import { Check, X, AlertTriangle, Search, Plus, Trash2, Upload, FileSpreadsheet 
 import { DialogDescription } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { parseExcelResults, type ExcelParsedResult, type ExcelParseOutput } from '@/lib/parseExcelResults';
+import { Textarea } from '@/components/ui/textarea';
+import { splitUrlLines, isGolfDirectoUrl, validateSameGolfDirectoGame } from '@/lib/golfDirectoUrl';
+import {
+  mergeGolfDirectoResults,
+  type RawGolfDirectoEntry,
+  type GolfDirectoWarning,
+} from '@/lib/mergeGolfDirectoResults';
 import type { Tables } from '@/integrations/supabase/types';
+
+interface GolfDirectoImportSummary {
+  categories: { id: string; name: string; url: string }[];
+  uniquePlayers: number;
+  fullScorecards: number;
+  warnings: number;
+  gameName?: string;
+}
+
 
 type Round = Tables<'rounds'>;
 
@@ -34,6 +50,13 @@ interface ParsedResult {
   _url_index?: number;
   _is_np?: boolean;
   _is_senior?: boolean;
+  /** GolfDirecto: valors calculats amb el motor Stableford del projecte (només validació/preview). */
+  _computed_net?: number | null;
+  _computed_scratch?: number | null;
+  _official_net?: number | null;
+  _validation?: 'valid' | 'mismatch' | 'no_reference' | 'insufficient_data';
+  _source_categories?: string[];
+
 }
 
 interface Props {
@@ -48,7 +71,9 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [urls, setUrls] = useState<string[]>(['']);
+  const [urlsText, setUrlsText] = useState('');
+  const [gdSummary, setGdSummary] = useState<GolfDirectoImportSummary | null>(null);
+
   const [format, setFormat] = useState('stableford');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<ParsedResult[]>([]);
@@ -131,10 +156,8 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
       .then(({ count }) => setExistingCount(count ?? 0));
   }, [round.id]);
 
-  const addUrl = () => setUrls(prev => [...prev, '']);
-  const removeUrl = (idx: number) => setUrls(prev => prev.filter((_, i) => i !== idx));
-  const updateUrl = (idx: number, value: string) =>
-    setUrls(prev => prev.map((u, i) => i === idx ? value : u));
+  const validUrls = splitUrlLines(urlsText);
+
 
   const matchPlayers = async (parsed: ParsedResult[]) => {
     const { data: players } = await supabase.from('players').select('id, name, license');
@@ -296,16 +319,78 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
 
   // --- URL import ---
   const handleFetch = async () => {
-    const validUrls = urls.filter(u => u.trim());
     if (validUrls.length === 0) return;
     setLoading(true);
     setWarnings([]);
     setResults([]);
     setSeniorFiles([]);
+    setGdSummary(null);
     seniorLicensesRef.current = new Set();
     seniorNamesRef.current = new Set();
 
     try {
+      const allGolfDirecto = validUrls.every(isGolfDirectoUrl);
+
+      // ── GolfDirecto: una o diverses categories del MATEIX torneig → una sola prova ──
+      if (allGolfDirecto) {
+        const check = validateSameGolfDirectoGame(validUrls);
+        if (!check.ok) throw new Error(check.error);
+
+        const { data, error } = await supabase.functions.invoke('parse-results', {
+          body: { urls: validUrls, format },
+        });
+        if (error) throw new Error(error.message);
+        if (!data?.success) throw new Error(data?.error || 'Error llegint GolfDirecto');
+
+        const raw = (data.results || []) as RawGolfDirectoEntry[];
+        const used = (data.usedCategories || []) as { id: string; name: string; url: string }[];
+        const merged = mergeGolfDirectoResults(raw, { categoryCount: used.length || validUrls.length });
+
+        const parsed: ParsedResult[] = merged.results.map(r => ({
+          position: r.position,
+          name: r.name,
+          license: r.license,
+          gender: r.gender,
+          handicap: r.handicap,
+          handicap_play: r.handicap_play,
+          age: null,
+          stableford_points: r.stableford_points ?? r.official_net_points ?? r.computed_net_points,
+          scratch_score: r.scratch_score ?? r.computed_scratch_points,
+          scores: r.scores,
+          source_url: r.source_url,
+          _selected: true,
+          _is_senior: r._is_senior,
+          _computed_net: r.computed_net_points,
+          _computed_scratch: r.computed_scratch_points,
+          _official_net: r.official_net_points ?? null,
+          _validation: r.validation,
+          _source_categories: r.source_categories,
+        }));
+
+        setSource(data.source);
+        setGdSummary({
+          categories: used,
+          uniquePlayers: merged.summary.uniquePlayers,
+          fullScorecards: merged.summary.fullScorecards,
+          warnings: merged.summary.warnings,
+          gameName: data.game?.name,
+        });
+
+        const matched = await matchPlayers(parsed);
+        setWarnings(prev => [
+          ...merged.warnings.map((w: GolfDirectoWarning) => `${w.code}: ${w.message}`),
+          ...prev,
+        ]);
+        setNeedsSeniorFile(!parsed.some(r => r._is_senior));
+
+        toast({
+          title: `${matched.length} jugadors únics · ${used.length || validUrls.length} categories`,
+          description: `${merged.summary.fullScorecards} targetes completes, ${merged.summary.warnings} avisos. Revisa abans de guardar.`,
+        });
+        return;
+      }
+
+      // ── Altres fonts (Teeone / genèric / multi-dia) — comportament anterior ──
       const responses = await Promise.all(
         validUrls.map(async (url, urlIdx) => {
           const { data, error } = await supabase.functions.invoke('parse-results', {
@@ -363,6 +448,7 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
       setLoading(false);
     }
   };
+
 
   const toggleResult = (idx: number) => {
     setResults(prev => prev.map((r, i) =>
@@ -444,7 +530,7 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
       await supabase.from('import_logs').insert({
         round_id: round.id,
         source: source || (importTab === 'excel' ? 'excel' : 'url'),
-        source_url: importTab === 'excel' ? source : urls.filter(u => u.trim()).join(' | '),
+        source_url: importTab === 'excel' ? source : validUrls.join(' | '),
         records_imported: selected.length,
         records_skipped: results.length - selected.length,
         skipped_records: results.filter(r => !r._selected).map(r => ({ name: r.name, reason: 'deselected' })),
@@ -528,31 +614,25 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
         {/* URL tab */}
         <TabsContent value="url" className="space-y-3 mt-3">
           <div className="space-y-2">
-            <Label className="text-sm font-semibold">URLs dels resultats</Label>
+            <Label className="text-sm font-semibold">URLs dels resultats (una per línia)</Label>
             <p className="text-xs text-muted-foreground">
-              Afegeix una URL per cada dia de joc. Els resultats es fusionaran automàticament (millor resultat per jugador).
+              Pots enganxar un únic enllaç o diversos enllaços de categories del <strong>mateix torneig</strong> de
+              GolfDirecto: els jugadors es fusionaran en una sola jornada. Per a altres fonts, cada línia es tracta
+              com un dia de joc (millor resultat per jugador).
             </p>
-            {urls.map((url, idx) => (
-              <div key={idx} className="flex gap-2">
-                <Input
-                  value={url}
-                  onChange={(e) => updateUrl(idx, e.target.value)}
-                  placeholder={`URL dia ${idx + 1} — https://www.golfdirecto.com/micro/game/...`}
-                  className="flex-1"
-                />
-                {urls.length > 1 && (
-                  <Button variant="ghost" size="icon" onClick={() => removeUrl(idx)}>
-                    <Trash2 className="h-4 w-4 text-muted-foreground" />
-                  </Button>
-                )}
-              </div>
-            ))}
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={addUrl}>
-                <Plus className="h-3 w-3 mr-1" /> Afegir URL
-              </Button>
+            <Textarea
+              value={urlsText}
+              onChange={(e) => setUrlsText(e.target.value)}
+              rows={4}
+              className="font-mono text-xs"
+              placeholder={`https://www.golfdirecto.com/next/game/.../ranking/entry?view=day&category=...\nhttps://www.golfdirecto.com/next/game/.../ranking/entry?view=day&category=...`}
+            />
+            <div className="flex gap-2 items-center">
+              <span className="text-xs text-muted-foreground">
+                {validUrls.length} URL{validUrls.length === 1 ? '' : 's'} detectada{validUrls.length === 1 ? '' : 's'}
+              </span>
               <Select value={format} onValueChange={setFormat}>
-                <SelectTrigger className="w-[140px]">
+                <SelectTrigger className="w-[140px] ml-auto">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -560,12 +640,33 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
                   <SelectItem value="medal">Medal</SelectItem>
                 </SelectContent>
               </Select>
-              <Button onClick={handleFetch} disabled={loading || urls.every(u => !u.trim())} className="ml-auto">
+              <Button onClick={handleFetch} disabled={loading || validUrls.length === 0}>
                 <Search className="h-4 w-4 mr-2" />
                 {loading ? 'Llegint...' : 'Llegir resultats'}
               </Button>
             </div>
           </div>
+
+          {gdSummary && (
+            <Card className="border-muted">
+              <CardContent className="py-3 space-y-1">
+                <p className="text-xs font-semibold">
+                  {gdSummary.categories.length} categories de GolfDirecto detectades
+                  {gdSummary.gameName ? ` · ${gdSummary.gameName}` : ''}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {gdSummary.uniquePlayers} jugadors únics · {gdSummary.fullScorecards} targetes completes ·{' '}
+                  {gdSummary.warnings} avisos
+                </p>
+                <ul className="text-[11px] text-muted-foreground list-disc list-inside">
+                  {gdSummary.categories.map((c) => (
+                    <li key={c.id} className="truncate font-mono">{c.name} — {c.id}</li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+
         </TabsContent>
       </Tabs>
 
@@ -721,6 +822,9 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
                   <th className="p-2 text-right">Hpu</th>
                   <th className="p-2 text-right">Stb</th>
                   <th className="p-2 text-right">Scr</th>
+                  {importTab === 'url' && <th className="p-2 text-right">Net calc.</th>}
+                  {importTab === 'url' && <th className="p-2 text-right">Scr calc.</th>}
+
                   {importTab === 'excel' && <th className="p-2 text-center">Edat</th>}
                   <th className="p-2 text-center">Estat</th>
                 </tr>
@@ -750,6 +854,15 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
                     <td className="p-2 text-right font-mono">{r.handicap_play ?? '—'}</td>
                     <td className="p-2 text-right font-mono font-bold">{r.stableford_points ?? '—'}</td>
                     <td className="p-2 text-right font-mono text-muted-foreground">{r.scratch_score ?? '—'}</td>
+                    {importTab === 'url' && (
+                      <td className={`p-2 text-right font-mono ${r._validation === 'mismatch' ? 'text-red-600 font-bold' : 'text-muted-foreground'}`}>
+                        {r._computed_net ?? '—'}
+                      </td>
+                    )}
+                    {importTab === 'url' && (
+                      <td className="p-2 text-right font-mono text-muted-foreground">{r._computed_scratch ?? '—'}</td>
+                    )}
+
                     {importTab === 'excel' && (
                       <td className="p-2 text-center font-mono text-muted-foreground">{r.age ?? '—'}</td>
                     )}
