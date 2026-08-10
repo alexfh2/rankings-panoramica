@@ -13,7 +13,23 @@ import { Check, X, AlertTriangle, Search, Plus, Trash2, Upload, FileSpreadsheet 
 import { DialogDescription } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { parseExcelResults, type ExcelParsedResult, type ExcelParseOutput } from '@/lib/parseExcelResults';
+import { Textarea } from '@/components/ui/textarea';
+import { splitUrlLines, isGolfDirectoUrl, validateSameGolfDirectoGame } from '@/lib/golfDirectoUrl';
+import {
+  mergeGolfDirectoResults,
+  type RawGolfDirectoEntry,
+  type GolfDirectoWarning,
+} from '@/lib/mergeGolfDirectoResults';
 import type { Tables } from '@/integrations/supabase/types';
+
+interface GolfDirectoImportSummary {
+  categories: { id: string; name: string; url: string }[];
+  uniquePlayers: number;
+  fullScorecards: number;
+  warnings: number;
+  gameName?: string;
+}
+
 
 type Round = Tables<'rounds'>;
 
