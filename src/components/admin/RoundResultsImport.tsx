@@ -854,6 +854,15 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
                     <td className="p-2 text-right font-mono">{r.handicap_play ?? '—'}</td>
                     <td className="p-2 text-right font-mono font-bold">{r.stableford_points ?? '—'}</td>
                     <td className="p-2 text-right font-mono text-muted-foreground">{r.scratch_score ?? '—'}</td>
+                    {importTab === 'url' && (
+                      <td className={`p-2 text-right font-mono ${r._validation === 'mismatch' ? 'text-red-600 font-bold' : 'text-muted-foreground'}`}>
+                        {r._computed_net ?? '—'}
+                      </td>
+                    )}
+                    {importTab === 'url' && (
+                      <td className="p-2 text-right font-mono text-muted-foreground">{r._computed_scratch ?? '—'}</td>
+                    )}
+
                     {importTab === 'excel' && (
                       <td className="p-2 text-center font-mono text-muted-foreground">{r.age ?? '—'}</td>
                     )}
