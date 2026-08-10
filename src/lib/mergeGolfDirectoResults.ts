@@ -145,7 +145,11 @@ export const mergeGolfDirectoResults = (
         source_categories: [categoryLabel],
         computed_net_points: null,
         computed_scratch_points: null,
+        total_strokes: null,
+        out_strokes: null,
+        in_strokes: null,
         has_full_scorecard: false,
+
         validation: 'no_reference',
       });
       continue;
