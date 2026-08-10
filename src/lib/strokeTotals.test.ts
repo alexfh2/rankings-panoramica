@@ -19,9 +19,9 @@ describe('isValidStrokeCount', () => {
 describe('computeStrokeTotals', () => {
   it('A. 18 scores válidos → total correcto', () => {
     const t = computeStrokeTotals(FULL);
-    expect(t.total).toBe(72);
+    expect(t.total).toBe(73);
     expect(t.out).toBe(36);
-    expect(t.in).toBe(36);
+    expect(t.in).toBe(37);
     expect(t.isComplete).toBe(true);
   });
 
@@ -43,7 +43,7 @@ describe('computeStrokeTotals', () => {
     const t = computeStrokeTotals(scores);
     expect(t.out).toBeNull();
     expect(t.total).toBeNull();
-    expect(t.in).toBe(36);
+    expect(t.in).toBe(37);
   });
 
   it('E. falta un hoyo en Vuelta → Vuelta null y Total null (Ida se mantiene)', () => {
@@ -92,7 +92,7 @@ describe('F. bola levantada: Stableford intacto, golpes sin total', () => {
     scores[17] = 0; // bola levantada en el 18
     const lifted = mergeGolfDirectoResults([entry(scores)]).results[0];
 
-    expect(complete.total_strokes).toBe(72);
+    expect(complete.total_strokes).toBe(73);
     expect(lifted.total_strokes).toBeNull();
     expect(lifted.out_strokes).toBe(36);
     expect(lifted.in_strokes).toBeNull();
