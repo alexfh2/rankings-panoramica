@@ -56,6 +56,9 @@ interface ParsedResult {
   _official_net?: number | null;
   _validation?: 'valid' | 'mismatch' | 'no_reference' | 'insufficient_data';
   _source_categories?: string[];
+  _out_strokes?: number | null;
+  _in_strokes?: number | null;
+
 
 }
 
