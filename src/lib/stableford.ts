@@ -7,13 +7,22 @@
 /** Hándicap de juego (redondeo al entero más próximo). */
 export const calcPlayingHcp = (hcp: number): number => Math.round(hcp);
 
-/** Golpes recibidos en un hoyo según su índice HCP (1..18) y el hándicap del jugador. */
+/**
+ * Golpes recibidos (o entregados) en un hoyo según su índice HCP (1..18) y el hándicap del jugador.
+ * Funciona simétricamente para HPU positivos y negativos (plus handicap):
+ *  - base = trunc(hpu / 18) en todos los hoyos
+ *  - remainder > 0 → +1 en los strokeIndex más bajos (1..remainder)
+ *  - remainder < 0 → -1 en los strokeIndex más altos (19-|remainder| .. 18)
+ */
 export const calcExtraStrokes = (strokeIndex: number, playerHcp: number): number => {
   const playingHcp = calcPlayingHcp(playerHcp);
-  const fullStrokes = Math.floor(playingHcp / 18);
-  const remainder = playingHcp % 18;
-  return fullStrokes + (strokeIndex <= remainder ? 1 : 0);
+  const base = Math.trunc(playingHcp / 18);
+  const remainder = playingHcp - base * 18;
+  if (remainder > 0) return base + (strokeIndex <= remainder ? 1 : 0);
+  if (remainder < 0) return base - (strokeIndex >= 19 - Math.abs(remainder) ? 1 : 0);
+  return base;
 };
+
 
 /** Puntos Stableford a partir de golpes netos respecto al par. */
 export const stablefordFromNetDiff = (diff: number): number => {
