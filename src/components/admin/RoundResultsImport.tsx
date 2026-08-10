@@ -50,6 +50,13 @@ interface ParsedResult {
   _url_index?: number;
   _is_np?: boolean;
   _is_senior?: boolean;
+  /** GolfDirecto: valors calculats amb el motor Stableford del projecte (només validació/preview). */
+  _computed_net?: number | null;
+  _computed_scratch?: number | null;
+  _official_net?: number | null;
+  _validation?: 'valid' | 'mismatch' | 'no_reference' | 'insufficient_data';
+  _source_categories?: string[];
+
 }
 
 interface Props {
