@@ -17,7 +17,26 @@ interface ParsedResult {
   scratch_score: number | null;
   scores: number[];
   source_url: string;
+  source_player_id?: string | null;
+  category_id?: string | null;
+  category_name?: string | null;
+  official_net_points?: number | null;
+  official_gross_points?: number | null;
+  official_strokes?: number | null;
+  pars?: number[] | null;
+  hole_hcp?: number[] | null;
   _is_senior?: boolean;
+}
+
+const ID_RE = /[a-f0-9]{24}/i;
+
+function extractIds(url: string): { gameId: string | null; categoryId: string | null } {
+  const g = url.match(new RegExp(`game/(${ID_RE.source})`, "i"));
+  const c = url.match(new RegExp(`category=(${ID_RE.source})`, "i"));
+  return {
+    gameId: g ? g[1].toLowerCase() : null,
+    categoryId: c ? c[1].toLowerCase() : null,
+  };
 }
 
 serve(async (req) => {
@@ -26,43 +45,75 @@ serve(async (req) => {
   }
 
   try {
-    const { url, format } = await req.json();
-    if (!url) {
+    const body = await req.json();
+    const format: string | undefined = body?.format;
+    const rawUrls: string[] = Array.isArray(body?.urls)
+      ? body.urls
+      : body?.url
+      ? [body.url]
+      : [];
+    const urls = rawUrls.map((u: string) => String(u || "").trim()).filter(Boolean);
+
+    if (urls.length === 0) {
       return new Response(
         JSON.stringify({ success: false, error: "URL is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const detectedSource = detectSource(url);
+    const detectedSource = detectSource(urls[0]);
     let results: ParsedResult[];
     let categories: { id: string; name: string; count: number }[] | undefined;
+    let game: { id: string; name?: string; date?: string; course?: string } | undefined;
+    let usedCategories: { id: string; name: string; url: string }[] | undefined;
 
     if (detectedSource === "golfdirecto") {
-      const gd = await parseGolfDirecto(url, format);
+      const gd = await parseGolfDirecto(urls, format);
       results = gd.results;
       categories = gd.categories;
+      game = gd.game;
+      usedCategories = gd.usedCategories;
     } else if (detectedSource === "teeone") {
-      results = await parseTeeoneViaAPI(url, format);
+      results = [];
+      for (const u of urls) {
+        results = results.concat(await parseTeeoneViaAPI(u, format));
+      }
     } else {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
-      const html = await response.text();
-      results = parseGenericTable(html, url);
+      results = [];
+      for (const u of urls) {
+        const response = await fetch(u);
+        if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
+        const html = await response.text();
+        results = results.concat(parseGenericTable(html, u));
+      }
     }
 
     return new Response(
-      JSON.stringify({ success: true, source: detectedSource, results, count: results.length, categories }),
+      JSON.stringify({
+        success: true,
+        source: detectedSource,
+        results,
+        count: results.length,
+        categories,
+        game,
+        usedCategories,
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("Error:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
     return new Response(
-      JSON.stringify({ success: false, error: error instanceof Error ? error.message : "Unknown error" }),
+      JSON.stringify({
+        success: false,
+        error: message,
+        code: message.includes("torneos diferentes") ? "GOLFDIRECTO_DIFFERENT_GAME" : undefined,
+      }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
+
 
 function detectSource(url: string): string {
   if (url.includes("golfdirecto.com")) return "golfdirecto";
