@@ -50,9 +50,15 @@ export interface MergedGolfDirectoEntry extends RawGolfDirectoEntry {
   source_categories: string[];
   computed_net_points: number | null;
   computed_scratch_points: number | null;
+  /** Total de GOLPES dels 18 forats. null si algun forat no té resultat (bola aixecada). */
+  total_strokes: number | null;
+  /** Subtotals de GOLPES (null si el tram és incomplet). */
+  out_strokes: number | null;
+  in_strokes: number | null;
   has_full_scorecard: boolean;
   validation: 'valid' | 'mismatch' | 'no_reference' | 'insufficient_data';
 }
+
 
 export interface MergeGolfDirectoOutput {
   results: MergedGolfDirectoEntry[];
