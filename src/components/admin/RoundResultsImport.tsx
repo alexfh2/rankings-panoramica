@@ -48,7 +48,9 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [urls, setUrls] = useState<string[]>(['']);
+  const [urlsText, setUrlsText] = useState('');
+  const [gdSummary, setGdSummary] = useState<GolfDirectoImportSummary | null>(null);
+
   const [format, setFormat] = useState('stableford');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<ParsedResult[]>([]);
