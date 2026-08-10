@@ -312,16 +312,78 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
 
   // --- URL import ---
   const handleFetch = async () => {
-    const validUrls = urls.filter(u => u.trim());
     if (validUrls.length === 0) return;
     setLoading(true);
     setWarnings([]);
     setResults([]);
     setSeniorFiles([]);
+    setGdSummary(null);
     seniorLicensesRef.current = new Set();
     seniorNamesRef.current = new Set();
 
     try {
+      const allGolfDirecto = validUrls.every(isGolfDirectoUrl);
+
+      // ── GolfDirecto: una o diverses categories del MATEIX torneig → una sola prova ──
+      if (allGolfDirecto) {
+        const check = validateSameGolfDirectoGame(validUrls);
+        if (!check.ok) throw new Error(check.error);
+
+        const { data, error } = await supabase.functions.invoke('parse-results', {
+          body: { urls: validUrls, format },
+        });
+        if (error) throw new Error(error.message);
+        if (!data?.success) throw new Error(data?.error || 'Error llegint GolfDirecto');
+
+        const raw = (data.results || []) as RawGolfDirectoEntry[];
+        const used = (data.usedCategories || []) as { id: string; name: string; url: string }[];
+        const merged = mergeGolfDirectoResults(raw, { categoryCount: used.length || validUrls.length });
+
+        const parsed: ParsedResult[] = merged.results.map(r => ({
+          position: r.position,
+          name: r.name,
+          license: r.license,
+          gender: r.gender,
+          handicap: r.handicap,
+          handicap_play: r.handicap_play,
+          age: null,
+          stableford_points: r.stableford_points ?? r.official_net_points ?? r.computed_net_points,
+          scratch_score: r.scratch_score ?? r.computed_scratch_points,
+          scores: r.scores,
+          source_url: r.source_url,
+          _selected: true,
+          _is_senior: r._is_senior,
+          _computed_net: r.computed_net_points,
+          _computed_scratch: r.computed_scratch_points,
+          _official_net: r.official_net_points ?? null,
+          _validation: r.validation,
+          _source_categories: r.source_categories,
+        }));
+
+        setSource(data.source);
+        setGdSummary({
+          categories: used,
+          uniquePlayers: merged.summary.uniquePlayers,
+          fullScorecards: merged.summary.fullScorecards,
+          warnings: merged.summary.warnings,
+          gameName: data.game?.name,
+        });
+
+        const matched = await matchPlayers(parsed);
+        setWarnings(prev => [
+          ...merged.warnings.map((w: GolfDirectoWarning) => `${w.code}: ${w.message}`),
+          ...prev,
+        ]);
+        setNeedsSeniorFile(!parsed.some(r => r._is_senior));
+
+        toast({
+          title: `${matched.length} jugadors únics · ${used.length || validUrls.length} categories`,
+          description: `${merged.summary.fullScorecards} targetes completes, ${merged.summary.warnings} avisos. Revisa abans de guardar.`,
+        });
+        return;
+      }
+
+      // ── Altres fonts (Teeone / genèric / multi-dia) — comportament anterior ──
       const responses = await Promise.all(
         validUrls.map(async (url, urlIdx) => {
           const { data, error } = await supabase.functions.invoke('parse-results', {
@@ -379,6 +441,7 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
       setLoading(false);
     }
   };
+
 
   const toggleResult = (idx: number) => {
     setResults(prev => prev.map((r, i) =>
