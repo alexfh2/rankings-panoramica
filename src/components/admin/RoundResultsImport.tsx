@@ -355,7 +355,8 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
           handicap_play: r.handicap_play,
           age: null,
           stableford_points: r.stableford_points ?? r.official_net_points ?? r.computed_net_points,
-          scratch_score: r.scratch_score ?? r.computed_scratch_points,
+          // scratch_score = TOTAL DE GOLPES de la targeta. null si hi ha bola aixecada.
+          scratch_score: r.total_strokes,
           scores: r.scores,
           source_url: r.source_url,
           _selected: true,
@@ -365,6 +366,9 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
           _official_net: r.official_net_points ?? null,
           _validation: r.validation,
           _source_categories: r.source_categories,
+          _out_strokes: r.out_strokes,
+          _in_strokes: r.in_strokes,
+
         }));
 
         setSource(data.source);
