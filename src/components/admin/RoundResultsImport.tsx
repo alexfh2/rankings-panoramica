@@ -523,7 +523,7 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
       await supabase.from('import_logs').insert({
         round_id: round.id,
         source: source || (importTab === 'excel' ? 'excel' : 'url'),
-        source_url: importTab === 'excel' ? source : urls.filter(u => u.trim()).join(' | '),
+        source_url: importTab === 'excel' ? source : validUrls.join(' | '),
         records_imported: selected.length,
         records_skipped: results.length - selected.length,
         skipped_records: results.filter(r => !r._selected).map(r => ({ name: r.name, reason: 'deselected' })),
