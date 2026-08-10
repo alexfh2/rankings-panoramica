@@ -16,12 +16,14 @@ export const calcPlayingHcp = (hcp: number): number => Math.round(hcp);
  */
 export const calcExtraStrokes = (strokeIndex: number, playerHcp: number): number => {
   const playingHcp = calcPlayingHcp(playerHcp);
-  const base = Math.trunc(playingHcp / 18);
+  const base = Math.trunc(playingHcp / 18) || 0; // evita -0
   const remainder = playingHcp - base * 18;
-  if (remainder > 0) return base + (strokeIndex <= remainder ? 1 : 0);
-  if (remainder < 0) return base - (strokeIndex >= 19 - Math.abs(remainder) ? 1 : 0);
-  return base;
+  let strokes = base;
+  if (remainder > 0 && strokeIndex <= remainder) strokes += 1;
+  if (remainder < 0 && strokeIndex >= 19 - Math.abs(remainder)) strokes -= 1;
+  return strokes || 0;
 };
+
 
 
 /** Puntos Stableford a partir de golpes netos respecto al par. */
