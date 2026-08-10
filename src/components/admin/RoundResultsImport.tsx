@@ -56,6 +56,9 @@ interface ParsedResult {
   _official_net?: number | null;
   _validation?: 'valid' | 'mismatch' | 'no_reference' | 'insufficient_data';
   _source_categories?: string[];
+  _out_strokes?: number | null;
+  _in_strokes?: number | null;
+
 
 }
 
@@ -355,7 +358,8 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
           handicap_play: r.handicap_play,
           age: null,
           stableford_points: r.stableford_points ?? r.official_net_points ?? r.computed_net_points,
-          scratch_score: r.scratch_score ?? r.computed_scratch_points,
+          // scratch_score = TOTAL DE GOLPES de la targeta. null si hi ha bola aixecada.
+          scratch_score: r.total_strokes,
           scores: r.scores,
           source_url: r.source_url,
           _selected: true,
@@ -365,6 +369,9 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
           _official_net: r.official_net_points ?? null,
           _validation: r.validation,
           _source_categories: r.source_categories,
+          _out_strokes: r.out_strokes,
+          _in_strokes: r.in_strokes,
+
         }));
 
         setSource(data.source);
@@ -821,7 +828,7 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
                   <th className="p-2 text-right">Hcp</th>
                   <th className="p-2 text-right">Hpu</th>
                   <th className="p-2 text-right">Stb</th>
-                  <th className="p-2 text-right">Scr</th>
+                  <th className="p-2 text-right" title="Total de golpes de la targeta (18 forats)">Golpes</th>
                   {importTab === 'url' && <th className="p-2 text-right">Net calc.</th>}
                   {importTab === 'url' && <th className="p-2 text-right">Scr calc.</th>}
 
@@ -853,7 +860,13 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
                     <td className="p-2 text-right font-mono">{r.handicap ?? '—'}</td>
                     <td className="p-2 text-right font-mono">{r.handicap_play ?? '—'}</td>
                     <td className="p-2 text-right font-mono font-bold">{r.stableford_points ?? '—'}</td>
-                    <td className="p-2 text-right font-mono text-muted-foreground">{r.scratch_score ?? '—'}</td>
+                    <td
+                      className="p-2 text-right font-mono text-muted-foreground"
+                      title={r.scratch_score == null ? 'Sin total de golpes: uno o más hoyos sin resultado.' : undefined}
+                    >
+                      {r.scratch_score ?? '—'}
+                    </td>
+
                     {importTab === 'url' && (
                       <td className={`p-2 text-right font-mono ${r._validation === 'mismatch' ? 'text-red-600 font-bold' : 'text-muted-foreground'}`}>
                         {r._computed_net ?? '—'}

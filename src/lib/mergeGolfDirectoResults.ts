@@ -8,6 +8,8 @@
  * Només afecta l'entrada de dades. No toca rànquings ni parelles.
  */
 import { calcStablefordPoints, calcScratchStablefordPoints } from '@/lib/stableford';
+import { computeStrokeTotals } from '@/lib/strokeTotals';
+
 
 export type GolfDirectoWarningCode =
   | 'GOLFDIRECTO_DUPLICATE_PLAYER'
@@ -50,9 +52,15 @@ export interface MergedGolfDirectoEntry extends RawGolfDirectoEntry {
   source_categories: string[];
   computed_net_points: number | null;
   computed_scratch_points: number | null;
+  /** Total de GOLPES dels 18 forats. null si algun forat no té resultat (bola aixecada). */
+  total_strokes: number | null;
+  /** Subtotals de GOLPES (null si el tram és incomplet). */
+  out_strokes: number | null;
+  in_strokes: number | null;
   has_full_scorecard: boolean;
   validation: 'valid' | 'mismatch' | 'no_reference' | 'insufficient_data';
 }
+
 
 export interface MergeGolfDirectoOutput {
   results: MergedGolfDirectoEntry[];
@@ -139,7 +147,11 @@ export const mergeGolfDirectoResults = (
         source_categories: [categoryLabel],
         computed_net_points: null,
         computed_scratch_points: null,
+        total_strokes: null,
+        out_strokes: null,
+        in_strokes: null,
         has_full_scorecard: false,
+
         validation: 'no_reference',
       });
       continue;
@@ -218,9 +230,18 @@ export const mergeGolfDirectoResults = (
       });
     }
 
+    // Totals de GOLPES: mai sumes parcials. Un forat sense resultat → null.
+    const strokeTotals = computeStrokeTotals(entry.scores || []);
+    entry.out_strokes = strokeTotals.out;
+    entry.in_strokes = strokeTotals.in;
+    entry.total_strokes = strokeTotals.total;
+
+    // Punts Stableford (Net i Scratch): lògica intacta, es calculen igualment
+    // encara que la targeta tingui forats sense resultat.
     const { net, scratch } = computeGolfDirectoStableford(entry);
     entry.computed_net_points = net;
     entry.computed_scratch_points = scratch;
+
 
     const official = entry.official_net_points ?? entry.stableford_points;
     if (net == null || official == null) {
