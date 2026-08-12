@@ -23,6 +23,7 @@ import TestIndividual2026 from "./pages/TestIndividual2026";
 import EmbedIndividual2026 from "./pages/EmbedIndividual2026";
 import EmbedVerano2026 from "./pages/EmbedVerano2026";
 import EmbedParejas2026 from "./pages/EmbedParejas2026";
+import EmbedHomeLeaders2026 from "./pages/EmbedHomeLeaders2026";
 import AdminPreviewParejas2026 from "./pages/admin/AdminPreviewParejas2026";
 
 
