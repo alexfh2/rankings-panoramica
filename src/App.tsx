@@ -23,6 +23,7 @@ import TestIndividual2026 from "./pages/TestIndividual2026";
 import EmbedIndividual2026 from "./pages/EmbedIndividual2026";
 import EmbedVerano2026 from "./pages/EmbedVerano2026";
 import EmbedParejas2026 from "./pages/EmbedParejas2026";
+import EmbedHomeLeaders2026 from "./pages/EmbedHomeLeaders2026";
 import AdminPreviewParejas2026 from "./pages/admin/AdminPreviewParejas2026";
 
 
@@ -50,6 +51,7 @@ const App = () => (
             <Route path="/embed/individual-2026" element={<EmbedIndividual2026 />} />
             <Route path="/embed/verano-2026" element={<EmbedVerano2026 />} />
             <Route path="/embed/parejas-2026" element={<EmbedParejas2026 />} />
+            <Route path="/embed/home-leaders-2026" element={<EmbedHomeLeaders2026 />} />
 
             {/* Vista previa protegida (admin) */}
             <Route
