@@ -19,25 +19,31 @@ html:has(.pano-leaders) #root {
   width: 100%;
   padding: 0;
   overflow-x: hidden;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 22px;
+}
+
+@media (min-width: 640px) {
+  .pano-leaders {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+  }
 }
 
 .pano-leaders__block {
   border-top: 1px solid var(--pano-line);
-  padding-top: 14px;
-}
-
-.pano-leaders__block + .pano-leaders__block {
-  margin-top: 18px;
+  padding-top: 10px;
 }
 
 .pano-leaders__header {
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--pano-brass);
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   line-height: 1.2;
 }
 
@@ -47,7 +53,7 @@ html:has(.pano-leaders) #root {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 .pano-leaders__row {
@@ -66,7 +72,7 @@ html:has(.pano-leaders) #root {
 }
 
 .pano-leaders__name {
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 500;
   line-height: 1.35;
   color: var(--pano-fg);
@@ -75,7 +81,7 @@ html:has(.pano-leaders) #root {
 }
 
 .pano-leaders__pts {
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--pano-terracota);
   white-space: nowrap;
@@ -83,7 +89,7 @@ html:has(.pano-leaders) #root {
 }
 
 .pano-leaders__pts span {
-  font-size: 9.5px;
+  font-size: 9px;
   font-weight: 400;
   color: var(--pano-fg-soft);
   margin-left: 3px;
