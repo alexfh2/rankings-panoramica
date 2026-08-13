@@ -30,14 +30,8 @@ html:has(.pano-leaders) #root {
     grid-template-columns: repeat(3, 1fr);
     gap: 32px;
   }
-
-  /* Separadores verticales discretos entre bloques de competición */
-  .pano-leaders__block:nth-child(2),
-  .pano-leaders__block:nth-child(3) {
-    border-left: 1px solid var(--pano-vsep);
-    padding-left: 0;
-  }
 }
+
 
 
 .pano-leaders__block {
