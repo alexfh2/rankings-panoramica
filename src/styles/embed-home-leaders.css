@@ -66,12 +66,12 @@ html:has(.pano-leaders) #root {
 
 /* Fila: [categoría] [nombre] [puntos] con los puntos junto al nombre */
 .pano-leaders__row {
-  display: grid;
-  grid-template-columns: 56px minmax(0, max-content) auto;
-  column-gap: 10px;
+  display: flex;
+  gap: 10px;
   align-items: baseline;
-  justify-content: start;
+  justify-content: flex-start;
 }
+
 
 .pano-leaders__cat {
   font-size: 9px;
