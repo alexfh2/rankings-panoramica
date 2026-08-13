@@ -92,6 +92,7 @@ html:has(.pano-leaders) #root {
   color: var(--pano-fg);
   overflow-wrap: anywhere;
   min-width: 0;
+  flex: 0 1 auto;
 }
 
 .pano-leaders__pts {
@@ -99,7 +100,9 @@ html:has(.pano-leaders) #root {
   font-weight: 600;
   color: var(--pano-terracota);
   white-space: nowrap;
+  flex: 0 0 auto;
 }
+
 
 .pano-leaders__pts span {
   font-size: 9px;
