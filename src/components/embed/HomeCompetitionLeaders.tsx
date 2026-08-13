@@ -16,7 +16,7 @@ import '@/styles/embed-home-leaders.css';
  * Las competiciones no exponen un estado fiable de actividad (rounds.status es
  * por jornada, no por competición), así que se controla aquí de forma explícita.
  */
-export const showSummerLeague = false;
+export const showSummerLeague = true;
 
 const EMPTY = '—';
 
