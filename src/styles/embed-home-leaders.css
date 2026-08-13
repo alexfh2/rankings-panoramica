@@ -28,16 +28,17 @@ html:has(.pano-leaders) #root {
 @media (min-width: 640px) {
   .pano-leaders {
     grid-template-columns: repeat(3, 1fr);
-    gap: 32px;
+    gap: 28px;
   }
 
   /* Separadores verticales discretos entre bloques de competición */
   .pano-leaders__block:nth-child(2),
   .pano-leaders__block:nth-child(3) {
     border-left: 1px solid var(--pano-vsep);
-    padding-left: 24px;
+    padding-left: 16px;
   }
 }
+
 
 .pano-leaders__block {
   border-top: 1px solid var(--pano-line);
