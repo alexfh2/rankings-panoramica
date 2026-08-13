@@ -29,7 +29,6 @@ html:has(.pano-leaders) #root {
   .pano-leaders {
     grid-template-columns: repeat(3, 1fr);
     gap: 32px;
-    align-items: start;
   }
 
   /* Separadores verticales discretos entre bloques de competición */
