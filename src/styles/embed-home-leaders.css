@@ -80,7 +80,10 @@ html:has(.pano-leaders) #root {
   text-transform: uppercase;
   color: var(--pano-fg-soft);
   white-space: nowrap;
+  width: 56px;
+  flex: 0 0 auto;
 }
+
 
 .pano-leaders__name {
   font-size: 13px;
