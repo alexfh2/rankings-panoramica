@@ -153,7 +153,7 @@ const HomeCompetitionLeaders = () => {
           kicker="Orden del Mérito"
           title="Individual"
           href="https://rankingspanoramica.fairwaystudio.ai/embed/individual-2026"
-          rows={individualRows(individual, individualHcp, true)}
+          rows={individualRows(individual, individualHcp, false)}
           loading={individual.isLoading}
           empty={individualEmpty}
         />
