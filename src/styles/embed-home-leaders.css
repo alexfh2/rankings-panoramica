@@ -28,14 +28,15 @@ html:has(.pano-leaders) #root {
 @media (min-width: 640px) {
   .pano-leaders {
     grid-template-columns: repeat(3, 1fr);
-    gap: 28px;
+    gap: 32px;
+    align-items: start;
   }
 
   /* Separadores verticales discretos entre bloques de competición */
   .pano-leaders__block:nth-child(2),
   .pano-leaders__block:nth-child(3) {
     border-left: 1px solid var(--pano-vsep);
-    padding-left: 16px;
+    padding-left: 12px;
   }
 }
 
@@ -62,18 +63,17 @@ html:has(.pano-leaders) #root {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
 }
 
 /* Fila: [categoría] [nombre] [puntos] con los puntos junto al nombre */
 .pano-leaders__row {
-  display: flex;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: auto minmax(0, max-content) max-content;
+  column-gap: 8px;
   align-items: baseline;
-  justify-content: flex-start;
+  justify-content: start;
 }
-
-
 
 .pano-leaders__cat {
   font-size: 9px;
@@ -81,10 +81,9 @@ html:has(.pano-leaders) #root {
   text-transform: uppercase;
   color: var(--pano-fg-soft);
   white-space: nowrap;
-  width: 56px;
-  flex: 0 0 auto;
+  width: 40px;
+  min-width: 40px;
 }
-
 
 .pano-leaders__name {
   font-size: 13px;
@@ -92,24 +91,14 @@ html:has(.pano-leaders) #root {
   line-height: 1.35;
   color: var(--pano-fg);
   overflow-wrap: break-word;
-  flex: 0 1 auto;
+  min-width: 0;
 }
-
 
 .pano-leaders__pts {
   font-size: 13px;
   font-weight: 600;
   color: var(--pano-terracota);
   white-space: nowrap;
-  flex: 0 0 auto;
-}
-
-
-.pano-leaders__pts span {
-  font-size: 9px;
-  font-weight: 400;
-  color: var(--pano-fg-soft);
-  margin-left: 3px;
 }
 
 .pano-leaders__skeleton {
