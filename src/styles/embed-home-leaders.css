@@ -36,7 +36,7 @@ html:has(.pano-leaders) #root {
   .pano-leaders__block:nth-child(2),
   .pano-leaders__block:nth-child(3) {
     border-left: 1px solid var(--pano-vsep);
-    padding-left: 12px;
+    padding-left: 0;
   }
 }
 
