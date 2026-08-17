@@ -155,7 +155,14 @@ export function useCompetitionIndividualRanking(slugArg?: string) {
           discardedRoundIds: ranked.slice(bestN).map((x) => x.roundId),
         });
       }
-      list.sort((a, b) => b.total - a.total);
+      // Empate → gana el hándicap más bajo (mismo criterio que prueba a prueba).
+      list.sort((a, b) => {
+        if (b.total !== a.total) return b.total - a.total;
+        const ah = a.displayHandicap ?? a.handicap ?? Infinity;
+        const bh = b.displayHandicap ?? b.handicap ?? Infinity;
+        if (ah !== bh) return ah - bh;
+        return a.name.localeCompare(b.name);
+      });
       return list;
     };
 
