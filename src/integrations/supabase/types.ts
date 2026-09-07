@@ -407,6 +407,54 @@ export type Database = {
         }
         Relationships: []
       }
+      rates: {
+        Row: {
+          active: boolean
+          amount: number | null
+          amount_alt: number | null
+          code: string
+          created_at: string
+          custom: Json
+          group: string
+          id: string
+          label: Json
+          meta: Json
+          sort: number
+          suffix: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          amount?: number | null
+          amount_alt?: number | null
+          code: string
+          created_at?: string
+          custom?: Json
+          group: string
+          id?: string
+          label?: Json
+          meta?: Json
+          sort?: number
+          suffix?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          amount?: number | null
+          amount_alt?: number | null
+          code?: string
+          created_at?: string
+          custom?: Json
+          group?: string
+          id?: string
+          label?: Json
+          meta?: Json
+          sort?: number
+          suffix?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       results: {
         Row: {
           category: Database["public"]["Enums"]["player_category"] | null
