@@ -612,6 +612,42 @@ export type Database = {
           },
         ]
       }
+      school_rates: {
+        Row: {
+          amount: number
+          audience: string | null
+          created_at: string
+          id: string
+          pax: number | null
+          product: string
+          segment: string | null
+          sort: number
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          audience?: string | null
+          created_at?: string
+          id?: string
+          pax?: number | null
+          product: string
+          segment?: string | null
+          sort?: number
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          audience?: string | null
+          created_at?: string
+          id?: string
+          pax?: number | null
+          product?: string
+          segment?: string | null
+          sort?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       seasons: {
         Row: {
           active: boolean
