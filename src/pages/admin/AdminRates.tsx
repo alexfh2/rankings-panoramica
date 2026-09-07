@@ -353,7 +353,10 @@ const AdminRates = () => {
           </div>
         </section>
       ))}
+
+      <AdminSchoolRates />
     </div>
+
   );
 };
 
