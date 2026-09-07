@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   Users,
   FileText,
+  Tag,
 } from 'lucide-react';
 
 const sidebarLinks = [
@@ -17,6 +18,8 @@ const sidebarLinks = [
   { path: '/admin/jornades', label: 'Jornades', icon: Calendar, end: false },
   { path: '/admin/jugadors', label: 'Jugadors', icon: Users, end: false },
   { path: '/admin/noticies', label: 'Notícies', icon: FileText, end: false },
+  { path: '/admin/tarifas', label: 'Tarifas', icon: Tag, end: false },
+  { path: '/admin/actualidad', label: 'Actualidad', icon: FileText, end: false },
   { path: '/admin/admins', label: 'Administradors', icon: Users, end: false },
 ];
 
