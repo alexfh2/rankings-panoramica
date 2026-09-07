@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { Pencil, Check, X, Loader2 } from 'lucide-react';
+import AdminSchoolRates from '@/components/admin/AdminSchoolRates';
+
 
 type RateRow = {
   id: string;
