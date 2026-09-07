@@ -115,7 +115,9 @@ const AdminRates = () => {
         custom: { es: form.customEs.trim(), en: form.customEn.trim() },
         amount,
         amount_alt: amountAlt,
-        suffix: form.suffix.trim() || null,
+        suffix: form.suffix.trim()
+          ? { es: form.suffix.trim(), en: form.suffixEn.trim() || form.suffix.trim() }
+          : null,
         active: form.active,
       };
       const { error } = await (supabase.from as any)('rates').update(payload).eq('id', id);
@@ -142,7 +144,8 @@ const AdminRates = () => {
       metaEn: r.meta?.en ?? '',
       amount: r.amount?.toString() ?? '',
       amountAlt: r.amount_alt?.toString() ?? '',
-      suffix: r.suffix ?? '',
+      suffix: suffixEs(r.suffix),
+      suffixEn: typeof r.suffix === 'string' ? '' : r.suffix?.en ?? '',
       customEs: r.custom?.es ?? '',
       customEn: r.custom?.en ?? '',
       active: r.active,
@@ -209,7 +212,7 @@ const AdminRates = () => {
                         </div>
                         <div className="text-sm font-semibold whitespace-nowrap">
                           {r.amount != null ? `${r.amount} €` : '—'}
-                          {r.suffix ? <span className="text-xs text-muted-foreground ml-1">{r.suffix}</span> : null}
+                          {suffixEs(r.suffix) ? <span className="text-xs text-muted-foreground ml-1">{suffixEs(r.suffix)}</span> : null}
                         </div>
                         <Badge variant={r.active ? 'default' : 'secondary'}>
                           {r.active ? 'Activa' : 'Inactiva'}
