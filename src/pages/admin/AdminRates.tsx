@@ -20,7 +20,7 @@ type RateRow = {
   custom: { es?: string; en?: string };
   amount: number | null;
   amount_alt: number | null;
-  suffix: string | null;
+  suffix: { es?: string; en?: string } | string | null;
   active: boolean;
 };
 
@@ -47,6 +47,9 @@ const GROUP_LABELS: Record<string, string> = {
 };
 
 const GROUP_ORDER = ['green_fees', 'servicios', 'pass_resident', 'bonos', 'custodia', 'golf_pass'];
+
+const suffixEs = (s: RateRow['suffix']): string =>
+  typeof s === 'string' ? s : s?.es ?? '';
 
 const parseAmount = (value: string): number | null => {
   const trimmed = value.trim().replace(',', '.');
