@@ -420,7 +420,7 @@ export type Database = {
           label: Json
           meta: Json
           sort: number
-          suffix: string | null
+          suffix: Json | null
           updated_at: string
         }
         Insert: {
@@ -435,7 +435,7 @@ export type Database = {
           label?: Json
           meta?: Json
           sort?: number
-          suffix?: string | null
+          suffix?: Json | null
           updated_at?: string
         }
         Update: {
@@ -450,7 +450,7 @@ export type Database = {
           label?: Json
           meta?: Json
           sort?: number
-          suffix?: string | null
+          suffix?: Json | null
           updated_at?: string
         }
         Relationships: []
