@@ -108,6 +108,45 @@ export type Database = {
           },
         ]
       }
+      news: {
+        Row: {
+          body: Json | null
+          created_at: string
+          date: string
+          id: string
+          image_url: string | null
+          published: boolean
+          sort: number
+          title: Json
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          body?: Json | null
+          created_at?: string
+          date: string
+          id?: string
+          image_url?: string | null
+          published?: boolean
+          sort?: number
+          title?: Json
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          body?: Json | null
+          created_at?: string
+          date?: string
+          id?: string
+          image_url?: string | null
+          published?: boolean
+          sort?: number
+          title?: Json
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
       news_drafts: {
         Row: {
           body: string | null
