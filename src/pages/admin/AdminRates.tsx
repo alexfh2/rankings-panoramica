@@ -288,11 +288,19 @@ const AdminRates = () => {
                               />
                             </div>
                             <div className="space-y-1">
-                              <Label className="text-xs">Sufijo</Label>
+                              <Label className="text-xs">Sufijo (ES)</Label>
                               <Input
                                 value={edit.suffix}
                                 onChange={(e) => setField('suffix', e.target.value)}
                                 placeholder="Ej. /persona"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs">Sufijo (EN)</Label>
+                              <Input
+                                value={edit.suffixEn}
+                                onChange={(e) => setField('suffixEn', e.target.value)}
+                                placeholder="Ej. /person"
                               />
                             </div>
                             <div className="space-y-1">
