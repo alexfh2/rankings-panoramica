@@ -20,7 +20,7 @@ type RateRow = {
   custom: { es?: string; en?: string };
   amount: number | null;
   amount_alt: number | null;
-  suffix: string | null;
+  suffix: { es?: string; en?: string } | string | null;
   active: boolean;
 };
 
@@ -32,6 +32,7 @@ type RateEdit = {
   amount: string;
   amountAlt: string;
   suffix: string;
+  suffixEn: string;
   customEs: string;
   customEn: string;
   active: boolean;
@@ -47,6 +48,9 @@ const GROUP_LABELS: Record<string, string> = {
 };
 
 const GROUP_ORDER = ['green_fees', 'servicios', 'pass_resident', 'bonos', 'custodia', 'golf_pass'];
+
+const suffixEs = (s: RateRow['suffix']): string =>
+  typeof s === 'string' ? s : s?.es ?? '';
 
 const parseAmount = (value: string): number | null => {
   const trimmed = value.trim().replace(',', '.');
@@ -111,7 +115,9 @@ const AdminRates = () => {
         custom: { es: form.customEs.trim(), en: form.customEn.trim() },
         amount,
         amount_alt: amountAlt,
-        suffix: form.suffix.trim() || null,
+        suffix: form.suffix.trim()
+          ? { es: form.suffix.trim(), en: form.suffixEn.trim() || form.suffix.trim() }
+          : null,
         active: form.active,
       };
       const { error } = await (supabase.from as any)('rates').update(payload).eq('id', id);
@@ -138,7 +144,8 @@ const AdminRates = () => {
       metaEn: r.meta?.en ?? '',
       amount: r.amount?.toString() ?? '',
       amountAlt: r.amount_alt?.toString() ?? '',
-      suffix: r.suffix ?? '',
+      suffix: suffixEs(r.suffix),
+      suffixEn: typeof r.suffix === 'string' ? '' : r.suffix?.en ?? '',
       customEs: r.custom?.es ?? '',
       customEn: r.custom?.en ?? '',
       active: r.active,
@@ -205,7 +212,7 @@ const AdminRates = () => {
                         </div>
                         <div className="text-sm font-semibold whitespace-nowrap">
                           {r.amount != null ? `${r.amount} €` : '—'}
-                          {r.suffix ? <span className="text-xs text-muted-foreground ml-1">{r.suffix}</span> : null}
+                          {suffixEs(r.suffix) ? <span className="text-xs text-muted-foreground ml-1">{suffixEs(r.suffix)}</span> : null}
                         </div>
                         <Badge variant={r.active ? 'default' : 'secondary'}>
                           {r.active ? 'Activa' : 'Inactiva'}
@@ -281,11 +288,19 @@ const AdminRates = () => {
                               />
                             </div>
                             <div className="space-y-1">
-                              <Label className="text-xs">Sufijo</Label>
+                              <Label className="text-xs">Sufijo (ES)</Label>
                               <Input
                                 value={edit.suffix}
                                 onChange={(e) => setField('suffix', e.target.value)}
                                 placeholder="Ej. /persona"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-xs">Sufijo (EN)</Label>
+                              <Input
+                                value={edit.suffixEn}
+                                onChange={(e) => setField('suffixEn', e.target.value)}
+                                placeholder="Ej. /person"
                               />
                             </div>
                             <div className="space-y-1">
