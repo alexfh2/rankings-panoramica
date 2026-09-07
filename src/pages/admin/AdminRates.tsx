@@ -32,6 +32,7 @@ type RateEdit = {
   amount: string;
   amountAlt: string;
   suffix: string;
+  suffixEn: string;
   customEs: string;
   customEn: string;
   active: boolean;
