@@ -26,7 +26,7 @@
   --secondary: var(--pg-verde-panel);
   --secondary-foreground: var(--pg-crema);
   --muted: var(--pg-verde-panel);
-  --muted-foreground: var(--pg-terracota-alto);
+  --muted-foreground: 41 16% 68%;
   --accent: var(--pg-terracota);
   --accent-foreground: 0 0% 100%;
   --border: 0 0% 100%;

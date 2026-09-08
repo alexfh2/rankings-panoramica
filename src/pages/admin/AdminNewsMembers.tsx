@@ -367,7 +367,8 @@ const AdminNewsMembers = () => {
     <div className="animate-fade-in space-y-6">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="font-display text-2xl font-bold">Actualidad</h1>
+          <p className="admin-eyebrow mb-2">Zona de socios</p>
+          <h1 className="admin-page-title">Actualidad</h1>
           <p className="text-sm text-muted-foreground mt-1 max-w-xl">
             Crea y publica las noticias de la sección de socios, en castellano e inglés, con hasta{' '}
             {MAX_IMAGES} imágenes por noticia.

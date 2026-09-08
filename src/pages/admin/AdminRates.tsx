@@ -165,7 +165,8 @@ const AdminRates = () => {
   return (
     <div className="animate-fade-in space-y-8">
       <div>
-        <h1 className="font-display text-2xl font-bold">Tarifas</h1>
+        <p className="admin-eyebrow mb-2">Contenido web</p>
+        <h1 className="admin-page-title">Tarifas</h1>
         <p className="text-sm text-muted-foreground mt-1 max-w-xl">
           Edita las tarifas publicadas en la web. Solo se puede modificar el contenido de las
           tarifas existentes.
