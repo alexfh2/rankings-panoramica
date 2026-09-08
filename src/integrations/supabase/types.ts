@@ -206,6 +206,41 @@ export type Database = {
           },
         ]
       }
+      news_images: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string
+          news_id: string
+          sort: number
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_url: string
+          news_id: string
+          sort?: number
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string
+          news_id?: string
+          sort?: number
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "news_images_news_id_fkey"
+            columns: ["news_id"]
+            isOneToOne: false
+            referencedRelation: "news"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pair_results: {
         Row: {
           created_at: string
