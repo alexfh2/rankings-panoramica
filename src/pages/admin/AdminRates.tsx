@@ -212,11 +212,11 @@ const AdminRates = () => {
                             {r.code}
                           </p>
                         </div>
-                        <div className="text-sm font-semibold whitespace-nowrap">
+                        <div className="admin-amount text-lg whitespace-nowrap">
                           {r.amount != null ? `${r.amount} €` : '—'}
                           {suffixEs(r.suffix) ? <span className="text-xs text-muted-foreground ml-1">{suffixEs(r.suffix)}</span> : null}
                         </div>
-                        <Badge variant={r.active ? 'default' : 'secondary'}>
+                        <Badge variant={r.active ? 'default' : 'secondary'} className={r.active ? 'admin-pill-published' : 'admin-pill-draft'}>
                           {r.active ? 'Activa' : 'Inactiva'}
                         </Badge>
                         <Button size="sm" variant="outline" onClick={() => startEdit(r)}>
