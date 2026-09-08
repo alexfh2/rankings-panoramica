@@ -398,7 +398,7 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
     <div className="space-y-5">
       {/* Header */}
       <div className="rounded border border-border bg-muted/20 p-3 text-xs">
-        <div className="font-display text-sm">{competition?.name ?? 'Competició'}</div>
+        <div className="font-display text-sm">{competition?.name ?? 'Competición'}</div>
         <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground">
           <span>Prueba: {round?.name ?? '—'}</span>
           <span>Jornada: {round?.round_number ?? '—'}</span>

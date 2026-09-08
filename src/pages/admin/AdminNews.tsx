@@ -51,7 +51,7 @@ const AdminNews = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-news'] });
-      toast({ title: 'Notícia publicada' });
+      toast({ title: 'Noticia publicada' });
     },
   });
 
@@ -65,7 +65,7 @@ const AdminNews = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-news'] });
-      toast({ title: 'Notícia despublicada' });
+      toast({ title: 'Noticia despublicada' });
     },
   });
 
@@ -76,7 +76,7 @@ const AdminNews = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-news'] });
-      toast({ title: 'Notícia eliminada' });
+      toast({ title: 'Noticia eliminada' });
       setDeleteId(null);
     },
   });
@@ -84,9 +84,9 @@ const AdminNews = () => {
   return (
     <div className="animate-fade-in">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="font-display text-2xl font-bold">Notícies</h1>
+        <h1 className="font-display text-2xl font-bold">Noticias</h1>
         <Button onClick={() => setCreateOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" /> Nova notícia
+          <Plus className="h-4 w-4 mr-2" /> Nueva noticia
         </Button>
       </div>
 
@@ -96,24 +96,24 @@ const AdminNews = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Títol</TableHead>
+                <TableHead>Título</TableHead>
                 <TableHead>Jornada</TableHead>
-                <TableHead>Estat</TableHead>
-                <TableHead>Data</TableHead>
-                <TableHead className="text-right">Accions</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>Fecha</TableHead>
+                <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                    Carregant...
+                    Cargando...
                   </TableCell>
                 </TableRow>
               ) : !news?.length ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                    No hi ha notícies. Genera-les des de les jornades o crea'n una manualment.
+                    No hay noticias. Genera las desde las jornadas o crea una manualmente.
                   </TableCell>
                 </TableRow>
               ) : (
@@ -122,7 +122,7 @@ const AdminNews = () => {
                   return (
                     <TableRow key={article.id}>
                       <TableCell className="font-medium max-w-[200px] truncate">
-                        {article.title || 'Sense títol'}
+                        {article.title || 'Sin título'}
                       </TableCell>
                       <TableCell className="text-muted-foreground text-sm">
                         {round?.name || '—'}
@@ -138,8 +138,8 @@ const AdminNews = () => {
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
                           {article.published_at
-                            ? new Date(article.published_at).toLocaleDateString('ca-ES')
-                            : new Date(article.created_at).toLocaleDateString('ca-ES')}
+                            ? new Date(article.published_at).toLocaleDateString('es-ES')
+                            : new Date(article.created_at).toLocaleDateString('es-ES')}
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
@@ -193,13 +193,13 @@ const AdminNews = () => {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Eliminar notícia?</AlertDialogTitle>
+            <AlertDialogTitle>¿Eliminar noticia?</AlertDialogTitle>
             <AlertDialogDescription>
-              Aquesta acció no es pot desfer.
+              Esta acción no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel·lar</AlertDialogCancel>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteId && deleteMutation.mutate(deleteId)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

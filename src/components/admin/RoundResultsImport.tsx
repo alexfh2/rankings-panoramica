@@ -142,12 +142,12 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
       setNeedsSeniorFile(false);
       setSeniorUrls(['']);
       toast({
-        title: `${matched} jugadors sènior identificats`,
-        description: `${validUrls.length} URL${validUrls.length > 1 ? 's' : ''} processada${validUrls.length > 1 ? 's' : ''}, ${total} entrades sènior acumulades.`,
+        title: `${matched} jugadores senior identificados`,
+        description: `${validUrls.length} URL${validUrls.length > 1 ? 's' : ''} procesada${validUrls.length > 1 ? 's' : ''}, ${total} entradas senior acumuladas.`,
       });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Error desconegut';
-      toast({ title: 'Error llegint URLs sènior', description: message, variant: 'destructive' });
+      const message = err instanceof Error ? err.message : 'Error desconocido';
+      toast({ title: 'Error leyendo URLs senior', description: message, variant: 'destructive' });
     } finally {
       setSeniorUrlLoading(false);
     }
@@ -171,7 +171,7 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
         p => (r.license && p.license === r.license) ||
           p.name.toLowerCase() === r.name.toLowerCase()
       );
-      if (!match && !r._is_np) w.push(`"${r.name}" no trobat a la base de dades`);
+      if (!match && !r._is_np) w.push(`"${r.name}" no encontrado en la base de datos`);
       return { ...r, _matched_player_id: match?.id };
     });
 
@@ -253,12 +253,12 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
       });
 
       toast({
-        title: `${matched} jugadors sènior identificats`,
-        description: `${files.length} fitxer${files.length > 1 ? 's' : ''} processat${files.length > 1 ? 's' : ''}, ${totalSeniorCount} entrades sènior acumulades.`,
+        title: `${matched} jugadores senior identificados`,
+        description: `${files.length} archivo${files.length > 1 ? 's' : ''} procesado${files.length > 1 ? 's' : ''}, ${totalSeniorCount} entradas senior acumuladas.`,
       });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Error desconegut';
-      toast({ title: "Error llegint fitxer sènior", description: message, variant: 'destructive' });
+      const message = err instanceof Error ? err.message : 'Error desconocido';
+      toast({ title: "Error leyendo archivo senior", description: message, variant: 'destructive' });
     } finally {
       if (seniorFileRef.current) seniorFileRef.current.value = '';
     }
@@ -308,12 +308,12 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
       }
 
       toast({
-        title: `${matched.length} resultats importats des d'Excel`,
-        description: `${excelResults.filter(r => r.is_np).length} N.P exclosos.${!hasSeniorInfo ? ' Cal pujar classificació sènior.' : ''} Revisa abans de guardar.`,
+        title: `${matched.length} resultados importados desde Excel`,
+        description: `${excelResults.filter(r => r.is_np).length} N.P excluidos.${!hasSeniorInfo ? ' Hay que subir la clasificación senior.' : ''} Revisa antes de guardar.`,
       });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Error desconegut';
-      toast({ title: "Error llegint Excel", description: message, variant: 'destructive' });
+      const message = err instanceof Error ? err.message : 'Error desconocido';
+      toast({ title: "Error leyendo Excel", description: message, variant: 'destructive' });
     } finally {
       setLoading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -343,7 +343,7 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
           body: { urls: validUrls, format },
         });
         if (error) throw new Error(error.message);
-        if (!data?.success) throw new Error(data?.error || 'Error llegint GolfDirecto');
+        if (!data?.success) throw new Error(data?.error || 'Error leyendo GolfDirecto');
 
         const raw = (data.results || []) as RawGolfDirectoEntry[];
         const used = (data.usedCategories || []) as { id: string; name: string; url: string }[];
@@ -391,8 +391,8 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
         setNeedsSeniorFile(!parsed.some(r => r._is_senior));
 
         toast({
-          title: `${matched.length} jugadors únics · ${used.length || validUrls.length} categories`,
-          description: `${merged.summary.fullScorecards} targetes completes, ${merged.summary.warnings} avisos. Revisa abans de guardar.`,
+          title: `${matched.length} jugadores únicos · ${used.length || validUrls.length} categorías`,
+          description: `${merged.summary.fullScorecards} tarjetas completas, ${merged.summary.warnings} avisos. Revisa antes de guardar.`,
         });
         return;
       }
@@ -445,12 +445,12 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
 
       const totalResults = responses.reduce((sum, r) => sum + (r.count || 0), 0);
       toast({
-        title: `${parsed.length} resultats únics (${totalResults} total de ${validUrls.length} URL${validUrls.length > 1 ? 's' : ''})`,
-        description: `Font: ${detectedSource}.${!hasAnyAge ? ' Cal pujar classificació sènior (≥65 anys).' : ''} Revisa abans de guardar.`,
+        title: `${parsed.length} resultados únicos (${totalResults} total de ${validUrls.length} URL${validUrls.length > 1 ? 's' : ''})`,
+        description: `Fuente: ${detectedSource}.${!hasAnyAge ? ' Hay que subir la clasificación senior (≥65 años).' : ''} Revisa antes de guardar.`,
       });
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Error desconegut';
-      toast({ title: "Error d'importació", description: message, variant: 'destructive' });
+      const message = err instanceof Error ? err.message : 'Error desconocido';
+      toast({ title: "Error de importación", description: message, variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -471,7 +471,7 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
           .from('results')
           .delete()
           .eq('round_id', round.id);
-        if (delError) throw new Error(`Error eliminant resultats existents: ${delError.message}`);
+        if (delError) throw new Error(`Error eliminando resultados existentes: ${delError.message}`);
       }
 
       const selected = results.filter(r => r._selected);
@@ -497,7 +497,7 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
           .select('id')
           .single();
 
-        if (error) throw new Error(`Error creant jugador "${r.name}": ${error.message}`);
+        if (error) throw new Error(`Error creando jugador "${r.name}": ${error.message}`);
         r._matched_player_id = newPlayer.id;
         newPlayers.push(r.name);
       }
@@ -549,9 +549,9 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
     onSuccess: ({ imported, newPlayers }) => {
       queryClient.invalidateQueries({ queryKey: ['admin-rounds'] });
       const msg = newPlayers.length > 0
-        ? `${imported} resultats importats. ${newPlayers.length} jugadors nous creats.`
-        : `${imported} resultats importats.`;
-      toast({ title: 'Importació completada', description: msg });
+        ? `${imported} resultados importados. ${newPlayers.length} jugadores nuevos creados.`
+        : `${imported} resultados importados.`;
+      toast({ title: 'Importación completada', description: msg });
       onClose();
     },
     onError: (err: Error) => {
@@ -562,7 +562,7 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
   return (
     <div className="space-y-4">
       <DialogDescription className="text-sm text-muted-foreground">
-        Importa resultats des d'un fitxer Excel o des d'URLs (GolfDirecto / Teeone).
+        Importa resultados desde un archivo Excel o desde URLs (GolfDirecto / Teeone).
       </DialogDescription>
 
       {existingCount != null && existingCount > 0 && (
@@ -573,8 +573,8 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
             onCheckedChange={(checked) => setDeleteExisting(checked === true)}
           />
           <label htmlFor="delete-existing" className="text-sm cursor-pointer">
-            <span className="font-medium">Eliminar {existingCount} resultats existents</span>
-            <span className="text-muted-foreground ml-1">abans d'importar (substituir)</span>
+            <span className="font-medium">Eliminar {existingCount} resultados existentes</span>
+            <span className="text-muted-foreground ml-1">antes de importar (sustituir)</span>
           </label>
         </div>
       )}
@@ -591,10 +591,10 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
 
         <TabsContent value="excel" className="space-y-3 mt-3">
           <div className="space-y-2">
-            <Label className="text-sm font-semibold">Fitxer Excel amb resultats (.xlsx)</Label>
+            <Label className="text-sm font-semibold">Archivo Excel con resultados (.xlsx)</Label>
             <p className="text-xs text-muted-foreground">
-              Puja l'Excel amb les columnes: Pos, Licencia, Nombre, Hex, NVH, Niv, Edad, Sex, Cat, Hpu, Total, H1-H18, Totalx.
-              Els jugadors N.P s'exclouran automàticament. Sènior = edat ≥ 65 o Niv = S.
+              Sube el Excel con las columnas: Pos, Licencia, Nombre, Hex, NVH, Niv, Edad, Sex, Cat, Hpu, Total, H1-H18, Totalx.
+              Los jugadores N.P se excluirán automáticamente. Senior = edad ≥ 65 o Niv = S.
             </p>
             <div className="flex gap-2">
               <input
@@ -611,7 +611,7 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
                 className="w-full"
               >
                 <Upload className="h-4 w-4 mr-2" />
-                {loading ? 'Llegint Excel...' : 'Seleccionar fitxer Excel'}
+                {loading ? 'Leyendo Excel...' : 'Seleccionar archivo Excel'}
               </Button>
             </div>
           </div>
@@ -621,11 +621,11 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
         {/* URL tab */}
         <TabsContent value="url" className="space-y-3 mt-3">
           <div className="space-y-2">
-            <Label className="text-sm font-semibold">URLs dels resultats (una per línia)</Label>
+            <Label className="text-sm font-semibold">URLs de los resultados (una por línea)</Label>
             <p className="text-xs text-muted-foreground">
-              Pots enganxar un únic enllaç o diversos enllaços de categories del <strong>mateix torneig</strong> de
-              GolfDirecto: els jugadors es fusionaran en una sola jornada. Per a altres fonts, cada línia es tracta
-              com un dia de joc (millor resultat per jugador).
+              Puedes pegar un único enlace o varios enlaces de categorías del <strong>mismo torneo</strong> de
+              GolfDirecto: los jugadores se fusionarán en una sola jornada. Para otras fuentes, cada línea se trata
+              como un día de juego (mejor resultado por jugador).
             </p>
             <Textarea
               value={urlsText}
@@ -649,7 +649,7 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
               </Select>
               <Button onClick={handleFetch} disabled={loading || validUrls.length === 0}>
                 <Search className="h-4 w-4 mr-2" />
-                {loading ? 'Llegint...' : 'Llegir resultats'}
+                {loading ? 'Leyendo...' : 'Leer resultados'}
               </Button>
             </div>
           </div>
@@ -658,11 +658,11 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
             <Card className="border-muted">
               <CardContent className="py-3 space-y-1">
                 <p className="text-xs font-semibold">
-                  {gdSummary.categories.length} categories de GolfDirecto detectades
+                  {gdSummary.categories.length} categorías de GolfDirecto detectadas
                   {gdSummary.gameName ? ` · ${gdSummary.gameName}` : ''}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {gdSummary.uniquePlayers} jugadors únics · {gdSummary.fullScorecards} targetes completes ·{' '}
+                  {gdSummary.uniquePlayers} jugadores únicos · {gdSummary.fullScorecards} tarjetas completas ·{' '}
                   {gdSummary.warnings} avisos
                 </p>
                 <ul className="text-[11px] text-muted-foreground list-disc list-inside">
@@ -685,15 +685,15 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
               <AlertTriangle className={`h-4 w-4 mt-0.5 shrink-0 ${needsSeniorFile ? 'text-amber-600' : 'text-muted-foreground'}`} />
               <div className="flex-1">
                 <p className={`text-xs font-semibold ${needsSeniorFile ? 'text-amber-800' : ''}`}>
-                  Classificació sènior (≥ 65 anys)
+                  Clasificación senior (≥ 65 años)
                 </p>
                 <p className={`text-xs ${needsSeniorFile ? 'text-amber-700' : 'text-muted-foreground'}`}>
                   {needsSeniorFile
-                    ? "No s'ha detectat edat als resultats. Puja la classificació sènior (Excel/PDF o URL) per identificar els jugadors de 65+ anys."
-                    : "Si tens la llista oficial de jugadors sènior (65+), puja-la per ajustar el filtrat (opcional)."}
+                    ? "No se ha detectado edad en los resultados. Sube la clasificación senior (Excel/PDF o URL) para identificar a los jugadores de 65+ años."
+                    : "Si tienes la lista oficial de jugadores senior (65+), súbela para ajustar el filtrado (opcional)."}
                 </p>
                 <p className="text-[11px] text-muted-foreground mt-1">
-                  Identificats actualment: <span className="font-mono font-semibold">{results.filter(r => r._is_senior).length}</span> sènior
+                  Identificados actualmente: <span className="font-mono font-semibold">{results.filter(r => r._is_senior).length}</span> senior
                 </p>
               </div>
             </div>
@@ -724,20 +724,20 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
                   className="w-full"
                 >
                   <FileSpreadsheet className="h-4 w-4 mr-2" />
-                  {seniorFiles.length > 0 ? 'Afegir més fitxers sènior' : 'Pujar classificació sènior (Excel o PDF)'}
+                  {seniorFiles.length > 0 ? 'Añadir más archivos senior' : 'Subir clasificación senior (Excel o PDF)'}
                 </Button>
               </TabsContent>
 
               <TabsContent value="url" className="mt-2 space-y-2">
                 <p className="text-[11px] text-muted-foreground">
-                  Afegeix una URL de la classificació sènior per cada dia. Els jugadors s'acumularan.
+                  Añade una URL de la clasificación senior por cada día. Los jugadores se acumularán.
                 </p>
                 {seniorUrls.map((url, idx) => (
                   <div key={idx} className="flex gap-2">
                     <Input
                       value={url}
                       onChange={(e) => updateSeniorUrl(idx, e.target.value)}
-                      placeholder={`URL sènior dia ${idx + 1}`}
+                      placeholder={`URL senior día ${idx + 1}`}
                       className="flex-1 h-8 text-xs"
                     />
                     {seniorUrls.length > 1 && (
@@ -749,7 +749,7 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
                 ))}
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={addSeniorUrl}>
-                    <Plus className="h-3 w-3 mr-1" /> Afegir URL
+                    <Plus className="h-3 w-3 mr-1" /> Añadir URL
                   </Button>
                   <Button
                     size="sm"
@@ -758,7 +758,7 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
                     className="ml-auto"
                   >
                     <Search className="h-3.5 w-3.5 mr-1" />
-                    {seniorUrlLoading ? 'Llegint...' : 'Llegir URLs sènior'}
+                    {seniorUrlLoading ? 'Leyendo...' : 'Leer URLs senior'}
                   </Button>
                 </div>
               </TabsContent>
@@ -766,11 +766,11 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
 
             {seniorFiles.length > 0 && (
               <div className="text-[11px] text-muted-foreground space-y-0.5 pt-1 border-t">
-                <p className="font-semibold">Fonts acumulades ({seniorFiles.length}):</p>
+                <p className="font-semibold">Fuentes acumuladas ({seniorFiles.length}):</p>
                 <ul className="list-disc list-inside">
                   {seniorFiles.map((f, i) => <li key={i} className="font-mono truncate">{f}</li>)}
                 </ul>
-                <p className="italic">Pots combinar fitxers i URLs (una per dia) — totes les llistes s'acumulen.</p>
+                <p className="italic">Puedes combinar archivos y URLs (una por día) — todas las listas se acumulan.</p>
               </div>
             )}
           </CardContent>
@@ -786,7 +786,7 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
               <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 shrink-0" />
               <div>
                 <p className="text-xs font-semibold text-yellow-800 mb-1">
-                  {warnings.length} avisos — jugadors nous es crearan automàticament
+                  {warnings.length} avisos — los jugadores nuevos se crearán automáticamente
                 </p>
                 <ul className="text-xs text-yellow-700 space-y-0.5 max-h-24 overflow-y-auto">
                   {warnings.map((w, i) => (
@@ -804,7 +804,7 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <p className="text-sm font-semibold">
-              {results.filter(r => r._selected).length} / {results.length} resultats seleccionats
+              {results.filter(r => r._selected).length} / {results.length} resultados seleccionados
               {source && <Badge variant="outline" className="ml-2 text-xs">{source}</Badge>}
             </p>
             <Button
@@ -813,7 +813,7 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
               disabled={saveMutation.isPending || results.filter(r => r._selected).length === 0}
             >
               <Check className="h-4 w-4 mr-2" />
-              {saveMutation.isPending ? 'Guardant...' : 'Guardar resultats'}
+              {saveMutation.isPending ? 'Guardando...' : 'Guardar resultados'}
             </Button>
           </div>
 
@@ -824,16 +824,16 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
                   <th className="p-2 text-left w-8"></th>
                   <th className="p-2 text-left">Pos</th>
                   <th className="p-2 text-left">Jugador</th>
-                  <th className="p-2 text-left">Llicència</th>
+                  <th className="p-2 text-left">Licencia</th>
                   <th className="p-2 text-right">Hcp</th>
                   <th className="p-2 text-right">Hpu</th>
                   <th className="p-2 text-right">Stb</th>
-                  <th className="p-2 text-right" title="Total de golpes de la targeta (18 forats)">Golpes</th>
+                  <th className="p-2 text-right" title="Total de golpes de la tarjeta (18 hoyos)">Golpes</th>
                   {importTab === 'url' && <th className="p-2 text-right">Net calc.</th>}
                   {importTab === 'url' && <th className="p-2 text-right">Scr calc.</th>}
 
-                  {importTab === 'excel' && <th className="p-2 text-center">Edat</th>}
-                  <th className="p-2 text-center">Estat</th>
+                  {importTab === 'excel' && <th className="p-2 text-center">Edad</th>}
+                  <th className="p-2 text-center">Estado</th>
                 </tr>
               </thead>
               <tbody>
@@ -854,7 +854,7 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
                     <td className="p-2 font-medium">
                       {r.name}
                       {r.gender && <span className="text-muted-foreground ml-1">({r.gender})</span>}
-                      {r._is_senior && <Badge variant="outline" className="ml-1 text-[10px] px-1 py-0">Sènior</Badge>}
+                      {r._is_senior && <Badge variant="outline" className="ml-1 text-[10px] px-1 py-0">Senior</Badge>}
                     </td>
                     <td className="p-2 font-mono text-muted-foreground">{r.license || '—'}</td>
                     <td className="p-2 text-right font-mono">{r.handicap ?? '—'}</td>
@@ -881,9 +881,9 @@ const RoundResultsImport = ({ round, onClose }: Props) => {
                     )}
                     <td className="p-2 text-center">
                       {r._matched_player_id ? (
-                        <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700">Trobat</Badge>
+                        <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700">Encontrado</Badge>
                       ) : (
-                        <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700">Nou</Badge>
+                        <Badge variant="outline" className="text-xs bg-yellow-50 text-yellow-700">Nuevo</Badge>
                       )}
                     </td>
                   </tr>
