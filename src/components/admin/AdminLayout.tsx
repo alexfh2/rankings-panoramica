@@ -7,6 +7,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import logo from '@/assets/logo.png';
 import {
   LayoutDashboard,
   Calendar,
@@ -45,10 +46,8 @@ const isCompetitionActive = (pathname: string) =>
   competitionRoutes.some((route) => pathname === route || pathname.startsWith(`${route}/`));
 
 const linkClassName = ({ isActive }: { isActive: boolean }) =>
-  `flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
-    isActive
-      ? 'bg-primary-foreground/15 text-primary-foreground'
-      : 'text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10'
+  `admin-nav-link flex items-center gap-3 px-3 py-2.5 transition-colors ${
+    isActive ? 'admin-nav-active' : ''
   }`;
 
 const AdminLayout = () => {
@@ -68,12 +67,12 @@ const AdminLayout = () => {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="admin-shell flex min-h-screen">
       {/* Sidebar */}
-      <aside className="hidden md:flex w-64 flex-col bg-primary text-primary-foreground border-r border-border/20">
-        <div className="p-4 border-b border-primary-foreground/10">
-          <h2 className="font-display text-lg font-semibold">Admin</h2>
-          <p className="text-xs text-primary-foreground/60 truncate mt-0.5">
+      <aside className="hidden md:flex w-64 flex-col border-r">
+        <div className="p-4 border-b">
+          <img src={logo} alt="Panorámica Golf" className="h-8 w-auto object-contain" />
+          <p className="text-xs truncate mt-2" style={{ color: 'rgba(243,238,227,0.62)' }}>
             {user?.email}
           </p>
         </div>
@@ -89,10 +88,8 @@ const AdminLayout = () => {
                   <CollapsibleTrigger asChild>
                     <button
                       type="button"
-                      className={`flex w-full items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
-                        competitionActive
-                          ? 'bg-primary-foreground/15 text-primary-foreground'
-                          : 'text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10'
+                      className={`admin-nav-link flex w-full items-center gap-3 px-3 py-2.5 transition-colors ${
+                        competitionActive ? 'admin-nav-active' : ''
                       }`}
                     >
                       <Trophy className="h-4 w-4" />
@@ -156,8 +153,8 @@ const AdminLayout = () => {
       </aside>
 
       {/* Mobile header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-primary text-primary-foreground p-3 flex items-center gap-1 flex-wrap">
-        <span className="font-display text-sm font-semibold mr-1">Admin</span>
+      <div className="admin-mobile-bar md:hidden fixed top-0 left-0 right-0 z-50 border-b p-3 flex items-center gap-1 flex-wrap">
+        <img src={logo} alt="Panorámica Golf" className="h-5 w-auto object-contain mr-1" />
         {mainLinks.map((link) => (
           <div key={link.path} className="relative">
             {link.label === 'Tarifas' && (
@@ -220,7 +217,7 @@ const AdminLayout = () => {
       </div>
 
       {/* Main content */}
-      <main className="flex-1 bg-background md:pt-0 pt-14">
+      <main className="flex-1 md:pt-0 pt-14">
         <div className="p-6 lg:p-8 max-w-6xl">
           <Outlet />
         </div>
