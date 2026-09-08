@@ -282,3 +282,9 @@
   letter-spacing: 0.3em;
   color: hsl(var(--pg-terracota-alto));
 }
+
+/* Pills stay angular (badges), without touching switches or avatars */
+.admin-shell span[class*='rounded-full']:not([role]),
+.admin-shell div[class*='rounded-full'][class*='px-2']:not([role]) {
+  border-radius: 2px;
+}
