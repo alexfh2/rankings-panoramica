@@ -77,7 +77,9 @@ const emptyForm = (): NewsForm => ({
   published: false,
 });
 
-const db = supabase.from as any;
+// Wrapper con la llamada vinculada al cliente: extraer `supabase.from` suelto
+// rompe el `this` interno ("Cannot read properties of undefined (reading 'rest')").
+const db = (table: string): any => supabase.from(table as any);
 
 // Normaliza los sort a 10, 20, 30... y sincroniza la portada en news.image_url.
 const normalizeAndSyncCover = async (newsId: string) => {
