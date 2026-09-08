@@ -158,52 +158,51 @@ const AdminLayout = () => {
       {/* Mobile header */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-primary text-primary-foreground p-3 flex items-center gap-1 flex-wrap">
         <span className="font-display text-sm font-semibold mr-1">Admin</span>
-        {mainLinks.map((link) =>
-          link.label === 'Tarifas' ? (
-            <Collapsible
-              key="competicio-group-mobile"
-              open={competitionOpen}
-              onOpenChange={setCompetitionOpen}
-            >
-              <CollapsibleTrigger asChild>
-                <button
-                  type="button"
-                  className={`relative p-2 rounded-md ${
-                    competitionActive
-                      ? 'bg-primary-foreground/15'
-                      : 'text-primary-foreground/70'
-                  }`}
-                  aria-label="Competición"
-                >
-                  <Trophy className="h-4 w-4" />
-                  <ChevronDown
-                    className={`h-3 w-3 absolute -bottom-0.5 -right-0.5 transition-transform ${
-                      competitionOpen ? 'rotate-180' : ''
+        {mainLinks.map((link) => (
+          <div key={link.path} className="relative">
+            {link.label === 'Tarifas' && (
+              <Collapsible
+                open={competitionOpen}
+                onOpenChange={setCompetitionOpen}
+              >
+                <CollapsibleTrigger asChild>
+                  <button
+                    type="button"
+                    className={`relative p-2 rounded-md ${
+                      competitionActive
+                        ? 'bg-primary-foreground/15'
+                        : 'text-primary-foreground/70'
                     }`}
-                  />
-                </button>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <div className="absolute top-full left-0 mt-1 flex gap-1 bg-primary p-2 rounded-md border border-primary-foreground/10">
-                  {competitionLinks.map((link) => (
-                    <NavLink
-                      key={link.path}
-                      to={link.path}
-                      end={link.end}
-                      className={({ isActive }) =>
-                        `p-2 rounded-md ${isActive ? 'bg-primary-foreground/15' : 'text-primary-foreground/70'}`
-                      }
-                      aria-label={link.label}
-                    >
-                      <link.icon className="h-4 w-4" />
-                    </NavLink>
-                  ))}
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-          ) : (
+                    aria-label="Competición"
+                  >
+                    <Trophy className="h-4 w-4" />
+                    <ChevronDown
+                      className={`h-3 w-3 absolute -bottom-0.5 -right-0.5 transition-transform ${
+                        competitionOpen ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="absolute top-full left-0 mt-1 flex gap-1 bg-primary p-2 rounded-md border border-primary-foreground/10 z-50">
+                    {competitionLinks.map((sub) => (
+                      <NavLink
+                        key={sub.path}
+                        to={sub.path}
+                        end={sub.end}
+                        className={({ isActive }) =>
+                          `p-2 rounded-md ${isActive ? 'bg-primary-foreground/15' : 'text-primary-foreground/70'}`
+                        }
+                        aria-label={sub.label}
+                      >
+                        <sub.icon className="h-4 w-4" />
+                      </NavLink>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
             <NavLink
-              key={link.path}
               to={link.path}
               end={link.end}
               className={({ isActive }) =>
@@ -213,8 +212,8 @@ const AdminLayout = () => {
             >
               <link.icon className="h-4 w-4" />
             </NavLink>
-          )
-        )}
+          </div>
+        ))}
         <Button variant="ghost" size="icon" className="text-primary-foreground/70 h-8 w-8" onClick={handleSignOut}>
           <LogOut className="h-4 w-4" />
         </Button>
