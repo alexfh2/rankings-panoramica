@@ -394,7 +394,7 @@ const AdminNewsMembers = () => {
 
       {!isLoading && !error && news?.length === 0 && (
         <p className="text-sm text-muted-foreground">
-          Todavía no hay noticias. Crea la primera con “Nueva noticia”.
+          No hay noticias todavía. Crea la primera desde «Nueva noticia».
         </p>
       )}
 
