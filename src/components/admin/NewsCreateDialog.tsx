@@ -72,8 +72,8 @@ const NewsCreateDialog = ({ open, onClose, onCreated }: NewsCreateDialogProps) =
   const createMutation = useMutation({
     mutationFn: async () => {
       if (!roundId) throw new Error('Selecciona una jornada');
-      if (!title.trim()) throw new Error('El títol és obligatori');
-      if (!body.trim()) throw new Error('El cos de la notícia és obligatori');
+      if (!title.trim()) throw new Error('El título es obligatorio');
+      if (!body.trim()) throw new Error('El cuerpo de la noticia es obligatorio');
 
       const publishedAt =
         publish === 'published'
@@ -103,7 +103,7 @@ const NewsCreateDialog = ({ open, onClose, onCreated }: NewsCreateDialogProps) =
       queryClient.invalidateQueries({ queryKey: ['admin-news'] });
       queryClient.invalidateQueries({ queryKey: ['public-news'] });
       queryClient.invalidateQueries({ queryKey: ['home-latest-news'] });
-      toast({ title: 'Notícia creada' });
+      toast({ title: 'Noticia creada' });
       reset();
       onClose();
       onCreated?.(article);
@@ -122,10 +122,10 @@ const NewsCreateDialog = ({ open, onClose, onCreated }: NewsCreateDialogProps) =
     >
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Nova notícia manual</DialogTitle>
+          <DialogTitle>Nueva noticia manual</DialogTitle>
           <DialogDescription>
-            Crea una notícia sense generació automàtica. Després podràs afegir
-            fotografies des de l'edició.
+            Crea una noticia sin generación automática. Después podrás añadir
+            fotografías desde la edición.
           </DialogDescription>
         </DialogHeader>
 
@@ -153,52 +153,52 @@ const NewsCreateDialog = ({ open, onClose, onCreated }: NewsCreateDialogProps) =
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ca">Català</SelectItem>
-                  <SelectItem value="es">Castellà</SelectItem>
+                  <SelectItem value="ca">Catalán</SelectItem>
+                  <SelectItem value="es">Castellano</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="new-title">Títol</Label>
+            <Label htmlFor="new-title">Título</Label>
             <Input
               id="new-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               maxLength={200}
-              placeholder="Títol de la notícia"
+              placeholder="Título de la noticia"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="new-subtitle">Subtítol</Label>
+            <Label htmlFor="new-subtitle">Subtítulo</Label>
             <Input
               id="new-subtitle"
               value={subtitle}
               onChange={(e) => setSubtitle(e.target.value)}
               maxLength={250}
-              placeholder="Subtítol"
+              placeholder="Subtítulo"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="new-body">Cos de la notícia</Label>
+            <Label htmlFor="new-body">Cuerpo de la noticia</Label>
             <Textarea
               id="new-body"
               value={body}
               onChange={(e) => setBody(e.target.value)}
               rows={14}
               className="font-body leading-relaxed"
-              placeholder="Escriu el contingut de la notícia..."
+              placeholder="Escribe el contenido de la noticia..."
             />
             <p className="text-xs text-muted-foreground">
-              Es respecten els salts de línia i els paràgrafs.
+              Se respetan los saltos de línea y los párrafos.
             </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="new-excerpt">Extracte SEO</Label>
+            <Label htmlFor="new-excerpt">Extracto SEO</Label>
             <Textarea
               id="new-excerpt"
               value={seoExcerpt}
@@ -209,7 +209,7 @@ const NewsCreateDialog = ({ open, onClose, onCreated }: NewsCreateDialogProps) =
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="new-mention">Menció especial</Label>
+            <Label htmlFor="new-mention">Mención especial</Label>
             <Textarea
               id="new-mention"
               value={specialMention}
@@ -221,7 +221,7 @@ const NewsCreateDialog = ({ open, onClose, onCreated }: NewsCreateDialogProps) =
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="new-date">Data de publicació</Label>
+              <Label htmlFor="new-date">Fecha de publicación</Label>
               <Input
                 id="new-date"
                 type="date"
@@ -230,7 +230,7 @@ const NewsCreateDialog = ({ open, onClose, onCreated }: NewsCreateDialogProps) =
               />
             </div>
             <div className="space-y-2">
-              <Label>Estat</Label>
+              <Label>Estado</Label>
               <Select value={publish} onValueChange={setPublish}>
                 <SelectTrigger>
                   <SelectValue />
@@ -246,7 +246,7 @@ const NewsCreateDialog = ({ open, onClose, onCreated }: NewsCreateDialogProps) =
 
         <DialogFooter className="mt-4">
           <Button variant="outline" onClick={onClose} disabled={createMutation.isPending}>
-            Cancel·lar
+            Cancelar
           </Button>
           <Button
             onClick={() => createMutation.mutate()}
@@ -255,7 +255,7 @@ const NewsCreateDialog = ({ open, onClose, onCreated }: NewsCreateDialogProps) =
             {createMutation.isPending && (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             )}
-            Crear i afegir fotos
+            Crear y añadir fotos
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -76,8 +76,8 @@ const NewsEditDialog = ({ article, open, onClose }: NewsEditDialogProps) => {
     mutationFn: async () => {
       const trimmedTitle = title.trim();
       const trimmedBody = body.trim();
-      if (!trimmedTitle) throw new Error('El títol no pot quedar buit');
-      if (!trimmedBody) throw new Error('El cos de la notícia no pot quedar buit');
+      if (!trimmedTitle) throw new Error('El título no puede quedar vacío');
+      if (!trimmedBody) throw new Error('El cuerpo de la noticia no puede quedar vacío');
 
       const { error } = await supabase
         .from('news_drafts')
@@ -96,7 +96,7 @@ const NewsEditDialog = ({ article, open, onClose }: NewsEditDialogProps) => {
       queryClient.invalidateQueries({ queryKey: ['admin-news'] });
       queryClient.invalidateQueries({ queryKey: ['public-news'] });
       queryClient.invalidateQueries({ queryKey: ['home-latest-news'] });
-      toast({ title: 'Notícia actualitzada' });
+      toast({ title: 'Noticia actualizada' });
       onClose();
     },
     onError: (err: Error) => {
@@ -174,7 +174,7 @@ const NewsEditDialog = ({ article, open, onClose }: NewsEditDialogProps) => {
       for (const file of files) {
         const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
         if (!ACCEPTED_EXT.includes(ext) || !ACCEPTED_MIME.includes(file.type)) {
-          throw new Error(`Format no acceptat: ${file.name}`);
+          throw new Error(`Formato no aceptado: ${file.name}`);
         }
         if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
           throw new Error(`${file.name} supera ${MAX_FILE_SIZE_MB}MB`);
@@ -196,10 +196,10 @@ const NewsEditDialog = ({ article, open, onClose }: NewsEditDialogProps) => {
     },
     onSuccess: () => {
       invalidatePhotos();
-      toast({ title: 'Fotografies afegides' });
+      toast({ title: 'Fotografías añadidas' });
     },
     onError: (err: Error) => {
-      toast({ title: 'Error pujant', description: err.message, variant: 'destructive' });
+      toast({ title: 'Error subiendo', description: err.message, variant: 'destructive' });
     },
   });
 
@@ -219,10 +219,10 @@ const NewsEditDialog = ({ article, open, onClose }: NewsEditDialogProps) => {
     onSuccess: () => {
       invalidatePhotos();
       setDeletePhotoId(null);
-      toast({ title: 'Fotografia eliminada' });
+      toast({ title: 'Fotografía eliminada' });
     },
     onError: (err: Error) => {
-      toast({ title: 'Error eliminant', description: err.message, variant: 'destructive' });
+      toast({ title: 'Error eliminando', description: err.message, variant: 'destructive' });
     },
   });
 
@@ -238,7 +238,7 @@ const NewsEditDialog = ({ article, open, onClose }: NewsEditDialogProps) => {
     },
     onSuccess: () => invalidatePhotos(),
     onError: (err: Error) => {
-      toast({ title: 'Error reordenant', description: err.message, variant: 'destructive' });
+      toast({ title: 'Error reordenando', description: err.message, variant: 'destructive' });
     },
   });
 
@@ -253,7 +253,7 @@ const NewsEditDialog = ({ article, open, onClose }: NewsEditDialogProps) => {
     },
     onSuccess: () => {
       invalidatePhotos();
-      toast({ title: 'Peu de foto guardat' });
+      toast({ title: 'Pie de foto guardado' });
     },
     onError: (err: Error) => {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
@@ -286,57 +286,57 @@ const NewsEditDialog = ({ article, open, onClose }: NewsEditDialogProps) => {
       >
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Editar notícia</DialogTitle>
+            <DialogTitle>Editar noticia</DialogTitle>
             <DialogDescription>
-              Modifica el text de la notícia. L'estat de publicació no canviarà.
+              Modifica el texto de la noticia. El estado de publicación no cambiará.
             </DialogDescription>
           </DialogHeader>
 
           <Tabs defaultValue="edit" className="mt-2">
             <TabsList>
               <TabsTrigger value="edit">Editar</TabsTrigger>
-              <TabsTrigger value="photos">Fotografies</TabsTrigger>
-              <TabsTrigger value="preview">Vista prèvia</TabsTrigger>
+              <TabsTrigger value="photos">Fotografías</TabsTrigger>
+              <TabsTrigger value="preview">Vista previa</TabsTrigger>
             </TabsList>
 
             <TabsContent value="edit" className="space-y-4 pt-4">
               <div className="space-y-2">
-                <Label htmlFor="news-title">Títol</Label>
+                <Label htmlFor="news-title">Título</Label>
                 <Input
                   id="news-title"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Títol de la notícia"
+                  placeholder="Título de la noticia"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="news-subtitle">Subtítol</Label>
+                <Label htmlFor="news-subtitle">Subtítulo</Label>
                 <Input
                   id="news-subtitle"
                   value={subtitle}
                   onChange={(e) => setSubtitle(e.target.value)}
-                  placeholder="Subtítol"
+                  placeholder="Subtítulo"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="news-body">Cos de la notícia</Label>
+                <Label htmlFor="news-body">Cuerpo de la noticia</Label>
                 <Textarea
                   id="news-body"
                   value={body}
                   onChange={(e) => setBody(e.target.value)}
                   rows={14}
                   className="font-body leading-relaxed"
-                  placeholder="Escriu el contingut de la notícia..."
+                  placeholder="Escribe el contenido de la noticia..."
                 />
                 <p className="text-xs text-muted-foreground">
-                  Es respecten els salts de línia i els paràgrafs.
+                  Se respetan los saltos de línea y los párrafos.
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="news-excerpt">Extracte SEO</Label>
+                <Label htmlFor="news-excerpt">Extracto SEO</Label>
                 <Textarea
                   id="news-excerpt"
                   value={seoExcerpt}
@@ -346,7 +346,7 @@ const NewsEditDialog = ({ article, open, onClose }: NewsEditDialogProps) => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="news-mention">Menció especial</Label>
+                <Label htmlFor="news-mention">Mención especial</Label>
                 <Textarea
                   id="news-mention"
                   value={specialMention}
@@ -358,8 +358,8 @@ const NewsEditDialog = ({ article, open, onClose }: NewsEditDialogProps) => {
 
             <TabsContent value="photos" className="space-y-4 pt-4">
               <p className="text-xs text-muted-foreground italic">
-                Les fotografies són compartides per totes les versions de la notícia
-                d'aquesta jornada.
+                Las fotografías son compartidas por todas las versiones de la noticia
+                de esta jornada.
               </p>
 
               <div className="flex items-center gap-2">
@@ -383,16 +383,16 @@ const NewsEditDialog = ({ article, open, onClose }: NewsEditDialogProps) => {
                   ) : (
                     <ImagePlus className="h-4 w-4 mr-2" />
                   )}
-                  Afegir imatges
+                  Añadir imágenes
                 </Button>
                 <span className="text-xs text-muted-foreground">
-                  JPG, PNG o WEBP · màx {MAX_FILE_SIZE_MB}MB
+                  JPG, PNG o WEBP · máx {MAX_FILE_SIZE_MB}MB
                 </span>
               </div>
 
               {(!photos || photos.length === 0) && (
                 <p className="text-sm text-muted-foreground py-6 text-center border border-dashed border-border/60 rounded">
-                  No hi ha fotografies per aquesta jornada.
+                  No hay fotografías para esta jornada.
                 </p>
               )}
 
@@ -428,7 +428,7 @@ const NewsEditDialog = ({ article, open, onClose }: NewsEditDialogProps) => {
                             className="h-7 w-7"
                             disabled={idx === 0 || moveMutation.isPending}
                             onClick={() => moveMutation.mutate({ index: idx, dir: -1 })}
-                            title="Moure enrere"
+                            title="Mover atrás"
                           >
                             <ArrowLeft className="h-3.5 w-3.5" />
                           </Button>
@@ -440,7 +440,7 @@ const NewsEditDialog = ({ article, open, onClose }: NewsEditDialogProps) => {
                               idx === (photos?.length ?? 0) - 1 || moveMutation.isPending
                             }
                             onClick={() => moveMutation.mutate({ index: idx, dir: 1 })}
-                            title="Moure endavant"
+                            title="Mover adelante"
                           >
                             <ArrowRight className="h-3.5 w-3.5" />
                           </Button>
@@ -473,7 +473,7 @@ const NewsEditDialog = ({ article, open, onClose }: NewsEditDialogProps) => {
                                 [photo.id]: e.target.value,
                               }))
                             }
-                            placeholder="Peu de foto"
+                            placeholder="Pie de foto"
                             className="h-8 text-xs"
                           />
                           <Button
@@ -482,7 +482,7 @@ const NewsEditDialog = ({ article, open, onClose }: NewsEditDialogProps) => {
                             className="h-8 w-8 shrink-0"
                             disabled={!captionDirty || captionMutation.isPending}
                             onClick={() => captionMutation.mutate(photo)}
-                            title="Guardar peu de foto"
+                            title="Guardar pie de foto"
                           >
                             <Check className="h-4 w-4" />
                           </Button>
@@ -497,20 +497,20 @@ const NewsEditDialog = ({ article, open, onClose }: NewsEditDialogProps) => {
             <TabsContent value="preview" className="pt-4">
               <article className="prose prose-sm max-w-none">
                 <h2 className="font-display text-2xl font-semibold text-foreground mb-1">
-                  {title || <span className="text-muted-foreground">Sense títol</span>}
+                  {title || <span className="text-muted-foreground">Sin título</span>}
                 </h2>
                 {subtitle && (
                   <p className="text-base text-muted-foreground mb-4">{subtitle}</p>
                 )}
                 <div className="text-foreground/90 font-body whitespace-pre-wrap leading-relaxed">
                   {body || (
-                    <span className="text-muted-foreground">Sense contingut</span>
+                    <span className="text-muted-foreground">Sin contenido</span>
                   )}
                 </div>
                 {specialMention && (
                   <div className="mt-4 p-3 rounded border border-accent/30 bg-accent/5">
                     <div className="text-xs uppercase tracking-wide text-accent/80 mb-1">
-                      Menció especial
+                      Mención especial
                     </div>
                     <div className="text-sm whitespace-pre-wrap">{specialMention}</div>
                   </div>
@@ -526,14 +526,14 @@ const NewsEditDialog = ({ article, open, onClose }: NewsEditDialogProps) => {
 
           <DialogFooter className="mt-4">
             <Button variant="ghost" onClick={handleClose} disabled={saveMutation.isPending}>
-              Cancel·lar
+              Cancelar
             </Button>
             <Button
               onClick={() => saveMutation.mutate()}
               disabled={saveMutation.isPending || !title.trim() || !body.trim()}
             >
               {saveMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Guardar canvis
+              Guardar cambios
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -542,13 +542,13 @@ const NewsEditDialog = ({ article, open, onClose }: NewsEditDialogProps) => {
       <AlertDialog open={confirmDiscardOpen} onOpenChange={setConfirmDiscardOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Descartar canvis?</AlertDialogTitle>
+            <AlertDialogTitle>¿Descartar cambios?</AlertDialogTitle>
             <AlertDialogDescription>
-              Tens canvis sense guardar. Si tanques ara, es perdran.
+              Tienes cambios sin guardar. Si cierras ahora, se perderán.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Continuar editant</AlertDialogCancel>
+            <AlertDialogCancel>Continuar editando</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 setConfirmDiscardOpen(false);
@@ -567,13 +567,13 @@ const NewsEditDialog = ({ article, open, onClose }: NewsEditDialogProps) => {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Eliminar fotografia?</AlertDialogTitle>
+            <AlertDialogTitle>¿Eliminar fotografía?</AlertDialogTitle>
             <AlertDialogDescription>
-              Aquesta acció eliminarà només aquesta imatge de la jornada.
+              Esta acción eliminará solo esta imagen de la jornada.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel·lar</AlertDialogCancel>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 const p = photos?.find((x) => x.id === deletePhotoId);

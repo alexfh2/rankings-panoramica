@@ -43,10 +43,10 @@ const AdminDashboard = () => {
   });
 
   const stats = [
-    { label: 'Temporades', value: seasonCount ?? 0, icon: Trophy, path: '/admin/temporades' },
-    { label: 'Jornades', value: roundCount ?? 0, icon: Calendar, path: '/admin/jornades' },
-    { label: 'Jugadors', value: playerCount ?? 0, icon: Users, path: '/admin/jugadors' },
-    { label: 'Notícies', value: newsStats?.total ?? 0, icon: FileText, path: '/admin/noticies', extra: newsStats },
+    { label: 'Temporadas', value: seasonCount ?? 0, icon: Trophy, path: '/admin/temporades' },
+    { label: 'Jornadas', value: roundCount ?? 0, icon: Calendar, path: '/admin/jornades' },
+    { label: 'Jugadores', value: playerCount ?? 0, icon: Users, path: '/admin/jugadors' },
+    { label: 'Noticias', value: newsStats?.total ?? 0, icon: FileText, path: '/admin/noticies', extra: newsStats },
   ];
 
   return (
@@ -71,10 +71,10 @@ const AdminDashboard = () => {
               {stat.extra && (
                 <div className="flex gap-2 mt-2">
                   <Badge variant="secondary" className="text-xs">
-                    {stat.extra.drafts} borrador{stat.extra.drafts !== 1 ? 's' : ''}
+                    {stat.extra.drafts} {stat.extra.drafts === 1 ? 'borrador' : 'borradores'}
                   </Badge>
                   <Badge variant="default" className="text-xs">
-                    {stat.extra.published} publicad{stat.extra.published !== 1 ? 'es' : 'a'}
+                    {stat.extra.published} {stat.extra.published === 1 ? 'publicada' : 'publicadas'}
                   </Badge>
                 </div>
               )}

@@ -101,7 +101,7 @@ const PairsPublishGuardDialog = ({ open, onOpenChange, state, isPublishing, onCo
           <p className="text-xs text-muted-foreground break-words">{state.message}</p>
           <DialogFooter>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              TANCAR
+              CERRAR
             </Button>
           </DialogFooter>
         </>
