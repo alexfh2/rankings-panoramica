@@ -1,0 +1,259 @@
+/* =========================================================================
+   Panorámica Golf — visual identity layer for the admin dashboard.
+   Purely presentational: scoped to `.admin-shell`, no structural changes.
+   ========================================================================= */
+
+.admin-shell {
+  /* Brand palette */
+  --pg-verde-fondo: 146 16% 8%;      /* #121915 */
+  --pg-verde-panel: 104 19% 12%;     /* #1B2318 */
+  --pg-crema: 41 40% 92%;            /* #F3EEE3 */
+  --pg-terracota: 20 42% 52%;        /* #B97452 */
+  --pg-terracota-alto: 21 52% 61%;   /* #D08D69 */
+  --pg-linea: 255 255 255;           /* used via rgba */
+  --pg-crema-suave: rgba(243, 238, 227, 0.62);
+  --pg-linea-color: rgba(255, 255, 255, 0.14);
+
+  /* shadcn token overrides (scoped) */
+  --background: var(--pg-verde-fondo);
+  --foreground: var(--pg-crema);
+  --card: var(--pg-verde-panel);
+  --card-foreground: var(--pg-crema);
+  --popover: var(--pg-verde-panel);
+  --popover-foreground: var(--pg-crema);
+  --primary: var(--pg-verde-panel);
+  --primary-foreground: var(--pg-crema);
+  --secondary: var(--pg-verde-panel);
+  --secondary-foreground: var(--pg-crema);
+  --muted: var(--pg-verde-panel);
+  --muted-foreground: var(--pg-terracota-alto);
+  --accent: var(--pg-terracota);
+  --accent-foreground: 0 0% 100%;
+  --border: 0 0% 100%;
+  --input: 0 0% 100%;
+  --ring: var(--pg-terracota);
+  --radius: 2px;
+
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: hsl(var(--pg-verde-fondo));
+  color: hsl(var(--pg-crema));
+}
+
+/* Hairline borders everywhere instead of the opaque default */
+.admin-shell *,
+.admin-shell *::before,
+.admin-shell *::after {
+  border-color: var(--pg-linea-color);
+}
+
+.admin-shell main {
+  background-color: hsl(var(--pg-verde-fondo));
+}
+
+.admin-shell aside,
+.admin-shell .admin-mobile-bar {
+  background-color: hsl(var(--pg-verde-panel));
+}
+
+/* ---------- Typography ---------- */
+.admin-shell,
+.admin-shell button,
+.admin-shell input,
+.admin-shell select,
+.admin-shell textarea,
+.admin-shell label,
+.admin-shell table {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.admin-shell .font-display,
+.admin-shell h1,
+.admin-shell h2,
+.admin-shell h3 {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.admin-eyebrow {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: hsl(var(--pg-terracota-alto));
+}
+
+.admin-shell .admin-page-title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 400;
+  font-size: 34px;
+  line-height: 1.1;
+  color: hsl(var(--pg-crema));
+}
+
+/* Brand figure: Fraunces italic terracotta */
+.admin-figure {
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 40px;
+  line-height: 1.05;
+  color: hsl(var(--pg-terracota));
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-amount {
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  color: hsl(var(--pg-terracota));
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-card-label {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: hsl(var(--pg-terracota-alto));
+}
+
+.admin-text-link {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: hsl(var(--pg-crema));
+  border-bottom: 1px solid var(--pg-linea-color);
+  padding-bottom: 2px;
+}
+
+/* ---------- Cards ---------- */
+.admin-shell [class*='rounded-lg'],
+.admin-shell [class*='rounded-md'],
+.admin-shell [class*='rounded-xl'],
+.admin-shell [class*='rounded-sm'] {
+  border-radius: 2px;
+}
+
+.admin-shell .admin-metric-card {
+  background-color: hsl(var(--pg-verde-panel));
+  border: 1px solid var(--pg-linea-color);
+  border-radius: 2px;
+  box-shadow: none;
+}
+
+.admin-shell .admin-metric-card:hover {
+  border-color: hsl(var(--pg-terracota) / 0.55);
+}
+
+/* ---------- Sidebar navigation ---------- */
+.admin-shell .admin-nav-link {
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--pg-crema-suave);
+  border-left: 2px solid transparent;
+  border-radius: 0;
+  background-color: transparent !important;
+}
+
+.admin-shell .admin-nav-link:hover {
+  color: hsl(var(--pg-crema));
+}
+
+.admin-shell .admin-nav-link.admin-nav-active {
+  color: hsl(var(--pg-crema));
+  border-left-color: hsl(var(--pg-terracota));
+  background-color: transparent !important;
+}
+
+/* ---------- Buttons ---------- */
+.admin-shell button:not(.admin-nav-link):not([role='switch']) {
+  border-radius: 0;
+}
+
+.admin-shell .bg-primary,
+.admin-shell button.bg-primary {
+  background-color: hsl(var(--pg-terracota));
+  color: #fff;
+}
+
+.admin-shell .bg-primary:hover {
+  background-color: hsl(var(--pg-terracota-alto));
+}
+
+.admin-shell button[class*='border-input'],
+.admin-shell button[class*='border '],
+.admin-shell .admin-btn-outline {
+  border-color: rgba(255, 255, 255, 0.45);
+  color: hsl(var(--pg-crema));
+  background-color: transparent;
+}
+
+/* ---------- Badges / pills ---------- */
+.admin-shell .admin-pill-published {
+  background-color: hsl(var(--pg-terracota));
+  color: #fff;
+  border: none;
+  border-radius: 2px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.admin-shell .admin-pill-draft {
+  background-color: transparent;
+  border: 1px solid var(--pg-linea-color);
+  color: var(--pg-crema-suave);
+  border-radius: 2px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ---------- Tables & forms ---------- */
+.admin-shell table {
+  border-collapse: collapse;
+}
+
+.admin-shell thead th,
+.admin-shell th {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--pg-crema-suave);
+  background-color: transparent;
+}
+
+.admin-shell tbody tr {
+  border-bottom: 1px solid var(--pg-linea-color);
+  background-color: transparent !important;
+}
+
+.admin-shell td {
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-shell input,
+.admin-shell textarea,
+.admin-shell select {
+  background-color: transparent;
+  border: 1px solid var(--pg-linea-color);
+  border-radius: 2px;
+  color: hsl(var(--pg-crema));
+}
+
+.admin-shell label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--pg-crema-suave);
+}
