@@ -7,7 +7,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import logo from '@/assets/logo.png';
 import {
   LayoutDashboard,
   Calendar,
@@ -71,7 +70,10 @@ const AdminLayout = () => {
       {/* Sidebar */}
       <aside className="hidden md:flex w-64 flex-col border-r">
         <div className="p-4 border-b">
-          <img src={logo} alt="Panorámica Golf" className="h-8 w-auto object-contain" />
+          <div>
+            <div className="admin-wordmark">Panorámica</div>
+            <div className="admin-wordmark-sub mt-1">Club de Golf</div>
+          </div>
           <p className="text-xs truncate mt-2" style={{ color: 'rgba(243,238,227,0.62)' }}>
             {user?.email}
           </p>
@@ -154,7 +156,7 @@ const AdminLayout = () => {
 
       {/* Mobile header */}
       <div className="admin-mobile-bar md:hidden fixed top-0 left-0 right-0 z-50 border-b p-3 flex items-center gap-1 flex-wrap">
-        <img src={logo} alt="Panorámica Golf" className="h-5 w-auto object-contain mr-1" />
+        <span className="admin-wordmark mr-2" style={{ fontSize: '15px' }}>Panorámica</span>
         {mainLinks.map((link) => (
           <div key={link.path} className="relative">
             {link.label === 'Tarifas' && (
