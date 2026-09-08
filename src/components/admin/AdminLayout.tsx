@@ -18,6 +18,7 @@ import {
   FileText,
   Tag,
 } from 'lucide-react';
+import logoAsset from '@/assets/logo-panoramica-crema.png.asset.json';
 
 type NavLinkItem = {
   path: string;
@@ -71,8 +72,11 @@ const AdminLayout = () => {
       <aside className="hidden md:flex w-64 flex-col border-r">
         <div className="p-4 border-b">
           <div>
-            <div className="admin-wordmark">Panorámica</div>
-            <div className="admin-wordmark-sub mt-1">Club de Golf</div>
+            <img
+              src={logoAsset.url}
+              alt="Panorámica Golf, Sports & Resort"
+              className="h-10 w-auto"
+            />
           </div>
           <p className="text-xs truncate mt-2" style={{ color: 'rgba(243,238,227,0.62)' }}>
             {user?.email}
@@ -156,7 +160,11 @@ const AdminLayout = () => {
 
       {/* Mobile header */}
       <div className="admin-mobile-bar md:hidden fixed top-0 left-0 right-0 z-50 border-b p-3 flex items-center gap-1 flex-wrap">
-        <span className="admin-wordmark mr-2" style={{ fontSize: '15px' }}>Panorámica</span>
+        <img
+          src={logoAsset.url}
+          alt="Panorámica Golf, Sports & Resort"
+          className="h-7 w-auto mr-2"
+        />
         {mainLinks.map((link) => (
           <div key={link.path} className="relative">
             {link.label === 'Tarifas' && (
