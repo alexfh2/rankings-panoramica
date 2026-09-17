@@ -543,6 +543,18 @@ const NewsGenerationDialog = ({ round, onClose }: NewsGenerationDialogProps) => 
 
 
 
+            {tone === 'press' && (
+              <p className="text-[11px] text-muted-foreground">
+                {rankingPayload
+                  ? isFinalRound
+                    ? 'Se enviará la clasificación general final: la noticia se redactará como cierre de la competición.'
+                    : rankingPayload.includesThisRound
+                      ? 'Se enviará la clasificación general provisional después de esta jornada.'
+                      : 'Se enviará la clasificación general con las jornadas publicadas (esta jornada aún no está publicada).'
+                  : 'Sin clasificación general disponible: la noticia no hará afirmaciones sobre la general.'}
+              </p>
+            )}
+
             <Button
               onClick={() => generateMutation.mutate()}
               disabled={generateMutation.isPending}
