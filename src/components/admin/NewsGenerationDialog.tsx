@@ -459,11 +459,7 @@ const NewsGenerationDialog = ({ round, onClose }: NewsGenerationDialogProps) => 
               </div>
             </div>
 
-            {existingDraft && (
-              <Badge variant="outline" className="text-xs">
-                Ya existe un borrador en {language === 'ca' ? 'catalán' : 'castellano'} — se sobrescribirá
-              </Badge>
-            )}
+
 
             <Button
               onClick={() => generateMutation.mutate()}
