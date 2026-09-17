@@ -110,6 +110,62 @@ const AdminNewsMembers = () => {
   const [uploading, setUploading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<NewsRow | null>(null);
+  const [translating, setTranslating] = useState(false);
+  const [confirmTranslate, setConfirmTranslate] = useState(false);
+
+  const runTranslation = async () => {
+    if (!form) return;
+    const titleEs = form.titleEs.trim();
+    const bodyEs = form.bodyEs.trim();
+    if (!titleEs && !bodyEs) {
+      toast({
+        title: 'No hay nada que traducir',
+        description: 'Escribe primero el título o el texto en castellano.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setTranslating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('translate-news', {
+        body: { title: titleEs, body: bodyEs },
+      });
+      if (error) throw error;
+      const result = data as { title?: string; body?: string; error?: string };
+      if (result?.error) throw new Error(result.error);
+      setForm((prev) =>
+        prev
+          ? {
+              ...prev,
+              titleEn: titleEs ? (result?.title ?? prev.titleEn) : prev.titleEn,
+              bodyEn: bodyEs ? (result?.body ?? prev.bodyEn) : prev.bodyEn,
+            }
+          : prev,
+      );
+      toast({
+        title: 'Traducción generada',
+        description: 'Revisa el contenido antes de publicar.',
+      });
+    } catch (err) {
+      toast({
+        title: 'No se ha podido traducir',
+        description: (err as Error).message,
+        variant: 'destructive',
+      });
+    } finally {
+      setTranslating(false);
+    }
+  };
+
+  const requestTranslation = () => {
+    if (!form) return;
+    const hasEnglish = !!(form.titleEn.trim() || form.bodyEn.trim());
+    if (hasEnglish) {
+      setConfirmTranslate(true);
+      return;
+    }
+    void runTranslation();
+  };
 
   const { data: news, isLoading, error } = useQuery({
     queryKey: ['admin-news'],
