@@ -155,16 +155,30 @@ serve(async (req) => {
     if (isPairs) {
       const { data: pairResults } = await supabase
         .from("pair_results")
-        .select("net_points, pair_handicap, position, pairs(fixed_category, player_1:players!pairs_player_1_id_fkey(name), player_2:players!pairs_player_2_id_fkey(name))")
+        .select("net_points, position, pairs(fixed_category, player_1_id, player_2_id)")
         .eq("round_id", round_id)
         .order("net_points", { ascending: false });
 
       const rows = (pairResults || []) as any[];
       pairsCount = rows.length;
+
+      const playerIds = Array.from(
+        new Set(rows.flatMap((r: any) => [r.pairs?.player_1_id, r.pairs?.player_2_id]).filter(Boolean))
+      );
+      const nameById = new Map<string, string>();
+      if (playerIds.length) {
+        const { data: playerRows } = await supabase
+          .from("players")
+          .select("id, name")
+          .in("id", playerIds);
+        for (const p of (playerRows || []) as any[]) nameById.set(p.id, p.name);
+      }
+
       const label = (c: string) =>
         c === 'hcp_low' ? 'CATEGORÍA HÁNDICAP BAJO' : c === 'hcp_high' ? 'CATEGORÍA HÁNDICAP ALTO' : `CATEGORÍA ${c}`;
       const pairName = (r: any) =>
-        `${r.pairs?.player_1?.name || '?'} / ${r.pairs?.player_2?.name || '?'}`;
+        `${nameById.get(r.pairs?.player_1_id) || '?'} / ${nameById.get(r.pairs?.player_2_id) || '?'}`;
+
       const groups = new Map<string, any[]>();
       for (const r of rows) {
         const cat = r.pairs?.fixed_category || 'sin_categoria';
