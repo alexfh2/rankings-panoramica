@@ -40,10 +40,22 @@ serve(async (req) => {
 
     const { data: round, error: roundError } = await supabase
       .from("rounds")
-      .select("*")
+      .select("*, competitions(id, slug, name, format)")
       .eq("id", round_id)
       .single();
     if (roundError) throw roundError;
+
+    // --- Competition identity (from the round's structured competition_id) ---
+    const competition: any = (round as any).competitions || null;
+    const competitionSlug: string = competition?.slug || '';
+    const EDITORIAL_NAMES: Record<string, string> = {
+      'individual-2026': 'Orden de Mérito Individual',
+      'parejas-2026': 'Orden de Mérito de Parejas',
+      'verano-2026': 'Liga de Verano',
+    };
+    const competitionName =
+      EDITORIAL_NAMES[competitionSlug] || competition?.name || 'competición';
+    const isPairs = competition?.format === 'pairs';
 
     const { data: results, error: resultsError } = await supabase
       .from("results")
@@ -113,54 +125,112 @@ serve(async (req) => {
       .filter((r: any) => r.players?.is_senior === true)
       .sort(sortByPointsThenLowHcp);
 
-    const langLabel = language === "ca" ? "català" : "castellà";
-    const publishedUrl = "https://verdant-stats.lovable.app/rankings";
+    // --- Pairs data (only for pairs competitions) ---
+    let pairsBlock = '';
+    let pairsCount = 0;
+    if (isPairs) {
+      const { data: pairResults } = await supabase
+        .from("pair_results")
+        .select("net_points, position, pairs(fixed_category, player_1_id, player_2_id)")
+        .eq("round_id", round_id)
+        .order("net_points", { ascending: false });
 
-    const prompt = `Genera un missatge de WhatsApp en ${langLabel} per compartir els RESULTATS d'una jornada de golf del circuit Gastronòmic Golf Experience.
+      const rows = (pairResults || []) as any[];
+      pairsCount = rows.length;
 
-IMPORTANT: La competició és en modalitat STABLEFORD. Tots els resultats són en PUNTS STABLEFORD, NO en cops. No mencionIs "cops" ni "scratch".
+      const playerIds = Array.from(
+        new Set(rows.flatMap((r: any) => [r.pairs?.player_1_id, r.pairs?.player_2_id]).filter(Boolean))
+      );
+      const nameById = new Map<string, string>();
+      if (playerIds.length) {
+        const { data: playerRows } = await supabase
+          .from("players")
+          .select("id, name")
+          .in("id", playerIds);
+        for (const p of (playerRows || []) as any[]) nameById.set(p.id, p.name);
+      }
 
-TEXT DE REFERÈNCIA (adapta l'estil però amb dades Stableford):
----
-Resultats ${round.name} — Temporada ${season?.year || "N/A"}
+      const label = (c: string) =>
+        c === 'hcp_low' ? 'CATEGORÍA HÁNDICAP BAJO' : c === 'hcp_high' ? 'CATEGORÍA HÁNDICAP ALTO' : `CATEGORÍA ${c}`;
+      const pairName = (r: any) =>
+        `${nameById.get(r.pairs?.player_1_id) || '?'} / ${nameById.get(r.pairs?.player_2_id) || '?'}`;
+      const groups = new Map<string, any[]>();
+      for (const r of rows) {
+        const cat = r.pairs?.fixed_category || 'sin_categoria';
+        if (!groups.has(cat)) groups.set(cat, []);
+        groups.get(cat)!.push(r);
+      }
+      const sections: string[] = [];
+      for (const [cat, list] of groups.entries()) {
+        sections.push(
+          `${label(cat)} — ${list.length} parejas:\n` +
+            list
+              .slice(0, 3)
+              .map((r, i) => `${i + 1}. ${pairName(r)} — ${r.net_points} pts`)
+              .join('\n')
+        );
+      }
+      pairsBlock = sections.join('\n\n');
+    }
 
-RESULTATS DE LA ${round.name} DEL GASTRONÒMIC GOLF EXPERIENCE ${season?.year || ""}
+    const langLabel = language === "ca" ? "català" : "castellano";
+    const publishedUrl = "https://rankingspanoramica.fairwaystudio.ai/ranquings";
 
-El ${round.club || "club"} ha acollit la ${round.name} del Gastronòmic Golf Experience, disputada el ${round.date}, amb la participació de ${results.length} jugadors.
-${round.sponsor ? `Jornada patrocinada per ${round.sponsor}.` : ""}
-${round.is_master ? "⭐ JORNADA MASTER — Punts x1.25!" : ""}
+    const modalityLine = isPairs
+      ? "Modalidad: Fourball Stableford por parejas. Todos los resultados son en PUNTOS Stableford netos de la pareja. Trata a la pareja como una única unidad competitiva, nunca como jugadores individuales."
+      : "Modalidad: Stableford individual. Todos los resultados son en PUNTOS Stableford, nunca en golpes ni scratch.";
 
-En la classificació Hàndicap Baix (≤15), [NOM] s'ha imposat amb [X] punts Stableford, seguit de [NOM] ([X]) i [NOM] ([X]).
+    const competitionGuidance = isPairs
+      ? `Se trata de una jornada de la ${competitionName}: habla de parejas ganadoras y de resultados de parejas.`
+      : competitionSlug === "verano-2026"
+        ? `Se trata de una jornada de la ${competitionName}: identifícala expresamente como "Liga de Verano" y nunca como Orden de Mérito.`
+        : `Se trata de una jornada de la ${competitionName}: habla de jugadores y clasificaciones individuales.`;
 
-En la classificació Hàndicap Alt (15.1–36), [NOM] s'ha imposat amb [X] punts, seguit de [NOM] ([X]) i [NOM] ([X]).
-${females.length > 0 ? `\nEn la classificació Femenina, [NOM] s'ha imposat amb [X] punts.` : ""}
-${seniors.length > 0 ? `\nEn la classificació Sènior (+65), [NOM] s'ha imposat amb [X] punts.` : ""}
-
-Les classificacions completes i estadístiques detallades es poden consultar a: ${publishedUrl}
----
-
-DADES REALS:
-CLASSIFICACIÓ HANDICAP BAIX (≤15.0) — ${hcpLow.length} jugadors:
+    const resultsBlock = isPairs
+      ? `${pairsBlock || "Sin resultados de parejas disponibles."}\n\nTotal parejas participantes: ${pairsCount}`
+      : `CLASIFICACIÓN HÁNDICAP BAJO (≤15.0) — ${hcpLow.length} jugadores:
 ${hcpLow.slice(0, 3).map((r: any, i: number) => `${i + 1}. ${r.players?.name} — ${r.stableford_points} pts (Hcp ${r.handicap_at_round})`).join("\n")}
 
-CLASSIFICACIÓ HANDICAP ALT (15.1–36.0) — ${hcpHigh.length} jugadors:
+CLASIFICACIÓN HÁNDICAP ALTO (15.1–36.0) — ${hcpHigh.length} jugadores:
 ${hcpHigh.slice(0, 3).map((r: any, i: number) => `${i + 1}. ${r.players?.name} — ${r.stableford_points} pts (Hcp ${r.handicap_at_round})`).join("\n")}
+${females.length > 0 ? `\nCLASIFICACIÓN FEMENINA — Ganadora:\n1. ${females[0].players?.name} — ${females[0].stableford_points} pts (Hcp ${females[0].handicap_at_round})` : ""}
+${seniors.length > 0 ? `\nCLASIFICACIÓN SÉNIOR (+65) — Ganador:\n1. ${seniors[0].players?.name} — ${seniors[0].stableford_points} pts (Hcp ${seniors[0].handicap_at_round})` : ""}
 
-${females.length > 0 ? `CLASSIFICACIÓ FEMENINA — Guanyadora:\n1. ${females[0].players?.name} — ${females[0].stableford_points} pts (Hcp ${females[0].handicap_at_round})` : ""}
-${seniors.length > 0 ? `CLASSIFICACIÓ SÈNIOR (+65) — Guanyador:\n1. ${seniors[0].players?.name} — ${seniors[0].stableford_points} pts (Hcp ${seniors[0].handicap_at_round})` : ""}
+Total participantes: ${results.length}`;
 
-Total participants: ${results.length}
+    const prompt = `Redacta un mensaje de WhatsApp para comunicar los resultados de una jornada de golf de Panorámica Golf.
+Idioma de redacción: ${langLabel}. Escribe TODO el texto en ese idioma, sin mezclar idiomas.
 
-INSTRUCCIONS:
-- Segueix EXACTAMENT l'estructura del text de referència: títol, introducció, resultats per categories, link final
-- Per a Hàndicap Baix i Alt: inclou els 3 primers classificats
-- Per a Femenina i Sènior: menciona NOMÉS el/la guanyador/a
-- IMPORTANT: Deixa una línia en blanc entre cada secció/categoria per facilitar la lectura
-- Utilitza format *negretes* de WhatsApp per al títol i noms de categories
-- To formal i informatiu, sense emojis excessius (només algun puntual si escau)
-- SEMPRE punts Stableford, MAI cops ni scratch
-- Inclou el link a les classificacions al final: ${publishedUrl}
-- Retorna NOMÉS el text del missatge, sense JSON ni markdown`;
+Competición: ${competitionName}
+Jornada: ${round.name}${round.round_number ? ` (J${round.round_number})` : ""}
+Temporada: ${season?.year || "N/A"}
+Club: ${round.club || "N/A"}
+Campo: ${round.course || "N/A"}
+Fecha: ${round.date}
+${round.sponsor ? `Patrocinador de la jornada: ${round.sponsor}` : ""}
+${round.is_master ? "Jornada MASTER (puntos x1.25)" : ""}
+
+Utiliza siempre el nombre correcto de la competición proporcionado.
+${modalityLine}
+${competitionGuidance}
+
+El texto debe ser breve, deportivo, informativo y natural para la comunicación del club. Puede ser algo más directo que una noticia web, pero nunca publicitario ni grandilocuente.
+No inventes ningún dato que no aparezca aquí: ni resultados, ni posiciones, ni meteorología, ni próximos torneos, ni incidencias, ni declaraciones.
+NO se te proporcionan datos de la clasificación general: por tanto, no hagas ninguna afirmación sobre la general ni sobre cambios de líder.
+Menciona únicamente las categorías que aparezcan en los datos.
+
+RESULTADOS DE LA JORNADA:
+${resultsBlock}
+
+INSTRUCCIONES DE FORMATO:
+- Título breve con la competición y la jornada, seguido de una frase de contexto con club, fecha y participación.
+- Para las categorías principales, incluye los tres primeros clasificados; para Femenina y Sénior, solo el ganador o ganadora.
+- Deja una línea en blanco entre secciones para facilitar la lectura.
+- Usa *negritas* de WhatsApp para el título y los nombres de categoría.
+- Sin emojis (como máximo uno puntual si aporta claridad), sin hashtags y sin texto promocional.
+- Cierra con el enlace a las clasificaciones: ${publishedUrl}
+- Devuelve SOLO el texto del mensaje, sin JSON ni markdown.`;
+
 
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!lovableApiKey) throw new Error("LOVABLE_API_KEY not configured");
@@ -174,7 +244,7 @@ INSTRUCCIONS:
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: "Ets un redactor esportiu de golf. Generes missatges de WhatsApp clars, formals i concisos." },
+          { role: "system", content: "Eres un redactor de prensa deportiva especializado en golf. Redactas mensajes de WhatsApp claros, informativos y concisos." },
           { role: "user", content: prompt },
         ],
       }),
