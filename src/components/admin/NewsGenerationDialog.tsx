@@ -56,19 +56,11 @@ const NewsGenerationDialog = ({ round, onClose }: NewsGenerationDialogProps) => 
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
+  // Id de la fila de `news` creada desde este flujo: evita duplicar la noticia
+  // cuando se guarda como borrador y después se publica.
+  const [savedNewsId, setSavedNewsId] = useState<string | null>(null);
+  const [uploadedImages, setUploadedImages] = useState<{ path: string; url: string }[] | null>(null);
 
-  const { data: existingDraft } = useQuery({
-    queryKey: ['news-draft', round.id, language],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('news_drafts')
-        .select('*')
-        .eq('round_id', round.id)
-        .eq('language', language)
-        .maybeSingle();
-      return data;
-    },
-  });
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
