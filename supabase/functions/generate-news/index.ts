@@ -41,10 +41,23 @@ serve(async (req) => {
     // Fetch round data
     const { data: round, error: roundError } = await supabase
       .from("rounds")
-      .select("*")
+      .select("*, competitions(id, slug, name, format)")
       .eq("id", round_id)
       .single();
     if (roundError) throw roundError;
+
+    // --- Competition identity (from the round's structured competition_id) ---
+    const competition: any = (round as any).competitions || null;
+    const competitionSlug: string = competition?.slug || '';
+    const EDITORIAL_NAMES: Record<string, string> = {
+      'individual-2026': 'Orden de Mérito Individual',
+      'parejas-2026': 'Orden de Mérito de Parejas',
+      'verano-2026': 'Liga de Verano',
+    };
+    const competitionName =
+      EDITORIAL_NAMES[competitionSlug] || competition?.name || 'competición';
+    const isPairs = competition?.format === 'pairs';
+
 
     // Fetch results for THIS round with player info
     const { data: results, error: resultsError } = await supabase
