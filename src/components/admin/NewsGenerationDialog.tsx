@@ -85,10 +85,10 @@ const NewsGenerationDialog = ({ round, onClose }: NewsGenerationDialogProps) => 
     setImagePreviews(prev => prev.filter((_, i) => i !== index));
   };
 
-  const uploadImages = async (): Promise<string[]> => {
+  const uploadImages = async (): Promise<{ path: string; url: string }[]> => {
     if (imageFiles.length === 0) return [];
     setUploadingImages(true);
-    const urls: string[] = [];
+    const uploaded: { path: string; url: string }[] = [];
 
     try {
       for (const file of imageFiles) {
@@ -97,13 +97,14 @@ const NewsGenerationDialog = ({ round, onClose }: NewsGenerationDialogProps) => 
         const { error } = await supabase.storage.from('photos').upload(path, file);
         if (error) throw error;
         const { data: urlData } = supabase.storage.from('photos').getPublicUrl(path);
-        urls.push(urlData.publicUrl);
+        uploaded.push({ path, url: urlData.publicUrl });
       }
     } finally {
       setUploadingImages(false);
     }
-    return urls;
+    return uploaded;
   };
+
 
   const generateMutation = useMutation({
     mutationFn: async () => {
