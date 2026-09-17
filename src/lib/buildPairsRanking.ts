@@ -4,6 +4,8 @@
  * El Net oficial (pair_results.net_points) es siempre la fuente de verdad.
  */
 import { formatPlayerDisplayName } from '@/lib/formatPlayerDisplayName';
+import { compareRankingWithTiebreak } from '@/lib/rankingTiebreak';
+
 
 export type PairCategory = 'hcp_low' | 'hcp_high';
 

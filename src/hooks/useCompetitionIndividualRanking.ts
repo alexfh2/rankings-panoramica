@@ -9,6 +9,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { fetchPublicCircuitData, publicCircuitDataQueryKey, type PublicResult } from '@/lib/publicCircuitData';
 import { buildPlayerCategoryHandicapMap, buildPlayerLastHandicapMap } from '@/lib/playerCategoryHandicap';
 import { computeScratchStableford } from '@/lib/scratchStableford';
+import { compareRankingWithTiebreak } from '@/lib/rankingTiebreak';
+
 
 export const DEFAULT_BEST_N = 8;
 export const DEFAULT_CATEGORY_THRESHOLD = 15.0;
