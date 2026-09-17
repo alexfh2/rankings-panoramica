@@ -263,7 +263,7 @@ ESTRUCTURA SOLICITADA:
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: "Ets un community manager especialitzat en golf i gastronomia. Generes posts d'Instagram atractius i engrescadors amb emojis." },
+          { role: "system", content: "Eres un community manager especializado en golf. Redactas posts de Instagram deportivos, concisos y elegantes." },
           { role: "user", content: prompt },
         ],
       }),

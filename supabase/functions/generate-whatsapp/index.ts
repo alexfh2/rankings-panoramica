@@ -244,7 +244,7 @@ INSTRUCCIONES DE FORMATO:
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: "Ets un redactor esportiu de golf. Generes missatges de WhatsApp clars, formals i concisos." },
+          { role: "system", content: "Eres un redactor de prensa deportiva especializado en golf. Redactas mensajes de WhatsApp claros, informativos y concisos." },
           { role: "user", content: prompt },
         ],
       }),
