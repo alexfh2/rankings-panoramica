@@ -14,11 +14,17 @@ const EmbedIndividual2026 = () => (
     rankingCaption="Orden del mérito individual"
     showScratch
     rules={individual2026Rules}
-    officialPdfUrl="/reglamentos/reglamento-omi-2026.pdf"
+    officialPdfUrl={{
+      es: '/reglamentos/reglamento-om-individual-2026-es-v20260917.pdf',
+      en: '/reglamentos/competition-rules-individual-order-of-merit-2026-en-v20260917.pdf',
+    }}
     showPlayersTab
     playersTabLabel="Jugadores"
-    regulationLabel="REGLAMENTO"
-    regulationAriaLabel="Abrir reglamento de la Orden del Mérito Individual 2026"
+    regulationLabel={{ es: 'REGLAMENTO', en: 'COMPETITION RULES' }}
+    regulationAriaLabel={{
+      es: 'Abrir reglamento de la Orden del Mérito Individual 2026',
+      en: 'Open the Individual Order of Merit 2026 competition rules',
+    }}
   />
 );
 
