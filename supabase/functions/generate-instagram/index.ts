@@ -40,10 +40,22 @@ serve(async (req) => {
 
     const { data: round, error: roundError } = await supabase
       .from("rounds")
-      .select("*")
+      .select("*, competitions(id, slug, name, format)")
       .eq("id", round_id)
       .single();
     if (roundError) throw roundError;
+
+    // --- Competition identity (from the round's structured competition_id) ---
+    const competition: any = (round as any).competitions || null;
+    const competitionSlug: string = competition?.slug || '';
+    const EDITORIAL_NAMES: Record<string, string> = {
+      'individual-2026': 'Orden de Mérito Individual',
+      'parejas-2026': 'Orden de Mérito de Parejas',
+      'verano-2026': 'Liga de Verano',
+    };
+    const competitionName =
+      EDITORIAL_NAMES[competitionSlug] || competition?.name || 'competición';
+    const isPairs = competition?.format === 'pairs';
 
     const { data: results, error: resultsError } = await supabase
       .from("results")
@@ -125,6 +137,54 @@ serve(async (req) => {
           }
         }
       });
+    }
+
+    // --- Pairs data (only for pairs competitions) ---
+    let pairsBlock = '';
+    let pairsCount = 0;
+    if (isPairs) {
+      const { data: pairResults } = await supabase
+        .from("pair_results")
+        .select("net_points, position, pairs(fixed_category, player_1_id, player_2_id)")
+        .eq("round_id", round_id)
+        .order("net_points", { ascending: false });
+
+      const rows = (pairResults || []) as any[];
+      pairsCount = rows.length;
+
+      const playerIds = Array.from(
+        new Set(rows.flatMap((r: any) => [r.pairs?.player_1_id, r.pairs?.player_2_id]).filter(Boolean))
+      );
+      const nameById = new Map<string, string>();
+      if (playerIds.length) {
+        const { data: playerRows } = await supabase
+          .from("players")
+          .select("id, name")
+          .in("id", playerIds);
+        for (const p of (playerRows || []) as any[]) nameById.set(p.id, p.name);
+      }
+
+      const label = (c: string) =>
+        c === 'hcp_low' ? 'CATEGORÍA HÁNDICAP BAJO' : c === 'hcp_high' ? 'CATEGORÍA HÁNDICAP ALTO' : `CATEGORÍA ${c}`;
+      const pairName = (r: any) =>
+        `${nameById.get(r.pairs?.player_1_id) || '?'} / ${nameById.get(r.pairs?.player_2_id) || '?'}`;
+      const groups = new Map<string, any[]>();
+      for (const r of rows) {
+        const cat = r.pairs?.fixed_category || 'sin_categoria';
+        if (!groups.has(cat)) groups.set(cat, []);
+        groups.get(cat)!.push(r);
+      }
+      const sections: string[] = [];
+      for (const [cat, list] of groups.entries()) {
+        sections.push(
+          `${label(cat)} — ${list.length} parejas:\n` +
+            list
+              .slice(0, 3)
+              .map((r, i) => `${i + 1}. ${pairName(r)} — ${r.net_points} pts`)
+              .join('\n')
+        );
+      }
+      pairsBlock = sections.join('\n\n');
     }
 
     const langLabel = language === "ca" ? "català" : "castellà";
