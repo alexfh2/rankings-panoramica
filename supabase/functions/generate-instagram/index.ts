@@ -187,84 +187,69 @@ serve(async (req) => {
       pairsBlock = sections.join('\n\n');
     }
 
-    const langLabel = language === "ca" ? "català" : "castellà";
+    const langLabel = language === "ca" ? "català" : "castellano";
 
-    const prompt = `Genera un post d'Instagram en ${langLabel} per compartir els RESULTATS d'una jornada de golf del circuit Gastronòmic Golf Experience.
+    const modalityLine = isPairs
+      ? "Modalidad: Fourball Stableford por parejas. Los resultados son puntos Stableford netos de la pareja. Trata a la pareja como una única unidad competitiva, nunca como jugadores individuales."
+      : "Modalidad: Stableford individual. Los resultados son puntos Stableford, nunca golpes ni scratch.";
 
-ESTRUCTURA DE REFERÈNCIA (adapta-la per a RESULTATS, no per a convocatòria):
-🏌️‍♂️✨ GASTRONÒMIC GOLF EXPERIENCE ✨🏌️‍♀️
-[Emoji + Nom del torneig/jornada]
-📍 [Camp]
-📅 [Data]
+    const competitionGuidance = isPairs
+      ? `Se trata de una jornada de la ${competitionName}: habla de parejas ganadoras y de resultados de parejas.`
+      : competitionSlug === "verano-2026"
+        ? `Se trata de una jornada de la ${competitionName}: identifícala expresamente como "Liga de Verano" y nunca como Orden de Mérito.`
+        : `Se trata de una jornada de la ${competitionName}: habla de jugadores y clasificaciones individuales.`;
 
-[1-2 frases resum engrescadores sobre com va anar la jornada]
+    const hashtags =
+      competitionSlug === "verano-2026"
+        ? "#PanoramicaGolf #LigaDeVerano"
+        : "#PanoramicaGolf #OrdenDeMerito";
 
-🏆 RESULTATS
-
-🏌️ *Hàndicap Baix*
-🥇 [Nom] — [Punts] pts
-🥈 [Nom] — [Punts] pts
-🥉 [Nom] — [Punts] pts
-
-🏌️ *Hàndicap Alt*
-🥇 [Nom] — [Punts] pts
-🥈 [Nom] — [Punts] pts
-🥉 [Nom] — [Punts] pts
-
-👩 *Classificació Femenina*
-🥇 [Nom] — [Punts] pts
-
-👴 *Classificació Sènior (+65)*
-🥇 [Nom] — [Punts] pts
-
-[Si hi ha actuacions destacades com birdies, mencionar-les amb emojis]
-
-[Frase de tancament engrescadora sobre la propera jornada o el circuit]
-
-🤝 Sponsors & Ordre de Mèrit
-@omodajaecoo.prunacargo
-@cavesbohigas
-@escampa_hotels
-@santipamiesjoiers
-@tancatdecodorniu
-@garmin_iberia
-@bonareaoficial_cat
-#GastronomicGolf #GolfiGastronomia #CircuitGastronomic
-
-DADES DE LA JORNADA:
-- Jornada: ${round.name} (J${round.round_number})
-- Temporada: ${season?.year || "N/A"}
-- Club: ${round.club || "N/A"}
-- Camp: ${round.course || "N/A"}
-- Data: ${round.date}
-- Patrocinador: ${round.sponsor || "cap"}
-${round.is_master ? "- JORNADA MASTER (punts x1.25)" : ""}
-
-CLASSIFICACIÓ HANDICAP BAIX (≤15.0):
+    const resultsBlock = isPairs
+      ? `${pairsBlock || "Sin resultados de parejas disponibles."}\n\nTotal parejas participantes: ${pairsCount}`
+      : `CLASIFICACIÓN HÁNDICAP BAJO (≤15.0):
 ${hcpLow.slice(0, 3).map((r: any, i: number) => `${i + 1}. ${r.players?.name} — ${r.stableford_points} pts (Hcp ${r.handicap_at_round})`).join("\n")}
 
-CLASSIFICACIÓ HANDICAP ALT (15.1–36.0):
+CLASIFICACIÓN HÁNDICAP ALTO (15.1–36.0):
 ${hcpHigh.slice(0, 3).map((r: any, i: number) => `${i + 1}. ${r.players?.name} — ${r.stableford_points} pts (Hcp ${r.handicap_at_round})`).join("\n")}
+${females.length > 0 ? `\nCLASIFICACIÓN FEMENINA — Ganadora:\n1. ${females[0].players?.name} — ${females[0].stableford_points} pts (Hcp ${females[0].handicap_at_round})` : ""}
+${seniors.length > 0 ? `\nCLASIFICACIÓN SÉNIOR (+65) — Ganador:\n1. ${seniors[0].players?.name} — ${seniors[0].stableford_points} pts (Hcp ${seniors[0].handicap_at_round})` : ""}
+${notablePerformances ? `\nACTUACIONES DESTACADAS: ${notablePerformances}` : ""}
 
-${females.length > 0 ? `CLASSIFICACIÓ FEMENINA — Guanyadora:\n1. ${females[0].players?.name} — ${females[0].stableford_points} pts (Hcp ${females[0].handicap_at_round})` : ""}
-${seniors.length > 0 ? `CLASSIFICACIÓ SÈNIOR (+65) — Guanyador:\n1. ${seniors[0].players?.name} — ${seniors[0].stableford_points} pts (Hcp ${seniors[0].handicap_at_round})` : ""}
-${notablePerformances ? `ACTUACIONS DESTACADES: ${notablePerformances}` : ""}
+Total participantes: ${results.length}`;
 
-Total participants: ${results.length}
+    const prompt = `Redacta un post de Instagram para comunicar los resultados de una jornada de golf de Panorámica Golf.
+Idioma de redacción: ${langLabel}. Escribe TODO el texto en ese idioma, sin mezclar idiomas.
 
-INSTRUCCIONS:
-- Utilitza emojis de manera similar a l'estructura de referència
-- Per a Hàndicap Baix i Alt: inclou els 3 primers classificats (🥇🥈🥉)
-- Per a Femenina i Sènior: menciona NOMÉS el/la guanyador/a (🥇)
-- IMPORTANT: Deixa una línia en blanc entre cada secció/categoria per facilitar la lectura
-- Inclou SEMPRE els sponsors i hashtags al final
-- El to ha de ser celebratori i engrescador
-- Modalitat STABLEFORD, NO mencionIs resultats scratch
-- Si és jornada MASTER, destaca-ho
-- Si hi ha patrocinador, menciona'l
-- Retorna NOMÉS el text del post, sense JSON ni markdown
+Competición: ${competitionName}
+Jornada: ${round.name}${round.round_number ? ` (J${round.round_number})` : ""}
+Temporada: ${season?.year || "N/A"}
+Club: ${round.club || "N/A"}
+Campo: ${round.course || "N/A"}
+Fecha: ${round.date}
+${round.sponsor ? `Patrocinador de la jornada: ${round.sponsor}` : ""}
+${round.is_master ? "Jornada MASTER (puntos x1.25)" : ""}
 
-Retorna el text complet del post d'Instagram.`;
+Utiliza siempre el nombre correcto de la competición proporcionado.
+${modalityLine}
+${competitionGuidance}
+
+El copy debe ser deportivo, conciso y elegante, centrado en los resultados. Puede tener un ritmo algo más dinámico que una noticia web, pero evita clichés, exageraciones y lenguaje promocional.
+No inventes ningún dato que no aparezca aquí: ni resultados, ni posiciones, ni meteorología, ni próximos torneos, ni incidencias, ni declaraciones.
+NO se te proporcionan datos de la clasificación general: por tanto, no hagas ninguna afirmación sobre la general ni sobre cambios de líder.
+Menciona únicamente las categorías que aparezcan en los datos.
+
+RESULTADOS DE LA JORNADA:
+${resultsBlock}
+
+ESTRUCTURA SOLICITADA:
+- Primera línea: competición y jornada. A continuación, campo y fecha.
+- Una o dos frases de contexto basadas únicamente en los datos anteriores.
+- Resultados por categoría: los tres primeros en las categorías principales y solo el ganador o ganadora en Femenina y Sénior.
+- Deja una línea en blanco entre secciones para facilitar la lectura.
+- Uso de emojis muy contenido (posiciones y algún icono de campo o fecha); nada de emojis decorativos en exceso.
+- Cierra con estos hashtags y ningún otro: ${hashtags}
+- Devuelve SOLO el texto del post, sin JSON ni markdown.`;
+
 
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!lovableApiKey) throw new Error("LOVABLE_API_KEY not configured");
