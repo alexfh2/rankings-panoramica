@@ -1,12 +1,11 @@
 import { useState, useRef } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
@@ -552,7 +551,7 @@ const NewsGenerationDialog = ({ round, onClose }: NewsGenerationDialogProps) => 
                     {uploadingImages ? 'Subiendo imágenes...' : 'Guardando...'}
                   </>
                 ) : (
-                  `Guardar borrador${imageFiles.length > 0 ? ` (${imageFiles.length} foto${imageFiles.length > 1 ? 's' : ''})` : ''}`
+                  `Guardar como borrador${imageFiles.length > 0 ? ` (${imageFiles.length} foto${imageFiles.length > 1 ? 's' : ''})` : ''}`
                 )}
               </Button>
               <Button
@@ -566,7 +565,7 @@ const NewsGenerationDialog = ({ round, onClose }: NewsGenerationDialogProps) => 
                     Publicando...
                   </>
                 ) : (
-                  'Publicar ara'
+                  'Publicar'
                 )}
               </Button>
               <Button onClick={() => { setGeneratedNews(null); }} variant="ghost" size="sm">
