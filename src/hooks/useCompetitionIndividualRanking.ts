@@ -226,7 +226,15 @@ export function useCompetitionIndividualRanking(slugArg?: string) {
         discardedRoundIds: ranked.slice(bestN).map((x) => x.roundId),
       };
     });
-    scratch.sort((a, b) => b.total - a.total);
+    // Scratch: misma secuencia de desempate, con los resultados Scratch de cada jornada.
+    scratch.sort((a, b) =>
+      compareRankingWithTiebreak(
+        { total: a.total, roundsPlayed: a.roundsPlayed, scoreForRound: (rid) => a.pointsByRound[rid] },
+        { total: b.total, roundsPlayed: b.roundsPlayed, scoreForRound: (rid) => b.pointsByRound[rid] },
+        celebratedRoundIds
+      )
+    );
+
 
     return {
       hcpLow: build((p) => p.handicap != null && p.handicap <= categoryThreshold),
