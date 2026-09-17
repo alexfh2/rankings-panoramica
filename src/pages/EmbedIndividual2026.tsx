@@ -15,8 +15,8 @@ const EmbedIndividual2026 = () => (
     showScratch
     rules={individual2026Rules}
     officialPdfUrl={{
-      es: '/reglamentos/reglamento-om-individual-2026-es-v20260917.pdf',
-      en: '/reglamentos/competition-rules-individual-order-of-merit-2026-en-v20260917.pdf',
+      es: '/reglamentos/reglamento-om-individual-2026-es-v20260917b.pdf',
+      en: '/reglamentos/competition-rules-individual-order-of-merit-2026-en-v20260917b.pdf',
     }}
     showPlayersTab
     playersTabLabel="Jugadores"
