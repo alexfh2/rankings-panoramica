@@ -33,7 +33,26 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: corsHeaders });
     }
 
-    const { round_id, language, tone, sponsor, special_mention, weather_conditions } = await req.json();
+    const {
+      round_id,
+      language,
+      tone,
+      sponsor,
+      special_mention,
+      weather_conditions,
+      // La clasificación general llega YA calculada por el motor de la aplicación
+      // (puntuación, descartes, categorías y desempates aplicados). Aquí no se recalcula.
+      ranking_block,
+      ranking_includes_round,
+      is_final_round,
+    } = await req.json();
+
+    const rankingBlock =
+      typeof ranking_block === 'string' && ranking_block.trim()
+        ? ranking_block.trim()
+        : null;
+    const rankingIncludesRound = ranking_includes_round === true;
+    const isFinalRound = is_final_round === true;
 
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
