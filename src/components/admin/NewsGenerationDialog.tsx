@@ -1,12 +1,11 @@
 import { useState, useRef } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
@@ -56,19 +55,11 @@ const NewsGenerationDialog = ({ round, onClose }: NewsGenerationDialogProps) => 
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [uploadingImages, setUploadingImages] = useState(false);
+  // Id de la fila de `news` creada desde este flujo: evita duplicar la noticia
+  // cuando se guarda como borrador y después se publica.
+  const [savedNewsId, setSavedNewsId] = useState<string | null>(null);
+  const [uploadedImages, setUploadedImages] = useState<{ path: string; url: string }[] | null>(null);
 
-  const { data: existingDraft } = useQuery({
-    queryKey: ['news-draft', round.id, language],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from('news_drafts')
-        .select('*')
-        .eq('round_id', round.id)
-        .eq('language', language)
-        .maybeSingle();
-      return data;
-    },
-  });
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -93,10 +84,10 @@ const NewsGenerationDialog = ({ round, onClose }: NewsGenerationDialogProps) => 
     setImagePreviews(prev => prev.filter((_, i) => i !== index));
   };
 
-  const uploadImages = async (): Promise<string[]> => {
+  const uploadImages = async (): Promise<{ path: string; url: string }[]> => {
     if (imageFiles.length === 0) return [];
     setUploadingImages(true);
-    const urls: string[] = [];
+    const uploaded: { path: string; url: string }[] = [];
 
     try {
       for (const file of imageFiles) {
@@ -105,13 +96,14 @@ const NewsGenerationDialog = ({ round, onClose }: NewsGenerationDialogProps) => 
         const { error } = await supabase.storage.from('photos').upload(path, file);
         if (error) throw error;
         const { data: urlData } = supabase.storage.from('photos').getPublicUrl(path);
-        urls.push(urlData.publicUrl);
+        uploaded.push({ path, url: urlData.publicUrl });
       }
     } finally {
       setUploadingImages(false);
     }
-    return urls;
+    return uploaded;
   };
+
 
   const generateMutation = useMutation({
     mutationFn: async () => {
@@ -174,60 +166,88 @@ const NewsGenerationDialog = ({ round, onClose }: NewsGenerationDialogProps) => 
     },
   });
 
+  // Una sola lógica para borrador y publicación: solo cambia `published`.
   const saveMutation = useMutation({
     mutationFn: async (publish: boolean = false) => {
       if (!generatedNews) throw new Error('No hay noticia generada');
 
-      // Upload images first
-      const imageUrls = await uploadImages();
+      // Las imágenes se suben una única vez por sesión del diálogo.
+      let uploaded = uploadedImages;
+      if (uploaded === null) {
+        uploaded = await uploadImages();
+        setUploadedImages(uploaded);
 
-      // Save photos to photos table
-      if (imageUrls.length > 0) {
-        const photoPayloads = imageUrls.map((url, i) => ({
-          round_id: round.id,
-          type: 'news',
-          url,
-          category: 'news',
-          sort_order: i,
-        }));
-        const { error: photoError } = await supabase.from('photos').insert(photoPayloads);
-        if (photoError) throw photoError;
+        if (uploaded.length > 0) {
+          const photoPayloads = uploaded.map((img, i) => ({
+            round_id: round.id,
+            type: 'news',
+            url: img.url,
+            category: 'news',
+            sort_order: i,
+          }));
+          const { error: photoError } = await supabase.from('photos').insert(photoPayloads);
+          if (photoError) throw photoError;
+        }
       }
 
-      const payload: any = {
-        round_id: round.id,
-        language,
-        tone,
-        title: generatedNews.title,
-        subtitle: generatedNews.subtitle,
-        body: generatedNews.body,
-        highlights: generatedNews.highlights as any,
-        seo_excerpt: generatedNews.seo_excerpt,
-        special_mention: specialMention || null,
-        status: publish ? 'published' : 'draft',
-        published_at: publish ? new Date().toISOString() : null,
+      const bodyParts = [generatedNews.subtitle, generatedNews.body].filter(Boolean);
+      if (generatedNews.highlights?.length) {
+        bodyParts.push(generatedNews.highlights.map((h) => `• ${h}`).join('\n'));
+      }
+      const bodyText = bodyParts.join('\n\n');
+
+      const payload = {
+        date: round.date,
+        title: { es: generatedNews.title, en: '' },
+        body: { es: bodyText, en: '' },
+        published: publish,
+        ...(uploaded.length > 0 ? { image_url: uploaded[0].url } : {}),
       };
 
-      if (existingDraft) {
-        const { error } = await supabase.from('news_drafts').update(payload).eq('id', existingDraft.id);
+      let newsId = savedNewsId;
+      if (newsId) {
+        const { error } = await supabase.from('news').update(payload).eq('id', newsId);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('news_drafts').insert(payload);
+        const { data, error } = await supabase
+          .from('news')
+          .insert(payload)
+          .select('id')
+          .single();
         if (error) throw error;
+        newsId = (data as { id: string }).id;
+        setSavedNewsId(newsId);
+
+        // Galería reutilizando el CMS de Actualidad.
+        if (uploaded.length > 0) {
+          const { error: imgError } = await supabase.from('news_images').insert(
+            uploaded.map((img, i) => ({
+              news_id: newsId as string,
+              storage_path: img.path,
+              image_url: img.url,
+              sort: (i + 1) * 10,
+            })),
+          );
+          if (imgError) throw imgError;
+        }
       }
+
       return publish;
     },
     onSuccess: (published) => {
-      queryClient.invalidateQueries({ queryKey: ['news-draft'] });
       queryClient.invalidateQueries({ queryKey: ['admin-news'] });
-      queryClient.invalidateQueries({ queryKey: ['public-news'] });
-      toast({ title: published ? 'Noticia publicada' : 'Noticia guardada como borrador' });
+      queryClient.invalidateQueries({ queryKey: ['admin-news-images'] });
+      toast({
+        title: published ? 'Noticia publicada' : 'Noticia guardada como borrador',
+        description: 'Disponible en Actualidad para editarla o completar la versión en inglés.',
+      });
       if (published) onClose();
     },
     onError: (err: Error) => {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
     },
   });
+
 
 
 
@@ -438,11 +458,7 @@ const NewsGenerationDialog = ({ round, onClose }: NewsGenerationDialogProps) => 
               </div>
             </div>
 
-            {existingDraft && (
-              <Badge variant="outline" className="text-xs">
-                Ya existe un borrador en {language === 'ca' ? 'catalán' : 'castellano'} — se sobrescribirá
-              </Badge>
-            )}
+
 
             <Button
               onClick={() => generateMutation.mutate()}
@@ -535,7 +551,7 @@ const NewsGenerationDialog = ({ round, onClose }: NewsGenerationDialogProps) => 
                     {uploadingImages ? 'Subiendo imágenes...' : 'Guardando...'}
                   </>
                 ) : (
-                  `Guardar borrador${imageFiles.length > 0 ? ` (${imageFiles.length} foto${imageFiles.length > 1 ? 's' : ''})` : ''}`
+                  `Guardar como borrador${imageFiles.length > 0 ? ` (${imageFiles.length} foto${imageFiles.length > 1 ? 's' : ''})` : ''}`
                 )}
               </Button>
               <Button
@@ -549,7 +565,7 @@ const NewsGenerationDialog = ({ round, onClose }: NewsGenerationDialogProps) => 
                     Publicando...
                   </>
                 ) : (
-                  'Publicar ara'
+                  'Publicar'
                 )}
               </Button>
               <Button onClick={() => { setGeneratedNews(null); }} variant="ghost" size="sm">
