@@ -298,7 +298,7 @@ Devuelve EXCLUSIVAMENTE un JSON válido con este formato:
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: "Ets un redactor esportiu especialitzat en golf. Respon SEMPRE amb JSON vàlid, sense markdown." },
+          { role: "system", content: "Eres un redactor de prensa deportiva especializado en golf. Responde SIEMPRE con JSON válido, sin markdown." },
           { role: "user", content: prompt },
         ],
       }),
