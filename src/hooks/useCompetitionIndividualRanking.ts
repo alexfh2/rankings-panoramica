@@ -241,7 +241,7 @@ export function useCompetitionIndividualRanking(slugArg?: string) {
       hcpHigh: build((p) => p.handicap != null && p.handicap > categoryThreshold),
       scratch,
     };
-  }, [results, bestN, categoryThreshold, categoryHandicapMap]);
+  }, [results, bestN, categoryThreshold, categoryHandicapMap, celebratedRoundIds]);
 
   return {
     competition,
