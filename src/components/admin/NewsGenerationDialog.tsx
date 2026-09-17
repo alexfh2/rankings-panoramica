@@ -1,5 +1,12 @@
-import { useState, useRef } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useRef, useMemo } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCompetitionIndividualRanking } from '@/hooks/useCompetitionIndividualRanking';
+import { useCompetitionPairsRanking } from '@/hooks/useCompetitionPairsRanking';
+import {
+  buildIndividualNewsRankingCategories,
+  buildPairsNewsRankingCategories,
+  formatNewsRankingBlock,
+} from '@/lib/buildNewsRankingBlock';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,6 +66,78 @@ const NewsGenerationDialog = ({ round, onClose }: NewsGenerationDialogProps) => 
   // cuando se guarda como borrador y después se publica.
   const [savedNewsId, setSavedNewsId] = useState<string | null>(null);
   const [uploadedImages, setUploadedImages] = useState<{ path: string; url: string }[] | null>(null);
+
+  /**
+   * Clasificación general para la noticia: se reutiliza EL MISMO motor de la
+   * aplicación (useCompetitionIndividualRanking / useCompetitionPairsRanking →
+   * buildPairsRanking + rankingTiebreak). Aquí no se calcula nada: solo se
+   * formatea el resultado ya ordenado y se envía a la Edge Function.
+   */
+  const competitionQuery = useQuery({
+    queryKey: ['news-gen-competition', round.competition_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('competitions')
+        .select('id, slug, name, format')
+        .eq('id', round.competition_id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const competitionSlug = competitionQuery.data?.slug ?? '';
+  const isPairsCompetition = competitionQuery.data?.format === 'pairs';
+
+  const competitionRoundsQuery = useQuery({
+    queryKey: ['news-gen-rounds', round.competition_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('rounds')
+        .select('id, round_number, status')
+        .eq('competition_id', round.competition_id)
+        .order('round_number', { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const individualRanking = useCompetitionIndividualRanking(competitionSlug || undefined);
+  const pairsRanking = useCompetitionPairsRanking(isPairsCompetition ? competitionSlug : '');
+
+  /** Última prueba: por estructura del calendario (mayor round_number), nunca por el nombre. */
+  const isFinalRound = useMemo(() => {
+    const list = competitionRoundsQuery.data ?? [];
+    if (!list.length || round.round_number == null) return false;
+    const maxNumber = Math.max(...list.map((r) => r.round_number ?? 0));
+    return round.round_number === maxNumber;
+  }, [competitionRoundsQuery.data, round.round_number]);
+
+  const rankingPayload = useMemo(() => {
+    if (!competitionQuery.data) return null;
+    const categories = isPairsCompetition
+      ? buildPairsNewsRankingCategories(pairsRanking.ranking.rankings)
+      : buildIndividualNewsRankingCategories(individualRanking.rankings);
+    if (!categories.length) return null;
+    const includesThisRound = isPairsCompetition
+      ? pairsRanking.pairResults.some((r) => r.roundId === round.id)
+      : individualRanking.results.some((r) => r.round_id === round.id);
+    return {
+      isFinalRound,
+      includesThisRound,
+      block: formatNewsRankingBlock({ isFinalRound, includesThisRound, categories }),
+    };
+  }, [
+    competitionQuery.data,
+    isPairsCompetition,
+    pairsRanking.ranking,
+    pairsRanking.pairResults,
+    individualRanking.rankings,
+    individualRanking.results,
+    isFinalRound,
+    round.id,
+  ]);
+
 
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -139,6 +218,10 @@ const NewsGenerationDialog = ({ round, onClose }: NewsGenerationDialogProps) => 
           sponsor: confirmSponsor ? round.sponsor : null,
           special_mention: specialMention || null,
           weather_conditions,
+          // Clasificación general ya calculada por el motor de la aplicación.
+          ranking_block: rankingPayload?.block ?? null,
+          ranking_includes_round: rankingPayload?.includesThisRound ?? false,
+          is_final_round: isFinalRound,
         },
       });
       if (error) throw error;
@@ -459,6 +542,18 @@ const NewsGenerationDialog = ({ round, onClose }: NewsGenerationDialogProps) => 
             </div>
 
 
+
+            {tone === 'press' && (
+              <p className="text-[11px] text-muted-foreground">
+                {rankingPayload
+                  ? isFinalRound
+                    ? 'Se enviará la clasificación general final: la noticia se redactará como cierre de la competición.'
+                    : rankingPayload.includesThisRound
+                      ? 'Se enviará la clasificación general provisional después de esta jornada.'
+                      : 'Se enviará la clasificación general con las jornadas publicadas (esta jornada aún no está publicada).'
+                  : 'Sin clasificación general disponible: la noticia no hará afirmaciones sobre la general.'}
+              </p>
+            )}
 
             <Button
               onClick={() => generateMutation.mutate()}

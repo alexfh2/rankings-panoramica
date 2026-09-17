@@ -33,7 +33,26 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: corsHeaders });
     }
 
-    const { round_id, language, tone, sponsor, special_mention, weather_conditions } = await req.json();
+    const {
+      round_id,
+      language,
+      tone,
+      sponsor,
+      special_mention,
+      weather_conditions,
+      // La clasificación general llega YA calculada por el motor de la aplicación
+      // (puntuación, descartes, categorías y desempates aplicados). Aquí no se recalcula.
+      ranking_block,
+      ranking_includes_round,
+      is_final_round,
+    } = await req.json();
+
+    const rankingBlock =
+      typeof ranking_block === 'string' && ranking_block.trim()
+        ? ranking_block.trim()
+        : null;
+    const rankingIncludesRound = ranking_includes_round === true;
+    const isFinalRound = is_final_round === true;
 
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -226,6 +245,20 @@ Total participantes: ${results.length}`;
         ? `Se trata de una jornada de la ${competitionName}. Identifica expresamente la competición como "${competitionName}". No la llames Orden de Mérito ni ningún otro nombre.`
         : `Se trata de una jornada de la ${competitionName}. Habla de jugadores y clasificaciones individuales.`;
 
+    // Instrucciones editoriales sobre la general: dependen de si hay clasificación
+    // y de si la jornada es la última prueba del calendario de la competición.
+    const rankingGuidance = !rankingBlock
+      ? `NO se te proporcionan datos de la clasificación general: por tanto, no hagas ninguna afirmación sobre la general ni sobre su evolución.`
+      : isFinalRound
+        ? `La clasificación general proporcionada es DEFINITIVA. Trata la noticia como cierre de la competición: crónica de la última prueba y balance final.
+No llames "provisional" a una clasificación final.
+Distingue con claridad el RESULTADO DE LA ÚLTIMA PRUEBA de la CLASIFICACIÓN GENERAL FINAL: el ganador de la jornada final no es necesariamente el ganador de la general.
+Proclama como ganadores finales únicamente a quienes encabezan la clasificación general proporcionada, con sus puntos exactos.`
+        : `Incluye un párrafo sobre la clasificación general PROVISIONAL${rankingIncludesRound ? ' después de esta jornada' : ' con las jornadas publicadas hasta la fecha (todavía no incluye los resultados de esta jornada; indícalo con naturalidad o evita atribuirla a esta jornada)'}.
+Utiliza expresiones como "clasificación provisional" o "general provisional", y afirmaciones del tipo "lidera provisionalmente la clasificación con X puntos".
+NO afirmes movimientos respecto a jornadas anteriores (mantiene el liderato, sube, baja, recupera, recorta, amplía ventaja, pasa a liderar): no se te proporcionan datos comparativos con la situación anterior.
+Mantén claramente separados el resultado de la jornada y la clasificación general.`;
+
     const prompt = `Actúa como redactor de prensa deportiva especializado en golf.
 Redacta una crónica breve y rigurosa para la web de Panorámica Golf a partir exclusivamente de los datos proporcionados.
 Idioma de redacción: ${langLabel}. Escribe TODO el texto en ese idioma, sin mezclar idiomas.
@@ -241,9 +274,12 @@ ${competitionGuidance}
 El tono debe ser serio, deportivo, periodístico y elegante. Prioriza los hechos, resultados, ganadores y contexto competitivo.
 No utilices tono promocional ni grandilocuente, ni clichés vacíos, ni exceso de adjetivos.
 No inventes ningún dato que no aparezca en la información proporcionada.
-No inventes meteorología, ambiente, declaraciones, récords, remontadas, cambios de líder, participación, incidencias, próximos torneos ni consecuencias para la clasificación general.
-NO se te proporcionan datos de la clasificación general: por tanto, no hagas ninguna afirmación sobre la general ni sobre su evolución.
+No inventes meteorología, ambiente, declaraciones, récords, remontadas, cambios de líder, participación, incidencias ni próximos torneos.
+Utiliza exclusivamente los datos proporcionados. La clasificación general ya ha sido calculada por el sistema: NO recalcules puntos, descartes, categorías ni desempates, y no deduzcas posiciones a partir de los resultados de la jornada.
+${rankingGuidance}
+No inventes resultados, posiciones, puntos ni consecuencias deportivas.
 Menciona únicamente las categorías que aparezcan en los datos.
+ES ÚLTIMA PRUEBA DE LA COMPETICIÓN: ${isFinalRound ? 'SÍ' : 'NO'}
 
 DATOS DE LA JORNADA:
 - Jornada: ${round.name}${round.round_number ? ` (J${round.round_number})` : ''}
@@ -268,11 +304,13 @@ ${(() => {
 RESULTADOS DE LA JORNADA:
 ${resultsBlock}
 
+${rankingBlock ? `CLASIFICACIÓN GENERAL (calculada por el sistema; úsala tal cual):\n${rankingBlock}` : 'CLASIFICACIÓN GENERAL: no disponible.'}
+
 ESTRUCTURA SOLICITADA:
-- TITULAR informativo y específico, basado en el resultado. Evita titulares genéricos.
+- TITULAR informativo y específico, basado en el resultado${isFinalRound ? ' y en el cierre de la competición' : ''}. Evita titulares genéricos.
 - ENTRADILLA: un párrafo corto que identifique jornada y competición y resuma el principal resultado deportivo.
-- CUERPO: de 2 a 4 párrafos breves, destacando los resultados relevantes y separando categorías con naturalidad cuando proceda. Separa los párrafos con una línea en blanco.
-- CIERRE breve, que puede situar la jornada dentro de la competición, sin anunciar la siguiente cita si no se proporciona.
+- CUERPO: de 2 a 4 párrafos breves, destacando los resultados relevantes y separando categorías con naturalidad cuando proceda.${rankingBlock ? isFinalRound ? ' Dedica un párrafo específico a la clasificación general final y a sus ganadores, claramente diferenciado del resultado de la última prueba.' : ' Dedica un párrafo específico a la clasificación general provisional.' : ''} Separa los párrafos con una línea en blanco.
+- CIERRE breve${isFinalRound ? ', de balance de la competición ya concluida' : ', que puede situar la jornada dentro de la competición'}, sin anunciar la siguiente cita si no se proporciona.
 
 No incluyas emojis, hashtags ni texto promocional.
 
