@@ -218,6 +218,10 @@ const NewsGenerationDialog = ({ round, onClose }: NewsGenerationDialogProps) => 
           sponsor: confirmSponsor ? round.sponsor : null,
           special_mention: specialMention || null,
           weather_conditions,
+          // Clasificación general ya calculada por el motor de la aplicación.
+          ranking_block: rankingPayload?.block ?? null,
+          ranking_includes_round: rankingPayload?.includesThisRound ?? false,
+          is_final_round: isFinalRound,
         },
       });
       if (error) throw error;
