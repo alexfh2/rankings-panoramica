@@ -167,60 +167,88 @@ const NewsGenerationDialog = ({ round, onClose }: NewsGenerationDialogProps) => 
     },
   });
 
+  // Una sola lógica para borrador y publicación: solo cambia `published`.
   const saveMutation = useMutation({
     mutationFn: async (publish: boolean = false) => {
       if (!generatedNews) throw new Error('No hay noticia generada');
 
-      // Upload images first
-      const imageUrls = await uploadImages();
+      // Las imágenes se suben una única vez por sesión del diálogo.
+      let uploaded = uploadedImages;
+      if (uploaded === null) {
+        uploaded = await uploadImages();
+        setUploadedImages(uploaded);
 
-      // Save photos to photos table
-      if (imageUrls.length > 0) {
-        const photoPayloads = imageUrls.map((url, i) => ({
-          round_id: round.id,
-          type: 'news',
-          url,
-          category: 'news',
-          sort_order: i,
-        }));
-        const { error: photoError } = await supabase.from('photos').insert(photoPayloads);
-        if (photoError) throw photoError;
+        if (uploaded.length > 0) {
+          const photoPayloads = uploaded.map((img, i) => ({
+            round_id: round.id,
+            type: 'news',
+            url: img.url,
+            category: 'news',
+            sort_order: i,
+          }));
+          const { error: photoError } = await supabase.from('photos').insert(photoPayloads);
+          if (photoError) throw photoError;
+        }
       }
 
-      const payload: any = {
-        round_id: round.id,
-        language,
-        tone,
-        title: generatedNews.title,
-        subtitle: generatedNews.subtitle,
-        body: generatedNews.body,
-        highlights: generatedNews.highlights as any,
-        seo_excerpt: generatedNews.seo_excerpt,
-        special_mention: specialMention || null,
-        status: publish ? 'published' : 'draft',
-        published_at: publish ? new Date().toISOString() : null,
+      const bodyParts = [generatedNews.subtitle, generatedNews.body].filter(Boolean);
+      if (generatedNews.highlights?.length) {
+        bodyParts.push(generatedNews.highlights.map((h) => `• ${h}`).join('\n'));
+      }
+      const bodyText = bodyParts.join('\n\n');
+
+      const payload = {
+        date: round.date,
+        title: { es: generatedNews.title, en: '' },
+        body: { es: bodyText, en: '' },
+        published: publish,
+        ...(uploaded.length > 0 ? { image_url: uploaded[0].url } : {}),
       };
 
-      if (existingDraft) {
-        const { error } = await supabase.from('news_drafts').update(payload).eq('id', existingDraft.id);
+      let newsId = savedNewsId;
+      if (newsId) {
+        const { error } = await supabase.from('news').update(payload).eq('id', newsId);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('news_drafts').insert(payload);
+        const { data, error } = await supabase
+          .from('news')
+          .insert(payload)
+          .select('id')
+          .single();
         if (error) throw error;
+        newsId = (data as { id: string }).id;
+        setSavedNewsId(newsId);
+
+        // Galería reutilizando el CMS de Actualidad.
+        if (uploaded.length > 0) {
+          const { error: imgError } = await supabase.from('news_images').insert(
+            uploaded.map((img, i) => ({
+              news_id: newsId as string,
+              storage_path: img.path,
+              image_url: img.url,
+              sort: (i + 1) * 10,
+            })),
+          );
+          if (imgError) throw imgError;
+        }
       }
+
       return publish;
     },
     onSuccess: (published) => {
-      queryClient.invalidateQueries({ queryKey: ['news-draft'] });
       queryClient.invalidateQueries({ queryKey: ['admin-news'] });
-      queryClient.invalidateQueries({ queryKey: ['public-news'] });
-      toast({ title: published ? 'Noticia publicada' : 'Noticia guardada como borrador' });
+      queryClient.invalidateQueries({ queryKey: ['admin-news-images'] });
+      toast({
+        title: published ? 'Noticia publicada' : 'Noticia guardada como borrador',
+        description: 'Disponible en Actualidad para editarla o completar la versión en inglés.',
+      });
       if (published) onClose();
     },
     onError: (err: Error) => {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
     },
   });
+
 
 
 
