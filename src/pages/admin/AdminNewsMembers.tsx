@@ -26,7 +26,17 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, ArrowRight, Check, Loader2, Pencil, Plus, Trash2, Upload } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Languages,
+  Loader2,
+  Pencil,
+  Plus,
+  Trash2,
+  Upload,
+} from 'lucide-react';
 
 type Bilingual = { es?: string; en?: string };
 
