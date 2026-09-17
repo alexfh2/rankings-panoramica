@@ -245,6 +245,20 @@ Total participantes: ${results.length}`;
         ? `Se trata de una jornada de la ${competitionName}. Identifica expresamente la competición como "${competitionName}". No la llames Orden de Mérito ni ningún otro nombre.`
         : `Se trata de una jornada de la ${competitionName}. Habla de jugadores y clasificaciones individuales.`;
 
+    // Instrucciones editoriales sobre la general: dependen de si hay clasificación
+    // y de si la jornada es la última prueba del calendario de la competición.
+    const rankingGuidance = !rankingBlock
+      ? `NO se te proporcionan datos de la clasificación general: por tanto, no hagas ninguna afirmación sobre la general ni sobre su evolución.`
+      : isFinalRound
+        ? `La clasificación general proporcionada es DEFINITIVA. Trata la noticia como cierre de la competición: crónica de la última prueba y balance final.
+No llames "provisional" a una clasificación final.
+Distingue con claridad el RESULTADO DE LA ÚLTIMA PRUEBA de la CLASIFICACIÓN GENERAL FINAL: el ganador de la jornada final no es necesariamente el ganador de la general.
+Proclama como ganadores finales únicamente a quienes encabezan la clasificación general proporcionada, con sus puntos exactos.`
+        : `Incluye un párrafo sobre la clasificación general PROVISIONAL${rankingIncludesRound ? ' después de esta jornada' : ' con las jornadas publicadas hasta la fecha (todavía no incluye los resultados de esta jornada; indícalo con naturalidad o evita atribuirla a esta jornada)'}.
+Utiliza expresiones como "clasificación provisional" o "general provisional", y afirmaciones del tipo "lidera provisionalmente la clasificación con X puntos".
+NO afirmes movimientos respecto a jornadas anteriores (mantiene el liderato, sube, baja, recupera, recorta, amplía ventaja, pasa a liderar): no se te proporcionan datos comparativos con la situación anterior.
+Mantén claramente separados el resultado de la jornada y la clasificación general.`;
+
     const prompt = `Actúa como redactor de prensa deportiva especializado en golf.
 Redacta una crónica breve y rigurosa para la web de Panorámica Golf a partir exclusivamente de los datos proporcionados.
 Idioma de redacción: ${langLabel}. Escribe TODO el texto en ese idioma, sin mezclar idiomas.
