@@ -1,5 +1,12 @@
-import { useState, useRef } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useRef, useMemo } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCompetitionIndividualRanking } from '@/hooks/useCompetitionIndividualRanking';
+import { useCompetitionPairsRanking } from '@/hooks/useCompetitionPairsRanking';
+import {
+  buildIndividualNewsRankingCategories,
+  buildPairsNewsRankingCategories,
+  formatNewsRankingBlock,
+} from '@/lib/buildNewsRankingBlock';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
