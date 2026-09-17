@@ -274,9 +274,12 @@ ${competitionGuidance}
 El tono debe ser serio, deportivo, periodístico y elegante. Prioriza los hechos, resultados, ganadores y contexto competitivo.
 No utilices tono promocional ni grandilocuente, ni clichés vacíos, ni exceso de adjetivos.
 No inventes ningún dato que no aparezca en la información proporcionada.
-No inventes meteorología, ambiente, declaraciones, récords, remontadas, cambios de líder, participación, incidencias, próximos torneos ni consecuencias para la clasificación general.
-NO se te proporcionan datos de la clasificación general: por tanto, no hagas ninguna afirmación sobre la general ni sobre su evolución.
+No inventes meteorología, ambiente, declaraciones, récords, remontadas, cambios de líder, participación, incidencias ni próximos torneos.
+Utiliza exclusivamente los datos proporcionados. La clasificación general ya ha sido calculada por el sistema: NO recalcules puntos, descartes, categorías ni desempates, y no deduzcas posiciones a partir de los resultados de la jornada.
+${rankingGuidance}
+No inventes resultados, posiciones, puntos ni consecuencias deportivas.
 Menciona únicamente las categorías que aparezcan en los datos.
+ES ÚLTIMA PRUEBA DE LA COMPETICIÓN: ${isFinalRound ? 'SÍ' : 'NO'}
 
 DATOS DE LA JORNADA:
 - Jornada: ${round.name}${round.round_number ? ` (J${round.round_number})` : ''}
