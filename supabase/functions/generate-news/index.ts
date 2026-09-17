@@ -41,10 +41,23 @@ serve(async (req) => {
     // Fetch round data
     const { data: round, error: roundError } = await supabase
       .from("rounds")
-      .select("*")
+      .select("*, competitions(id, slug, name, format)")
       .eq("id", round_id)
       .single();
     if (roundError) throw roundError;
+
+    // --- Competition identity (from the round's structured competition_id) ---
+    const competition: any = (round as any).competitions || null;
+    const competitionSlug: string = competition?.slug || '';
+    const EDITORIAL_NAMES: Record<string, string> = {
+      'individual-2026': 'Orden de Mérito Individual',
+      'parejas-2026': 'Orden de Mérito de Parejas',
+      'verano-2026': 'Liga de Verano',
+    };
+    const competitionName =
+      EDITORIAL_NAMES[competitionSlug] || competition?.name || 'competición';
+    const isPairs = competition?.format === 'pairs';
+
 
     // Fetch results for THIS round with player info
     const { data: results, error: resultsError } = await supabase
@@ -136,99 +149,142 @@ serve(async (req) => {
       });
     }
 
-    const langLabel = language === 'ca' ? 'català' : 'castellà';
-    const toneLabel = tone === 'press' 
-      ? 'nota de premsa esportiva, formal i professional' 
-      : 'engrescador per xarxes socials (WhatsApp/Instagram), amb emojis i to proper';
+    // --- Pairs data (only for pairs competitions) ---
+    let pairsBlock = '';
+    let pairsCount = 0;
+    if (isPairs) {
+      const { data: pairResults } = await supabase
+        .from("pair_results")
+        .select("net_points, position, pairs(fixed_category, player_1_id, player_2_id)")
+        .eq("round_id", round_id)
+        .order("net_points", { ascending: false });
 
-    const prompt = `Genera una notícia esportiva de golf en ${langLabel} amb to de ${toneLabel}.
-IMPORTANT: La competició és en modalitat STABLEFORD. NO mencionis resultats scratch ni cops totals. Tots els resultats són en punts Stableford.
-El circuit és el "Gastronòmic Golf Experience" — un circuit de golf amb gastronomia i grans premis.
+      const rows = (pairResults || []) as any[];
+      pairsCount = rows.length;
 
-TEXT DE REFERÈNCIA D'ESTIL (adapta'l al golf i al Gastronòmic Golf Experience):
----
-Després de [X] intenses jornades, la classificació s'està consolidant i ja es perfilen els jugadors que lluitaran pel podi aquesta temporada.
+      const playerIds = Array.from(
+        new Set(rows.flatMap((r: any) => [r.pairs?.player_1_id, r.pairs?.player_2_id]).filter(Boolean))
+      );
+      const nameById = new Map<string, string>();
+      if (playerIds.length) {
+        const { data: playerRows } = await supabase
+          .from("players")
+          .select("id, name")
+          .in("id", playerIds);
+        for (const p of (playerRows || []) as any[]) nameById.set(p.id, p.name);
+      }
 
-Hàndicap Baix: la batalla dels millors!
-La competició no pot estar més ajustada. [Descripció del líder i perseguidors]
+      const label = (c: string) =>
+        c === 'hcp_low' ? 'CATEGORÍA HÁNDICAP BAJO' : c === 'hcp_high' ? 'CATEGORÍA HÁNDICAP ALTO' : `CATEGORÍA ${c}`;
+      const pairName = (r: any) =>
+        `${nameById.get(r.pairs?.player_1_id) || '?'} / ${nameById.get(r.pairs?.player_2_id) || '?'}`;
 
-1. [Nom] encapçala amb [X] pts, mostrant una regularitat impressionant.
-2. Molt a prop, [Nom] amb [X] pts.
-3. La tercera posició és per a [Nom] amb [X] pts.
+      const groups = new Map<string, any[]>();
+      for (const r of rows) {
+        const cat = r.pairs?.fixed_category || 'sin_categoria';
+        if (!groups.has(cat)) groups.set(cat, []);
+        groups.get(cat)!.push(r);
+      }
+      const sections: string[] = [];
+      for (const [cat, list] of groups.entries()) {
+        sections.push(
+          `${label(cat)} — ${list.length} parejas:\n` +
+            list
+              .slice(0, 3)
+              .map((r, i) => `${i + 1}. ${pairName(r)} — ${r.net_points} pts`)
+              .join('\n')
+        );
+      }
+      pairsBlock = sections.join('\n\n');
+    }
 
-TOP 10:
-[Llistat]
+    const langLabel = language === 'ca' ? 'català' : 'castellano';
 
-Hàndicap Alt: els qui millor dominen el camp!
-[Mateixa estructura]
+    const resultsBlock = isPairs
+      ? `${pairsBlock || 'Sin resultados de parejas disponibles.'}
 
-Classificació Femenina:
-[Mateixa estructura amb top 3]
+Total parejas participantes: ${pairsCount}`
+      : `CLASIFICACIÓN HÁNDICAP BAJO (≤15.0) — ${hcpLow.length} jugadores:
+${hcpLow.slice(0, 3).map((r: any, i: number) => `${i + 1}. ${r.players?.name} — ${r.stableford_points} pts (Hcp ${r.handicap_at_round})`).join('\n')}
 
-Classificació Sènior (+65):
-[Mateixa estructura amb top 3]
+CLASIFICACIÓN HÁNDICAP ALTO (15.1–36.0) — ${hcpHigh.length} jugadores:
+${hcpHigh.slice(0, 3).map((r: any, i: number) => `${i + 1}. ${r.players?.name} — ${r.stableford_points} pts (Hcp ${r.handicap_at_round})`).join('\n')}
 
-[Si hi ha actuacions destacades: birdies, hole-in-ones, etc.]
+${females.length > 0 ? `CLASIFICACIÓN FEMENINA — ${females.length} jugadoras:\n1. ${females[0].players?.name} — ${females[0].stableford_points} pts (Hcp ${females[0].handicap_at_round})` : ''}
+${seniors.length > 0 ? `CLASIFICACIÓN SÉNIOR (+65) — ${seniors.length} jugadores:\n1. ${seniors[0].players?.name} — ${seniors[0].stableford_points} pts (Hcp ${seniors[0].handicap_at_round})` : ''}
+${notablePerformances ? `ACTUACIONES DESTACADAS (birdies): ${notablePerformances}` : ''}
 
-Per a més detalls i classificacions actualitzades, visiteu la nostra web.
----
+Total participantes: ${results.length}`;
 
-DADES DE LA JORNADA:
-- Jornada: ${round.name} (J${round.round_number})
+    const modalityLine = isPairs
+      ? 'Modalidad: Fourball Stableford por parejas. Todos los resultados son puntos Stableford de la pareja. No menciones resultados scratch ni golpes totales.'
+      : 'Modalidad: Stableford individual. Todos los resultados son puntos Stableford. No menciones resultados scratch ni golpes totales.';
+
+    const competitionGuidance = isPairs
+      ? `Se trata de una jornada de la ${competitionName}. Redacta la crónica tratando a la pareja como unidad competitiva: los protagonistas son las parejas, no los jugadores por separado. No la redactes como una competición individual.`
+      : competitionSlug === 'verano-2026'
+        ? `Se trata de una jornada de la ${competitionName}. Identifica expresamente la competición como "${competitionName}". No la llames Orden de Mérito ni ningún otro nombre.`
+        : `Se trata de una jornada de la ${competitionName}. Habla de jugadores y clasificaciones individuales.`;
+
+    const prompt = `Actúa como redactor de prensa deportiva especializado en golf.
+Redacta una crónica breve y rigurosa para la web de Panorámica Golf a partir exclusivamente de los datos proporcionados.
+Idioma de redacción: ${langLabel}. Escribe TODO el texto en ese idioma, sin mezclar idiomas.
+
+Competición: ${competitionName}
+Jornada: ${round.name}${round.round_number ? ` (J${round.round_number})` : ''}
+Fecha: ${round.date}
+
+Utiliza siempre el nombre correcto de la competición proporcionado.
+${modalityLine}
+${competitionGuidance}
+
+El tono debe ser serio, deportivo, periodístico y elegante. Prioriza los hechos, resultados, ganadores y contexto competitivo.
+No utilices tono promocional ni grandilocuente, ni clichés vacíos, ni exceso de adjetivos.
+No inventes ningún dato que no aparezca en la información proporcionada.
+No inventes meteorología, ambiente, declaraciones, récords, remontadas, cambios de líder, participación, incidencias, próximos torneos ni consecuencias para la clasificación general.
+NO se te proporcionan datos de la clasificación general: por tanto, no hagas ninguna afirmación sobre la general ni sobre su evolución.
+Menciona únicamente las categorías que aparezcan en los datos.
+
+DATOS DE LA JORNADA:
+- Jornada: ${round.name}${round.round_number ? ` (J${round.round_number})` : ''}
 - Temporada: ${season?.year || 'N/A'}
 - Club: ${round.club || 'N/A'}
-- Camp: ${round.course || 'N/A'}
-- Data: ${round.date}
-- Patrocinador: ${sponsor || 'cap'}
-${round.is_master ? '- JORNADA MASTER (punts x1.25)' : ''}
-${special_mention ? `- Menció especial: ${special_mention}` : ''}
+- Campo: ${round.course || 'N/A'}
+- Fecha: ${round.date}
+${sponsor ? `- Patrocinador: ${sponsor}` : ''}
+${round.is_master ? '- Jornada MASTER (puntos x1.25)' : ''}
+${special_mention ? `- Mención especial: ${special_mention}` : ''}
 ${(() => {
   const w = weather_conditions || {};
   const lines: string[] = [];
-  if (w.friday) lines.push(`  · Divendres: ${w.friday}`);
-  if (w.saturday) lines.push(`  · Dissabte: ${w.saturday}`);
-  if (w.sunday) lines.push(`  · Diumenge: ${w.sunday}`);
-  if (w.green_speed) lines.push(`  · Velocitat dels greens: ${w.green_speed}`);
-  if (w.wind) lines.push(`  · Vent: ${w.wind}`);
-  return lines.length ? `- Condicions meteorològiques i del camp:\n${lines.join('\n')}` : '';
+  if (w.friday) lines.push(`  · Viernes: ${w.friday}`);
+  if (w.saturday) lines.push(`  · Sábado: ${w.saturday}`);
+  if (w.sunday) lines.push(`  · Domingo: ${w.sunday}`);
+  if (w.green_speed) lines.push(`  · Velocidad de los greens: ${w.green_speed}`);
+  if (w.wind) lines.push(`  · Viento: ${w.wind}`);
+  return lines.length ? `- Condiciones facilitadas por la organización (solo estas; no añadas otras):\n${lines.join('\n')}` : '';
 })()}
 
-CLASSIFICACIÓ HANDICAP BAIX (≤15.0) — ${hcpLow.length} jugadors:
-${hcpLow.slice(0, 3).map((r: any, i: number) => `${i + 1}. ${r.players?.name} — ${r.stableford_points} pts (Hcp ${r.handicap_at_round})`).join('\n')}
+RESULTADOS DE LA JORNADA:
+${resultsBlock}
 
-CLASSIFICACIÓ HANDICAP ALT (15.1–36.0) — ${hcpHigh.length} jugadors:
-${hcpHigh.slice(0, 3).map((r: any, i: number) => `${i + 1}. ${r.players?.name} — ${r.stableford_points} pts (Hcp ${r.handicap_at_round})`).join('\n')}
+ESTRUCTURA SOLICITADA:
+- TITULAR informativo y específico, basado en el resultado. Evita titulares genéricos.
+- ENTRADILLA: un párrafo corto que identifique jornada y competición y resuma el principal resultado deportivo.
+- CUERPO: de 2 a 4 párrafos breves, destacando los resultados relevantes y separando categorías con naturalidad cuando proceda. Separa los párrafos con una línea en blanco.
+- CIERRE breve, que puede situar la jornada dentro de la competición, sin anunciar la siguiente cita si no se proporciona.
 
-${females.length > 0 ? `CLASSIFICACIÓ FEMENINA — ${females.length} jugadores:\n1. ${females[0].players?.name} — ${females[0].stableford_points} pts (Hcp ${females[0].handicap_at_round})` : ''}
-${seniors.length > 0 ? `CLASSIFICACIÓ SÈNIOR (+65) — ${seniors.length} jugadors:\n1. ${seniors[0].players?.name} — ${seniors[0].stableford_points} pts (Hcp ${seniors[0].handicap_at_round})` : ''}
-${notablePerformances ? `ACTUACIONS DESTACADES: ${notablePerformances}` : ''}
+No incluyas emojis, hashtags ni texto promocional.
 
-Total participants: ${results.length}
-
-INSTRUCCIONS:
-- ABSOLUTAMENT CAP EMOJI. Ni un sol emoji en tot el text. Això és una nota de premsa professional per enviar a diaris i mitjans de comunicació.
-- To formal, sobri i periodístic. Sense exclamacions excessives.
-- Segueix l'estructura: introducció, després cada categoria amb descripció + top 3 (Hcp Baix i Alt) o guanyador/a (Femenina i Sènior)
-- Per a Hàndicap Baix i Hàndicap Alt: inclou els 3 primers classificats amb comentaris personalitzats
-- Per a Femenina i Sènior: menciona NOMÉS el/la guanyador/a
-- OBLIGATORI: inclou SEMPRE les 4 categories si hi ha dades: Hàndicap Baix, Hàndicap Alt, Femenina i Sènior
-- Separa cada secció/categoria amb una línia en blanc per facilitar la lectura
-- NO mencionIs resultats scratch ni cops totals
-- Si s'han proporcionat condicions meteorològiques, velocitat de greens o vent, integra-les amb naturalitat a la narració quan siguin rellevants (especialment si han estat dures: pluja, vent fort, greens molt ràpids, calor, etc.). Si són condicions normals, pots ometre-les o mencionar-les breument. No facis una secció separada de meteorologia.
-- Genera un títol atractiu
-- Un subtítol complementari
-- Un cos complet amb la narració per categories
-- 3-5 highlights (frases curtes de destacats)
-- Un extracte SEO de màxim 160 caràcters
-
-Retorna EXCLUSIVAMENT un JSON vàlid amb aquest format:
+Devuelve EXCLUSIVAMENTE un JSON válido con este formato:
 {
-  "title": "...",
-  "subtitle": "...",
-  "body": "...",
-  "highlights": ["...", "..."],
-  "seo_excerpt": "..."
+  "title": "titular",
+  "subtitle": "entradilla en una frase",
+  "body": "cuerpo de la noticia con el cierre incluido",
+  "highlights": ["dato destacado", "dato destacado"],
+  "seo_excerpt": "resumen de máximo 160 caracteres"
 }`;
+
 
     const lovableApiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!lovableApiKey) throw new Error("LOVABLE_API_KEY not configured");
@@ -242,7 +298,7 @@ Retorna EXCLUSIVAMENT un JSON vàlid amb aquest format:
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: "Ets un redactor esportiu especialitzat en golf. Respon SEMPRE amb JSON vàlid, sense markdown." },
+          { role: "system", content: "Eres un redactor de prensa deportiva especializado en golf. Responde SIEMPRE con JSON válido, sin markdown." },
           { role: "user", content: prompt },
         ],
       }),
