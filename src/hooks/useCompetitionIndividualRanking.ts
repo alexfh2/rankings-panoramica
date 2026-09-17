@@ -9,6 +9,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { fetchPublicCircuitData, publicCircuitDataQueryKey, type PublicResult } from '@/lib/publicCircuitData';
 import { buildPlayerCategoryHandicapMap, buildPlayerLastHandicapMap } from '@/lib/playerCategoryHandicap';
 import { computeScratchStableford } from '@/lib/scratchStableford';
+import { compareRankingWithTiebreak } from '@/lib/rankingTiebreak';
+
 
 export const DEFAULT_BEST_N = 8;
 export const DEFAULT_CATEGORY_THRESHOLD = 15.0;
@@ -104,6 +106,18 @@ export function useCompetitionIndividualRanking(slugArg?: string) {
     [results]
   );
 
+  /**
+   * Jornadas celebradas/publicadas en orden cronológico oficial (round_number asc).
+   * Base del desempate: última jornada → pruebas disputadas → jornadas anteriores.
+   */
+  const celebratedRoundIds = useMemo(() => {
+    const played = new Set(results.map((r) => r.round_id));
+    return (rounds ?? [])
+      .filter((r) => r.status === 'published' || played.has(r.id))
+      .map((r) => r.id);
+  }, [rounds, results]);
+
+
   const rankings = useMemo<CompetitionRankings>(() => {
     const empty: CompetitionRankings = { hcpLow: [], hcpHigh: [], scratch: [] };
     if (!results.length) return empty;
@@ -137,12 +151,19 @@ export function useCompetitionIndividualRanking(slugArg?: string) {
 
     const build = (filterFn: (p: { handicap: number | null }) => boolean): CompetitionRankedPlayer[] => {
       const list: CompetitionRankedPlayer[] = [];
+      // Puntos ponderados por jornada (mismo valor que suma al total) para el desempate.
+      const weightedByRound = new Map<string, Record<string, number>>();
       for (const [id, p] of byPlayer.entries()) {
         if (!filterFn(p)) continue;
         const ranked = [...p.scores].sort((a, b) => b.weighted - a.weighted);
         const sorted = ranked.slice(0, bestN);
         const pointsByRound: Record<string, number> = {};
-        for (const s2 of p.scores) pointsByRound[s2.roundId] = s2.points;
+        const weighted: Record<string, number> = {};
+        for (const s2 of p.scores) {
+          pointsByRound[s2.roundId] = s2.points;
+          weighted[s2.roundId] = s2.weighted;
+        }
+        weightedByRound.set(id, weighted);
         list.push({
           id,
           name: p.name,
@@ -155,16 +176,17 @@ export function useCompetitionIndividualRanking(slugArg?: string) {
           discardedRoundIds: ranked.slice(bestN).map((x) => x.roundId),
         });
       }
-      // Empate → gana el hándicap más bajo (mismo criterio que prueba a prueba).
-      list.sort((a, b) => {
-        if (b.total !== a.total) return b.total - a.total;
-        const ah = a.displayHandicap ?? a.handicap ?? Infinity;
-        const bh = b.displayHandicap ?? b.handicap ?? Infinity;
-        if (ah !== bh) return ah - bh;
-        return a.name.localeCompare(b.name);
-      });
+      // Desempate oficial 2026: última jornada celebrada → pruebas disputadas → anteriores.
+      list.sort((a, b) =>
+        compareRankingWithTiebreak(
+          { total: a.total, roundsPlayed: a.roundsPlayed, scoreForRound: (rid) => weightedByRound.get(a.id)?.[rid] },
+          { total: b.total, roundsPlayed: b.roundsPlayed, scoreForRound: (rid) => weightedByRound.get(b.id)?.[rid] },
+          celebratedRoundIds
+        )
+      );
       return list;
     };
+
 
     // Scratch (misma fórmula que /ranquings)
     const scratchByPlayer = new Map<string, { name: string; handicap: number | null; displayHandicap: number | null; scores: { roundId: string; points: number }[] }>();
@@ -204,14 +226,22 @@ export function useCompetitionIndividualRanking(slugArg?: string) {
         discardedRoundIds: ranked.slice(bestN).map((x) => x.roundId),
       };
     });
-    scratch.sort((a, b) => b.total - a.total);
+    // Scratch: misma secuencia de desempate, con los resultados Scratch de cada jornada.
+    scratch.sort((a, b) =>
+      compareRankingWithTiebreak(
+        { total: a.total, roundsPlayed: a.roundsPlayed, scoreForRound: (rid) => a.pointsByRound[rid] },
+        { total: b.total, roundsPlayed: b.roundsPlayed, scoreForRound: (rid) => b.pointsByRound[rid] },
+        celebratedRoundIds
+      )
+    );
+
 
     return {
       hcpLow: build((p) => p.handicap != null && p.handicap <= categoryThreshold),
       hcpHigh: build((p) => p.handicap != null && p.handicap > categoryThreshold),
       scratch,
     };
-  }, [results, bestN, categoryThreshold, categoryHandicapMap]);
+  }, [results, bestN, categoryThreshold, categoryHandicapMap, celebratedRoundIds]);
 
   return {
     competition,

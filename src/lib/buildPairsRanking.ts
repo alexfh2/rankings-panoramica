@@ -4,6 +4,8 @@
  * El Net oficial (pair_results.net_points) es siempre la fuente de verdad.
  */
 import { formatPlayerDisplayName } from '@/lib/formatPlayerDisplayName';
+import { compareRankingWithTiebreak } from '@/lib/rankingTiebreak';
+
 
 export type PairCategory = 'hcp_low' | 'hcp_high';
 
@@ -190,18 +192,29 @@ export function buildPairsRanking(input: PairsRankingInput): PairsRankingOutput 
     });
   }
 
-  const compare = (a: PairRankingRow, b: PairRankingRow): number => {
-    if (b.total !== a.total) return b.total - a.total;
-    if (b.roundsPlayed !== a.roundsPlayed) return b.roundsPlayed - a.roundsPlayed;
-    if (b.lastThreeNet !== a.lastThreeNet) return b.lastThreeNet - a.lastThreeNet;
-    const ah = a.initialPairHandicap ?? Number.POSITIVE_INFINITY;
-    const bh = b.initialPairHandicap ?? Number.POSITIVE_INFINITY;
-    if (ah !== bh) return ah - bh;
-    return a.pairKey.localeCompare(b.pairKey);
-  };
+  /**
+   * Desempate oficial 2026: TOTAL → última jornada celebrada → pruebas disputadas
+   * → jornadas anteriores sucesivamente → empate real (0, decide el Comité).
+   * Solo jornadas celebradas/publicadas (publicadas o con algún resultado registrado).
+   */
+  const playedRoundIds = new Set<string>();
+  for (const row of rows) {
+    for (const id of Object.keys(row.scoresByRoundId)) playedRoundIds.add(id);
+  }
+  const tiebreakRoundIds = columns
+    .filter((c) => c.isPublished || playedRoundIds.has(c.id))
+    .map((c) => c.id);
+
+  const compare = (a: PairRankingRow, b: PairRankingRow): number =>
+    compareRankingWithTiebreak(
+      { total: a.total, roundsPlayed: a.roundsPlayed, scoreForRound: (id) => a.scoresByRoundId[id]?.netPoints },
+      { total: b.total, roundsPlayed: b.roundsPlayed, scoreForRound: (id) => b.scoresByRoundId[id]?.netPoints },
+      tiebreakRoundIds
+    );
 
   const hcpLow = rows.filter((r) => r.category === 'hcp_low').sort(compare);
   const hcpHigh = rows.filter((r) => r.category === 'hcp_high').sort(compare);
+
 
   const rowsByPairId = new Map<string, PairRankingRow>();
   for (const row of rows) rowsByPairId.set(row.pairId, row);
