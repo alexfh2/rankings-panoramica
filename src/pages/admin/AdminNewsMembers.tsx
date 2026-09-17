@@ -719,6 +719,32 @@ const AdminNewsMembers = () => {
         </DialogContent>
       </Dialog>
 
+      <AlertDialog
+        open={confirmTranslate}
+        onOpenChange={(open) => !open && setConfirmTranslate(false)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Ya existe contenido en inglés</AlertDialogTitle>
+            <AlertDialogDescription>
+              Si continúas, la traducción actual será sustituida. ¿Quieres continuar?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                setConfirmTranslate(false);
+                void runTranslation();
+              }}
+            >
+              Continuar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
