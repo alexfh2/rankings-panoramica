@@ -158,10 +158,10 @@ export const individual2026Rules: CompetitionRulesCollection = {
       },
       {
         id: 'empates',
-        title: 'Empates en la general',
+        title: 'Empates en la clasificación general',
         defaultOpen: true,
         content: [
-          'Decide el mejor resultado de la última prueba disputada y, si persiste, se comparan las pruebas anteriores de forma sucesiva.',
+          'En caso de empate a puntos, decidirá el mejor resultado obtenido en la última prueba disputada del circuito. Si persiste el empate, prevalecerá el jugador que haya disputado un mayor número de pruebas. De mantenerse el empate, se compararán sucesivamente los resultados de las pruebas anteriores, comenzando por la inmediatamente anterior. Si aun así persistiera el empate, resolverá el Comité de Competición.',
         ],
       },
       {
@@ -230,7 +230,7 @@ export const individual2026Rules: CompetitionRulesCollection = {
         title: 'Ties in the overall standings',
         defaultOpen: true,
         content: [
-          'Decided on the best result in the most recent event played and, if still level, by comparing earlier events in turn.',
+          'In the event of a tie on points, the better result in the most recent event of the circuit will prevail. If the tie remains, the player who has played more events will rank ahead. If still tied, results from previous events will be compared successively, starting with the immediately preceding event. If the tie still cannot be resolved, the Competition Committee will decide.',
         ],
       },
       {
@@ -308,10 +308,10 @@ export const pairs2026Rules: CompetitionRulesCollection = {
       },
       {
         id: 'empates',
-        title: 'Empates en la general',
+        title: 'Empates en la clasificación general',
         defaultOpen: true,
         content: [
-          'Decide el mejor resultado de la última prueba disputada y, si persiste, se comparan sucesivamente las anteriores.',
+          'En caso de empate a puntos, decidirá el mejor resultado obtenido en la última prueba disputada del circuito. Si persiste el empate, prevalecerá la pareja que haya disputado un mayor número de pruebas. De mantenerse el empate, se compararán sucesivamente los resultados de las pruebas anteriores, comenzando por la inmediatamente anterior. Si aun así persistiera el empate, resolverá el Comité de Competición.',
         ],
       },
       {
@@ -387,7 +387,7 @@ export const pairs2026Rules: CompetitionRulesCollection = {
         title: 'Ties in the overall standings',
         defaultOpen: true,
         content: [
-          'Decided on the best result in the most recent event played and, if still level, by comparing earlier events in turn.',
+          'In the event of a tie on points, the better result in the most recent event of the circuit will prevail. If the tie remains, the pair who has played more events will rank ahead. If still tied, results from previous events will be compared successively, starting with the immediately preceding event. If the tie still cannot be resolved, the Competition Committee will decide.',
         ],
       },
       {

@@ -10,8 +10,8 @@ const EmbedParejas2026 = () => (
     competitionSlug="parejas-2026"
     rules={pairs2026Rules}
     officialPdfUrl={{
-      es: '/reglamentos/reglamento-orden-merito-parejas-2026-es-v20260917.pdf',
-      en: '/reglamentos/competition-rules-pairs-order-of-merit-2026-en-v20260917.pdf',
+      es: '/reglamentos/reglamento-orden-merito-parejas-2026-es-v20260917b.pdf',
+      en: '/reglamentos/competition-rules-pairs-order-of-merit-2026-en-v20260917b.pdf',
     }}
     regulationLabel={{ es: 'REGLAMENTO', en: 'COMPETITION RULES' }}
     regulationAriaLabel={{
