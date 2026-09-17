@@ -3,13 +3,24 @@
  * Solo lectura. El Net oficial de pair_results alimenta siempre la clasificación.
  */
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { usePanoramicaEmbedShell } from '@/hooks/usePanoramicaEmbedShell';
 import { useCompetitionPairsRanking } from '@/hooks/useCompetitionPairsRanking';
 import PairProfileDialog from '@/components/embed/PairProfileDialog';
 import PairScorecardBlock from '@/components/embed/PairScorecardBlock';
 import PairsCompetitionStats from '@/components/embed/PairsCompetitionStats';
 import CompetitionPairsDirectory from '@/components/embed/CompetitionPairsDirectory';
+import CompetitionRulesDialog from '@/components/embed/CompetitionRulesDialog';
 import EmbedMobileSectionSelector from '@/components/embed/EmbedMobileSectionSelector';
+import {
+  resolveCompetitionRules,
+  resolveCompetitionRulesPdfUrl,
+  resolveLocalizedRulesText,
+  type CompetitionRulesLocale,
+  type CompetitionRulesPdfUrl,
+  type CompetitionRulesSource,
+  type LocalizedRulesText,
+} from '@/data/competitionRules';
 import type { PairRankingRow } from '@/lib/buildPairsRanking';
 import '@/styles/embed-panoramica.css';
 import '@/styles/embed-pairs.css';
@@ -42,13 +53,49 @@ export type EmbedPairsCompetitionViewProps = {
   competitionSlug: string;
   includeUnpublished?: boolean;
   previewMode?: boolean;
+  rules?: CompetitionRulesSource;
+  officialPdfUrl?: CompetitionRulesPdfUrl;
+  regulationLabel?: LocalizedRulesText;
+  regulationAriaLabel?: LocalizedRulesText;
 };
 
 const EmbedPairsCompetitionView = ({
   competitionSlug,
   includeUnpublished = false,
   previewMode = false,
+  rules,
+  officialPdfUrl,
+  regulationLabel = { es: 'REGLAMENTO', en: 'COMPETITION RULES' },
+  regulationAriaLabel,
 }: EmbedPairsCompetitionViewProps) => {
+  const { i18n } = useTranslation();
+  const rulesLocale: CompetitionRulesLocale = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requested = (params.get('lang') ?? params.get('locale') ?? params.get('language') ?? '').toLowerCase();
+    if (requested.startsWith('en')) return 'en';
+    if (i18n.language?.toLowerCase().startsWith('en')) return 'en';
+    return 'es';
+  }, [i18n.language]);
+
+  const localizedRules = useMemo(
+    () => (rules ? resolveCompetitionRules(rules, rulesLocale) : undefined),
+    [rules, rulesLocale]
+  );
+  const localizedPdfUrl = useMemo(
+    () => resolveCompetitionRulesPdfUrl(officialPdfUrl, rulesLocale),
+    [officialPdfUrl, rulesLocale]
+  );
+  const localizedRegulationLabel = resolveLocalizedRulesText(regulationLabel, rulesLocale, 'REGLAMENTO');
+  const localizedRegulationAriaLabel = resolveLocalizedRulesText(
+    regulationAriaLabel,
+    rulesLocale,
+    localizedRegulationLabel
+  );
+  const localizedPdfLabel = rulesLocale === 'en' ? 'View official PDF' : 'Consultar PDF oficial';
+  const localizedDiscrepancyNote =
+    rulesLocale === 'en'
+      ? 'In case of discrepancy, the official rules approved by the Competition Committee shall prevail.'
+      : 'En caso de discrepancia, prevalece el reglamento oficial aprobado por el Comité de Competición.';
   const {
     rounds,
     roundsById,
@@ -66,6 +113,7 @@ const EmbedPairsCompetitionView = ({
   const { ref: embedRootRef, scrollToTop } = usePanoramicaEmbedShell();
   const [openRound, setOpenRound] = useState<string | null>(null);
   const [openResult, setOpenResult] = useState<string | null>(null);
+  const [rulesOpen, setRulesOpen] = useState(false);
 
   const columns = ranking.columns;
   const gridStyle = { '--pano-round-count': columns.length || 1 } as React.CSSProperties;
@@ -392,6 +440,16 @@ const EmbedPairsCompetitionView = ({
               </button>
             ))}
           </nav>
+          {localizedRules && (
+            <button
+              type="button"
+              className="pano-embed__regulation-link"
+              aria-label={localizedRegulationAriaLabel}
+              onClick={() => setRulesOpen(true)}
+            >
+              {localizedRegulationLabel}
+            </button>
+          )}
         </div>
 
         <section role="tabpanel" aria-label={SECTIONS.find((s) => s.key === section)?.label} aria-live="polite">
@@ -411,6 +469,17 @@ const EmbedPairsCompetitionView = ({
         previewMode={previewMode}
         showInternalValidation={previewMode}
       />
+
+      {localizedRules && (
+        <CompetitionRulesDialog
+          open={rulesOpen}
+          onOpenChange={setRulesOpen}
+          rules={localizedRules}
+          officialPdfUrl={localizedPdfUrl}
+          pdfLabel={localizedPdfLabel}
+          discrepancyNote={localizedDiscrepancyNote}
+        />
+      )}
     </div>
   );
 };

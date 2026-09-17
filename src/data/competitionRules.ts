@@ -28,6 +28,52 @@ export type CompetitionRules = {
   sections: CompetitionRulesSection[];
 };
 
+export type CompetitionRulesLocale = 'es' | 'en';
+
+export type CompetitionRulesCollection = {
+  es: CompetitionRules;
+  en?: CompetitionRules;
+};
+
+export type CompetitionRulesSource = CompetitionRules | CompetitionRulesCollection;
+
+export type CompetitionRulesPdfUrl = string | {
+  es: string;
+  en?: string;
+};
+
+export type LocalizedRulesText = string | {
+  es: string;
+  en?: string;
+};
+
+export const resolveCompetitionRules = (
+  rules: CompetitionRulesSource,
+  locale: CompetitionRulesLocale,
+): CompetitionRules => {
+  if ('summary' in rules) return rules;
+  return rules[locale] ?? rules.es;
+};
+
+export const resolveCompetitionRulesPdfUrl = (
+  pdfUrl: CompetitionRulesPdfUrl | undefined,
+  locale: CompetitionRulesLocale,
+): string | undefined => {
+  if (!pdfUrl) return undefined;
+  if (typeof pdfUrl === 'string') return pdfUrl;
+  return pdfUrl[locale] ?? pdfUrl.es;
+};
+
+export const resolveLocalizedRulesText = (
+  text: LocalizedRulesText | undefined,
+  locale: CompetitionRulesLocale,
+  fallback: string,
+): string => {
+  if (!text) return fallback;
+  if (typeof text === 'string') return text;
+  return text[locale] ?? text.es;
+};
+
 const STABLEFORD_NOTE =
   'Puntuación Stableford: en cada hoyo se puntúa con relación al par. Bogey 1 punto, par 2 puntos, birdie 3 puntos, eagle 4 puntos. Cuando no se ha podido terminar en los golpes que valen para la puntuación, se recoge la bola.';
 
@@ -58,137 +104,300 @@ const FINAL_DISPOSITIONS = [
   'Cualquier incidencia no recogida será resuelta por el Comité de Competición de Panorámica Golf Club y la junta directiva si procede.',
 ];
 
-export const individual2026Rules: CompetitionRules = {
-  title: 'Orden del Mérito Individual 2026',
-  subtitle: 'Resumen práctico de las bases oficiales de la competición.',
-  summary: [
-    { label: 'Modalidad', value: 'Individual Stableford' },
-    { label: 'Calendario', value: '8 pruebas' },
-    { label: 'Resultados válidos', value: '7 mejores' },
-    { label: 'Categorías', value: '1ª, 2ª y Scratch' },
-    { label: 'Hándicap máximo', value: '28' },
-  ],
-  sections: [
-    {
-      id: 'participantes',
-      title: 'Participantes',
-      items: [
-        'Jugadores con licencia federativa en vigor del año 2026 de la Real Federación Española de Golf.',
-        'Hándicap limitado a 28.',
-        FOREIGN_LICENSE,
-      ],
-    },
-    {
-      id: 'calendario',
-      title: 'Calendario',
-      defaultOpen: true,
-      content: [
-        'La Liga Social Individual 2026 está compuesta por ocho torneos en Panorámica Golf Club. Las fechas podrían variar por causas de fuerza mayor; el Comité de Competición comunicará cualquier cambio por cartelería del club y web.',
-      ],
-      items: [
-        '31/01/2026 — Torneo Presentación.',
-        '14/03/2026 — Orden de Mérito Individual.',
-        '04/04/2026 — Torneo Keyhole.',
-        '09/05/2026 — Torneo Bloke Tudela.',
-        '13/06/2026 — Orden de Mérito Individual.',
-        '12/09/2026 — Orden de Mérito Individual.',
-        '25/10/2026 — Torneo Xperience PGA.',
-        '05/12/2026 — Prueba Final.',
-      ],
-    },
-    {
-      id: 'categorias',
-      title: 'Categorías',
-      defaultOpen: true,
-      items: [
-        '1ª Categoría indistinta: hándicaps hasta 15,4.',
-        '2ª Categoría indistinta: hándicaps desde 15,5 hasta 36.',
-        'Scratch: categoría indistinta.',
-        'La categoría queda fijada por el hándicap de la primera prueba disputada.',
-        'Un cambio posterior de hándicap no cambia la categoría de la competición.',
-      ],
-    },
-    {
-      id: 'modalidad',
-      title: 'Modalidad',
-      content: [STABLEFORD_NOTE, RULES_BASE, PACE_OF_PLAY],
-      items: [
-        'Individual Stableford.',
-        'Si alguna prueba anuncia otra modalidad con antelación, el resultado se convertirá a Stableford para la clasificación.',
-      ],
-    },
-    {
-      id: 'clasificacion',
-      title: 'Clasificación',
-      defaultOpen: true,
-      items: [
-        'La clasificación final se obtiene sumando las 7 mejores puntuaciones de las 8 pruebas.',
-        'El resultado descartado continúa visible, pero no suma al total.',
-        'No existe descarte hasta que un jugador tenga 8 resultados válidos.',
-      ],
-    },
-    {
-      id: 'desempates',
-      title: 'Desempates',
-      defaultOpen: true,
-      ordered: true,
-      items: [
-        'Mayor número de torneos disputados.',
-        'Mejor suma de puntos Stableford en los tres últimos torneos del calendario.',
-        'Hándicap más bajo.',
-      ],
-    },
-    {
-      id: 'barras',
-      title: 'Barras de salida',
-      items: [
-        'Masculino: barras amarillas, excepto en la prueba Xperience PGA, que se jugará de blancas.',
-        'Femenino: barras rojas, excepto en la prueba Xperience PGA, que se jugará de azules.',
-      ],
-    },
-    {
-      id: 'premios-prueba',
-      title: 'Premios de cada prueba',
-      items: [
-        '1º clasificado de cada categoría: Primera, Segunda y Scratch.',
-        'El club se reserva la posibilidad de ampliar los premios según las circunstancias.',
-      ],
-    },
-    {
-      id: 'premios-final',
-      title: 'Entrega de premios final',
-      defaultOpen: true,
-      content: [
-        'El reparto de premios, trofeos y sorteo de regalos se realizará en la comida del Torneo de Navidad 2026 el 19/12/2026.',
-      ],
-      items: [
-        'Primer clasificado de 1ª Categoría: trofeo conmemorativo y set de hierros a medida realizados por Agile Golf.',
-        'Primer clasificado de 2ª Categoría: trofeo conmemorativo y set de wedges a medida realizados por Agile Golf.',
-        'Primer clasificado de Scratch: trofeo conmemorativo y set de maderas a medida realizados por Agile Golf.',
-      ],
-    },
-    {
-      id: 'inscripcion',
-      title: 'Inscripción',
-      items: [
-        'Socios Panorámica: 27 €.',
-        'Junior (hasta 18 años): 27 €.',
-        'Externos y otros: 65 €.',
-        REGISTRATION,
-        NO_SHOW,
-      ],
-    },
-    {
-      id: 'comite',
-      title: 'Comité de Competición',
-      items: COMMITTEE,
-    },
-    {
-      id: 'normas',
-      title: 'Disposiciones finales',
-      items: [...FINAL_DISPOSITIONS],
-    },
-  ],
+export const individual2026Rules: CompetitionRulesCollection = {
+  es: {
+    title: 'Orden de Mérito Individual 2026',
+    subtitle: 'Resumen práctico de las bases oficiales de la competición.',
+    summary: [
+      { label: 'Modalidad', value: 'Individual Stableford Hándicap, a 18 hoyos' },
+      { label: 'Temporada', value: '8 pruebas' },
+      { label: 'Resultados válidos', value: '7 mejores' },
+      { label: 'Descartes', value: '1 descarte' },
+      { label: 'Categorías', value: 'Hándicap Inferior, Hándicap Superior y Scratch' },
+    ],
+    sections: [
+      {
+        id: 'modalidad',
+        title: 'Modalidad',
+        defaultOpen: true,
+        content: ['Individual Stableford Hándicap, a 18 hoyos.'],
+      },
+      {
+        id: 'temporada',
+        title: 'Temporada',
+        defaultOpen: true,
+        content: [
+          '8 pruebas. Puntúan los 7 mejores resultados, por lo que cada jugador descarta su peor jornada. No disputar una prueba puede actuar como ese descarte.',
+        ],
+      },
+      {
+        id: 'categorias',
+        title: 'Categorías',
+        defaultOpen: true,
+        content: [
+          'Tres clasificaciones independientes en cada prueba y en la general — Hándicap Inferior (15,4 o menos), Hándicap Superior (15,5 o más) y Scratch, esta última por resultado bruto.',
+          'La categoría queda fijada por el hándicap del jugador en su primera prueba del circuito y se mantiene durante toda la temporada, aunque después su hándicap varíe y pase a otro rango.',
+        ],
+      },
+      {
+        id: 'participacion',
+        title: 'Participación',
+        defaultOpen: true,
+        content: [
+          'Abierta a jugadores y jugadoras con licencia federativa en vigor del año 2026. Hándicap máximo de juego 28; quien lo supere puede competir, pero clasifica con hándicap limitado a 28. Los jugadores con licencia extranjera necesitan la Licencia Temporal de la Federación de Golf de la Comunitat Valenciana y un justificante de hándicap de su federación de origen.',
+        ],
+      },
+      {
+        id: 'calendario',
+        title: 'Calendario',
+        defaultOpen: true,
+        content: [
+          '7 de febrero · 4 de abril · 20 de abril · 13 de junio · 12 de septiembre · 10 de octubre · 7 de noviembre · 5 de diciembre (final).',
+          'Las fechas pueden variar por causas meteorológicas u organizativas.',
+        ],
+      },
+      {
+        id: 'empates',
+        title: 'Empates en la general',
+        defaultOpen: true,
+        content: [
+          'Decide el mejor resultado de la última prueba disputada y, si persiste, se comparan las pruebas anteriores de forma sucesiva.',
+        ],
+      },
+      {
+        id: 'inscripciones',
+        title: 'Inscripciones',
+        defaultOpen: true,
+        content: [
+          'A través de los canales del club, principalmente GolfDirecto. Inscribirse en una prueba no inscribe en el resto.',
+        ],
+      },
+    ],
+  },
+  en: {
+    title: 'Individual Order of Merit 2026',
+    subtitle: 'Practical summary of the official competition rules.',
+    summary: [
+      { label: 'Format', value: 'Individual Stableford Handicap over 18 holes' },
+      { label: 'Season', value: '8 events' },
+      { label: 'Counting results', value: 'Best 7' },
+      { label: 'Discards', value: '1 discard' },
+      { label: 'Categories', value: 'Lower Handicap, Higher Handicap and Scratch' },
+    ],
+    sections: [
+      {
+        id: 'format',
+        title: 'Format',
+        defaultOpen: true,
+        content: ['Individual Stableford Handicap over 18 holes.'],
+      },
+      {
+        id: 'season',
+        title: 'Season',
+        defaultOpen: true,
+        content: [
+          '8 events. The best 7 results count, so every player discards their worst round. Missing an event may serve as that discard.',
+        ],
+      },
+      {
+        id: 'categories',
+        title: 'Categories',
+        defaultOpen: true,
+        content: [
+          'Three separate standings at each event and overall — Lower Handicap (15.4 or less), Higher Handicap (15.5 or more) and Scratch, the latter on gross score.',
+          "A player's category is fixed by their handicap at their first event of the circuit and is held for the whole season, even if their handicap later moves into another band.",
+        ],
+      },
+      {
+        id: 'eligibility',
+        title: 'Eligibility',
+        defaultOpen: true,
+        content: [
+          'Open to all players, men and women, holding a valid federation licence for the year 2026. Maximum playing handicap is 28; players above it may take part but are classified off a handicap capped at 28. Players with a foreign licence require the Temporary Licence of the Valencian Golf Federation and proof of handicap from their home federation.',
+        ],
+      },
+      {
+        id: 'calendar',
+        title: 'Calendar',
+        defaultOpen: true,
+        content: [
+          '7 February · 4 April · 20 April · 13 June · 12 September · 10 October · 7 November · 5 December (final).',
+          'Dates may change for weather or organisational reasons.',
+        ],
+      },
+      {
+        id: 'ties',
+        title: 'Ties in the overall standings',
+        defaultOpen: true,
+        content: [
+          'Decided on the best result in the most recent event played and, if still level, by comparing earlier events in turn.',
+        ],
+      },
+      {
+        id: 'entries',
+        title: 'Entries',
+        defaultOpen: true,
+        content: [
+          "Through the club's usual channels, mainly GolfDirecto. Entering one event does not enter you in the others.",
+        ],
+      },
+    ],
+  },
+};
+
+export const pairs2026Rules: CompetitionRulesCollection = {
+  es: {
+    title: 'Orden de Mérito de Parejas 2026',
+    subtitle: 'Resumen práctico de las bases oficiales de la competición.',
+    summary: [
+      { label: 'Modalidad', value: 'Fourball Stableford Hándicap' },
+      { label: 'Temporada', value: '8 pruebas' },
+      { label: 'Resultados válidos', value: '6 mejores' },
+      { label: 'Descartes', value: '2 descartes' },
+      { label: 'Categorías', value: '1.ª categoría y 2.ª categoría' },
+    ],
+    sections: [
+      {
+        id: 'modalidad',
+        title: 'Modalidad',
+        defaultOpen: true,
+        content: [
+          'Fourball Stableford Hándicap. Cada jugador juega su propia bola y, para el resultado de la pareja, cuenta el mejor Stableford de los dos en cada hoyo.',
+        ],
+      },
+      {
+        id: 'temporada',
+        title: 'Temporada',
+        defaultOpen: true,
+        content: [
+          '8 pruebas. Puntúan los 6 mejores resultados, por lo que cada pareja descarta sus dos peores jornadas. No disputar una prueba puede actuar como uno de esos descartes.',
+        ],
+      },
+      {
+        id: 'categorias',
+        title: 'Categorías',
+        defaultOpen: true,
+        content: [
+          '1.ª categoría hasta hándicap 15,4 y 2.ª categoría desde 15,5.',
+          'La categoría de la pareja queda fijada en su primera prueba del circuito y se mantiene durante toda la temporada, aunque después varíen los hándicaps de sus integrantes.',
+        ],
+      },
+      {
+        id: 'participacion',
+        title: 'Participación',
+        defaultOpen: true,
+        content: [
+          'Jugadores y jugadoras con licencia federativa en vigor y hándicap activo. La pareja debe mantener la misma composición para poder acumular resultados en la clasificación general.',
+        ],
+      },
+      {
+        id: 'calendario',
+        title: 'Calendario',
+        defaultOpen: true,
+        content: [
+          '25 de abril · 30 de mayo · 28 de junio · 12 de julio · 26 de septiembre · 17 de octubre · 21 de noviembre · 19 de diciembre (final).',
+        ],
+      },
+      {
+        id: 'premios-prueba',
+        title: 'Premios por prueba',
+        defaultOpen: true,
+        content: [
+          '1.ª y 2.ª pareja clasificada de cada categoría, independientes de los premios de la clasificación general.',
+        ],
+      },
+      {
+        id: 'empates',
+        title: 'Empates en la general',
+        defaultOpen: true,
+        content: [
+          'Decide el mejor resultado de la última prueba disputada y, si persiste, se comparan sucesivamente las anteriores.',
+        ],
+      },
+      {
+        id: 'inscripciones',
+        title: 'Inscripciones',
+        defaultOpen: true,
+        content: ['A través de los canales del club, principalmente GolfDirecto.'],
+      },
+    ],
+  },
+  en: {
+    title: 'Pairs Order of Merit 2026',
+    subtitle: 'Practical summary of the official competition rules.',
+    summary: [
+      { label: 'Format', value: 'Fourball Stableford Handicap' },
+      { label: 'Season', value: '8 events' },
+      { label: 'Counting results', value: 'Best 6' },
+      { label: 'Discards', value: '2 discards' },
+      { label: 'Categories', value: '1st Category and 2nd Category' },
+    ],
+    sections: [
+      {
+        id: 'format',
+        title: 'Format',
+        defaultOpen: true,
+        content: [
+          "Fourball Stableford Handicap. Each player plays their own ball and, for the pair's score, the better Stableford result of the two counts on every hole.",
+        ],
+      },
+      {
+        id: 'season',
+        title: 'Season',
+        defaultOpen: true,
+        content: [
+          '8 events. The best 6 results count, so every pair discards its two worst rounds. Missing an event may serve as one of those discards.',
+        ],
+      },
+      {
+        id: 'categories',
+        title: 'Categories',
+        defaultOpen: true,
+        content: [
+          '1st Category up to handicap 15.4 and 2nd Category from 15.5.',
+          "A pair's category is fixed at their first event of the circuit and is held for the whole season, even if the members' handicaps later move into another band.",
+        ],
+      },
+      {
+        id: 'eligibility',
+        title: 'Eligibility',
+        defaultOpen: true,
+        content: [
+          'Players, men and women, holding a valid federation licence and an active handicap. A pair must keep the same composition in order to accumulate results in the overall standings.',
+        ],
+      },
+      {
+        id: 'calendar',
+        title: 'Calendar',
+        defaultOpen: true,
+        content: [
+          '25 April · 30 May · 28 June · 12 July · 26 September · 17 October · 21 November · 19 December (final).',
+        ],
+      },
+      {
+        id: 'prizes-per-event',
+        title: 'Prizes per event',
+        defaultOpen: true,
+        content: [
+          '1st and 2nd placed pair in each category, separate from the overall standings prizes.',
+        ],
+      },
+      {
+        id: 'ties',
+        title: 'Ties in the overall standings',
+        defaultOpen: true,
+        content: [
+          'Decided on the best result in the most recent event played and, if still level, by comparing earlier events in turn.',
+        ],
+      },
+      {
+        id: 'entries',
+        title: 'Entries',
+        defaultOpen: true,
+        content: ["Through the club's usual channels, mainly GolfDirecto."],
+      },
+    ],
+  },
 };
 
 export const verano2026Rules: CompetitionRules = {

@@ -2,7 +2,7 @@
  * Modal editorial con el reglamento resumido de una competición.
  * Contenido 100% estático (src/data/competitionRules.ts): sin consultas.
  */
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { usePanoramicaPublicModal } from '@/hooks/usePanoramicaPublicModalState';
 import type { CompetitionRules, CompetitionRulesSection } from '@/data/competitionRules';
@@ -12,6 +12,8 @@ export type CompetitionRulesDialogProps = {
   onOpenChange: (open: boolean) => void;
   rules: CompetitionRules;
   officialPdfUrl?: string;
+  pdfLabel?: string;
+  discrepancyNote?: string;
 };
 
 const RulesSection = ({ section }: { section: CompetitionRulesSection }) => {
@@ -63,6 +65,8 @@ const CompetitionRulesDialog = ({
   onOpenChange,
   rules,
   officialPdfUrl,
+  pdfLabel = 'Consultar PDF oficial',
+  discrepancyNote = 'En caso de discrepancia, prevalece el reglamento oficial aprobado por el Comité de Competición.',
 }: CompetitionRulesDialogProps) => {
   // Estado compartido de modal público.
   usePanoramicaPublicModal(open);
@@ -76,10 +80,7 @@ const CompetitionRulesDialog = ({
         <DialogDescription className="pano-rules-dialog__lead">
           {rules.subtitle ?? 'Resumen práctico de las bases de la competición.'}
         </DialogDescription>
-        <p className="pano-rules-dialog__note">
-          En caso de discrepancia, prevalece el reglamento oficial aprobado por el Comité de
-          Competición.
-        </p>
+        <p className="pano-rules-dialog__note">{discrepancyNote}</p>
       </header>
 
       <div className="pano-rules-dialog__body">
@@ -105,7 +106,7 @@ const CompetitionRulesDialog = ({
             target="_blank"
             rel="noopener noreferrer"
           >
-            Consultar PDF oficial
+            {pdfLabel}
             <span aria-hidden="true"> ↗</span>
           </a>
         )}

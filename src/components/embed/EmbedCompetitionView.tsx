@@ -4,6 +4,7 @@
  * No afegeix consultes: tota la dada ve de useCompetitionIndividualRanking(slug).
  */
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { usePanoramicaEmbedShell } from '@/hooks/usePanoramicaEmbedShell';
 import {
   useCompetitionIndividualRanking,
@@ -15,7 +16,15 @@ import CompetitionStats from '@/components/embed/CompetitionStats';
 import CompetitionPlayersDirectory from '@/components/embed/CompetitionPlayersDirectory';
 
 import CompetitionRulesDialog from '@/components/embed/CompetitionRulesDialog';
-import type { CompetitionRules } from '@/data/competitionRules';
+import {
+  resolveCompetitionRules,
+  resolveCompetitionRulesPdfUrl,
+  resolveLocalizedRulesText,
+  type CompetitionRulesLocale,
+  type CompetitionRulesPdfUrl,
+  type CompetitionRulesSource,
+  type LocalizedRulesText,
+} from '@/data/competitionRules';
 
 
 import PlayerProfileDialog, { type PlayerProfileCompetitionData } from '@/components/PlayerProfileDialog';
@@ -61,11 +70,11 @@ export type EmbedCompetitionViewProps = {
   playersEmptyText?: string;
   playersSearchPlaceholder?: string;
   /** Reglament resumit; si no hi és, no es renderitza el botó. */
-  rules?: CompetitionRules;
+  rules?: CompetitionRulesSource;
   /** PDF oficial enllaçat com a acció secundària dins del modal. */
-  officialPdfUrl?: string;
-  regulationLabel?: string;
-  regulationAriaLabel?: string;
+  officialPdfUrl?: CompetitionRulesPdfUrl;
+  regulationLabel?: LocalizedRulesText;
+  regulationAriaLabel?: LocalizedRulesText;
 };
 
 
@@ -91,6 +100,35 @@ const EmbedCompetitionView = ({
 
 
 }: EmbedCompetitionViewProps) => {
+  const { i18n } = useTranslation();
+  const rulesLocale: CompetitionRulesLocale = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requested = (params.get('lang') ?? params.get('locale') ?? params.get('language') ?? '').toLowerCase();
+    if (requested.startsWith('en')) return 'en';
+    if (i18n.language?.toLowerCase().startsWith('en')) return 'en';
+    return 'es';
+  }, [i18n.language]);
+
+  const localizedRules = useMemo(
+    () => (rules ? resolveCompetitionRules(rules, rulesLocale) : undefined),
+    [rules, rulesLocale]
+  );
+  const localizedPdfUrl = useMemo(
+    () => resolveCompetitionRulesPdfUrl(officialPdfUrl, rulesLocale),
+    [officialPdfUrl, rulesLocale]
+  );
+  const localizedRegulationLabel = resolveLocalizedRulesText(regulationLabel, rulesLocale, 'REGLAMENTO');
+  const localizedRegulationAriaLabel = resolveLocalizedRulesText(
+    regulationAriaLabel,
+    rulesLocale,
+    localizedRegulationLabel
+  );
+  const localizedPdfLabel = rulesLocale === 'en' ? 'View official PDF' : 'Consultar PDF oficial';
+  const localizedDiscrepancyNote =
+    rulesLocale === 'en'
+      ? 'In case of discrepancy, the official rules approved by the Competition Committee shall prevail.'
+      : 'En caso de discrepancia, prevalece el reglamento oficial aprobado por el Comité de Competición.';
+
   const {
     rounds,
     results,
@@ -386,14 +424,14 @@ const EmbedCompetitionView = ({
               </button>
             ))}
           </nav>
-          {rules && (
+          {localizedRules && (
             <button
               type="button"
               className="pano-embed__regulation-link"
-              aria-label={regulationAriaLabel ?? regulationLabel}
+              aria-label={localizedRegulationAriaLabel}
               onClick={() => setRulesOpen(true)}
             >
-              {regulationLabel}
+              {localizedRegulationLabel}
             </button>
           )}
 
@@ -419,12 +457,14 @@ const EmbedCompetitionView = ({
         variant="panoramica"
       />
 
-      {rules && (
+      {localizedRules && (
         <CompetitionRulesDialog
           open={rulesOpen}
           onOpenChange={setRulesOpen}
-          rules={rules}
-          officialPdfUrl={officialPdfUrl}
+          rules={localizedRules}
+          officialPdfUrl={localizedPdfUrl}
+          pdfLabel={localizedPdfLabel}
+          discrepancyNote={localizedDiscrepancyNote}
         />
       )}
     </div>
