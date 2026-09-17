@@ -106,6 +106,18 @@ export function useCompetitionIndividualRanking(slugArg?: string) {
     [results]
   );
 
+  /**
+   * Jornadas celebradas/publicadas en orden cronológico oficial (round_number asc).
+   * Base del desempate: última jornada → pruebas disputadas → jornadas anteriores.
+   */
+  const celebratedRoundIds = useMemo(() => {
+    const played = new Set(results.map((r) => r.round_id));
+    return (rounds ?? [])
+      .filter((r) => r.status === 'published' || played.has(r.id))
+      .map((r) => r.id);
+  }, [rounds, results]);
+
+
   const rankings = useMemo<CompetitionRankings>(() => {
     const empty: CompetitionRankings = { hcpLow: [], hcpHigh: [], scratch: [] };
     if (!results.length) return empty;
