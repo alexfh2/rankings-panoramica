@@ -304,11 +304,13 @@ ${(() => {
 RESULTADOS DE LA JORNADA:
 ${resultsBlock}
 
+${rankingBlock ? `CLASIFICACIÓN GENERAL (calculada por el sistema; úsala tal cual):\n${rankingBlock}` : 'CLASIFICACIÓN GENERAL: no disponible.'}
+
 ESTRUCTURA SOLICITADA:
-- TITULAR informativo y específico, basado en el resultado. Evita titulares genéricos.
+- TITULAR informativo y específico, basado en el resultado${isFinalRound ? ' y en el cierre de la competición' : ''}. Evita titulares genéricos.
 - ENTRADILLA: un párrafo corto que identifique jornada y competición y resuma el principal resultado deportivo.
-- CUERPO: de 2 a 4 párrafos breves, destacando los resultados relevantes y separando categorías con naturalidad cuando proceda. Separa los párrafos con una línea en blanco.
-- CIERRE breve, que puede situar la jornada dentro de la competición, sin anunciar la siguiente cita si no se proporciona.
+- CUERPO: de 2 a 4 párrafos breves, destacando los resultados relevantes y separando categorías con naturalidad cuando proceda.${rankingBlock ? isFinalRound ? ' Dedica un párrafo específico a la clasificación general final y a sus ganadores, claramente diferenciado del resultado de la última prueba.' : ' Dedica un párrafo específico a la clasificación general provisional.' : ''} Separa los párrafos con una línea en blanco.
+- CIERRE breve${isFinalRound ? ', de balance de la competición ya concluida' : ', que puede situar la jornada dentro de la competición'}, sin anunciar la siguiente cita si no se proporciona.
 
 No incluyas emojis, hashtags ni texto promocional.
 
