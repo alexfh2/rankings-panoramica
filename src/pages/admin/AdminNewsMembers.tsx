@@ -498,6 +498,27 @@ const AdminNewsMembers = () => {
                 </div>
               </div>
 
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={translating || saveMutation.isPending || uploading || busy}
+                  onClick={requestTranslation}
+                >
+                  {translating ? (
+                    <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                  ) : (
+                    <Languages className="h-3.5 w-3.5 mr-1" />
+                  )}
+                  {translating ? 'Traduciendo…' : 'Traducir al inglés con IA'}
+                </Button>
+                <span className="text-[11px] text-muted-foreground">
+                  Rellena los campos en inglés a partir del castellano. No guarda ni publica nada.
+                </span>
+              </div>
+
+
               <div className="space-y-2">
                 <Label className="text-xs">Imágenes</Label>
 
