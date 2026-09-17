@@ -26,7 +26,17 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, ArrowRight, Check, Loader2, Pencil, Plus, Trash2, Upload } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Languages,
+  Loader2,
+  Pencil,
+  Plus,
+  Trash2,
+  Upload,
+} from 'lucide-react';
 
 type Bilingual = { es?: string; en?: string };
 
@@ -110,6 +120,62 @@ const AdminNewsMembers = () => {
   const [uploading, setUploading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<NewsRow | null>(null);
+  const [translating, setTranslating] = useState(false);
+  const [confirmTranslate, setConfirmTranslate] = useState(false);
+
+  const runTranslation = async () => {
+    if (!form) return;
+    const titleEs = form.titleEs.trim();
+    const bodyEs = form.bodyEs.trim();
+    if (!titleEs && !bodyEs) {
+      toast({
+        title: 'No hay nada que traducir',
+        description: 'Escribe primero el título o el texto en castellano.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setTranslating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('translate-news', {
+        body: { title: titleEs, body: bodyEs },
+      });
+      if (error) throw error;
+      const result = data as { title?: string; body?: string; error?: string };
+      if (result?.error) throw new Error(result.error);
+      setForm((prev) =>
+        prev
+          ? {
+              ...prev,
+              titleEn: titleEs ? (result?.title ?? prev.titleEn) : prev.titleEn,
+              bodyEn: bodyEs ? (result?.body ?? prev.bodyEn) : prev.bodyEn,
+            }
+          : prev,
+      );
+      toast({
+        title: 'Traducción generada',
+        description: 'Revisa el contenido antes de publicar.',
+      });
+    } catch (err) {
+      toast({
+        title: 'No se ha podido traducir',
+        description: (err as Error).message,
+        variant: 'destructive',
+      });
+    } finally {
+      setTranslating(false);
+    }
+  };
+
+  const requestTranslation = () => {
+    if (!form) return;
+    const hasEnglish = !!(form.titleEn.trim() || form.bodyEn.trim());
+    if (hasEnglish) {
+      setConfirmTranslate(true);
+      return;
+    }
+    void runTranslation();
+  };
 
   const { data: news, isLoading, error } = useQuery({
     queryKey: ['admin-news'],
@@ -498,6 +564,27 @@ const AdminNewsMembers = () => {
                 </div>
               </div>
 
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={translating || saveMutation.isPending || uploading || busy}
+                  onClick={requestTranslation}
+                >
+                  {translating ? (
+                    <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                  ) : (
+                    <Languages className="h-3.5 w-3.5 mr-1" />
+                  )}
+                  {translating ? 'Traduciendo…' : 'Traducir al inglés con IA'}
+                </Button>
+                <span className="text-[11px] text-muted-foreground">
+                  Rellena los campos en inglés a partir del castellano. No guarda ni publica nada.
+                </span>
+              </div>
+
+
               <div className="space-y-2">
                 <Label className="text-xs">Imágenes</Label>
 
@@ -631,6 +718,32 @@ const AdminNewsMembers = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog
+        open={confirmTranslate}
+        onOpenChange={(open) => !open && setConfirmTranslate(false)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Ya existe contenido en inglés</AlertDialogTitle>
+            <AlertDialogDescription>
+              Si continúas, la traducción actual será sustituida. ¿Quieres continuar?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                setConfirmTranslate(false);
+                void runTranslation();
+              }}
+            >
+              Continuar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
