@@ -65,22 +65,54 @@ Deno.serve(async (req) => {
     }
 
     // Create user server-side (does NOT affect caller's session)
+    let userId: string | null = null;
     const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
     });
+
     if (createError) {
-      return new Response(JSON.stringify({ error: createError.message }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      const alreadyExists = /already.*registered|already exists/i.test(createError.message ?? "");
+      if (!alreadyExists) {
+        return new Response(JSON.stringify({ error: createError.message }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Find the existing user and reuse it (idempotent: just grant the role)
+      const target = email.trim().toLowerCase();
+      for (let page = 1; page <= 20 && !userId; page++) {
+        const { data: list, error: listError } = await adminClient.auth.admin.listUsers({
+          page,
+          perPage: 200,
+        });
+        if (listError) {
+          return new Response(JSON.stringify({ error: listError.message }), {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        const found = list.users.find((u) => (u.email ?? "").toLowerCase() === target);
+        if (found) userId = found.id;
+        if (list.users.length < 200) break;
+      }
+
+      if (!userId) {
+        return new Response(
+          JSON.stringify({ error: "Aquest correu ja està registrat però no s'ha pogut localitzar l'usuari" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+    } else {
+      userId = newUser.user.id;
     }
 
-    // Assign admin role
+    // Assign admin role (idempotent thanks to the unique (user_id, role) constraint)
     const { error: roleError } = await adminClient
       .from("user_roles")
-      .insert({ user_id: newUser.user.id, role: "admin" });
+      .upsert({ user_id: userId, role: "admin" }, { onConflict: "user_id,role" });
     if (roleError) {
       return new Response(JSON.stringify({ error: roleError.message }), {
         status: 500,
@@ -88,7 +120,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    return new Response(JSON.stringify({ user_id: newUser.user.id }), {
+    return new Response(JSON.stringify({ user_id: userId }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
