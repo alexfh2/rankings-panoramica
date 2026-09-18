@@ -141,7 +141,9 @@ const AdminLayout = () => {
             variant="ghost"
             size="sm"
             className="w-full justify-start text-primary-foreground/70 hover:text-primary-foreground hover:bg-primary-foreground/10"
-            onClick={() => navigate('/')}
+            onClick={() => {
+              window.location.href = 'https://www.panoramicaclubdegolf.com/';
+            }}
           >
             <ChevronLeft className="h-4 w-4 mr-2" />
             Volver al sitio
