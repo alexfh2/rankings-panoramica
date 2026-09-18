@@ -21,6 +21,7 @@ const AdminManageAdmins = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   // Fetch admin users by joining user_roles
   const { data: admins, isLoading } = useQuery({
