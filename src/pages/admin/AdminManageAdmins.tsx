@@ -13,7 +13,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Eye, EyeOff } from 'lucide-react';
 
 const AdminManageAdmins = () => {
   const { toast } = useToast();
@@ -21,6 +21,7 @@ const AdminManageAdmins = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   // Fetch admin users by joining user_roles
   const { data: admins, isLoading } = useQuery({
@@ -102,13 +103,24 @@ const AdminManageAdmins = () => {
               </div>
               <div className="space-y-2">
                 <Label>Contraseña</Label>
-                <Input
-                  type="password"
-                  minLength={6}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    type={showPassword ? 'text' : 'password'}
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    aria-label={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
               <Button type="submit" className="w-full" disabled={createAdmin.isPending}>
                 {createAdmin.isPending ? 'Creando...' : 'Crear administrador'}
