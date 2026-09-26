@@ -1,0 +1,1 @@
+- GolfDirecto Parejas uses its own edge function `parse-golfdirecto-pairs` (api/v2/public) + adapter `golfDirectoPairsToParsedPairs` feeding the Excel pairs flow; never shared with the individual `parse-results` parser — isolates regressions.

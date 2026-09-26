@@ -48,6 +48,12 @@ import {
   mapPairImportError,
   type PairImportRpcSummary,
 } from '@/lib/buildPairImportPayload';
+import { Textarea } from '@/components/ui/textarea';
+import { splitUrlLines, validateSameGolfDirectoGame } from '@/lib/golfDirectoUrl';
+import {
+  golfDirectoPairsToParsedPairs,
+  type GolfDirectoPairsResponse,
+} from '@/lib/golfDirectoPairsToParsedPairs';
 
 
 interface Props {
@@ -114,6 +120,10 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [source, setSource] = useState<'excel' | 'golfdirecto'>('excel');
+  const [gdUrls, setGdUrls] = useState('');
+  const [gdLoading, setGdLoading] = useState(false);
+  const [gdError, setGdError] = useState<string | null>(null);
   const [parsed, setParsed] = useState<ParsePairExcelResult | null>(null);
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -334,6 +344,41 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
     }
   };
 
+  const handleGolfDirecto = async () => {
+    setGdError(null);
+    const urls = splitUrlLines(gdUrls);
+    if (urls.length === 0) return;
+    const check = validateSameGolfDirectoGame(urls);
+    if (!check.ok) {
+      setGdError(check.error ?? 'Enlaces de GolfDirecto no válidos.');
+      return;
+    }
+    setGdLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('parse-golfdirecto-pairs', { body: { urls } });
+      const response = (data ?? null) as GolfDirectoPairsResponse | null;
+      if (error || !response?.success) {
+        let message = response?.error;
+        if (!message && error && 'context' in error) {
+          try {
+            message = (await (error as { context: Response }).context.json())?.error;
+          } catch { /* ignore */ }
+        }
+        throw new Error(message || 'No se han podido leer los resultados de GolfDirecto.');
+      }
+      const result = golfDirectoPairsToParsedPairs(response, { categoryThreshold });
+      setParsed(result);
+      setFileName(`golfdirecto:${response.game?.id ?? check.gameId}`);
+      setExpanded(new Set());
+      setImportResult(null);
+      setImportError(null);
+    } catch (err) {
+      setGdError(err instanceof Error ? err.message : 'Error desconocido');
+    } finally {
+      setGdLoading(false);
+    }
+  };
+
   const toggle = (index: number) => {
     setExpanded((prev) => {
       const next = new Set(prev);
@@ -408,7 +453,50 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
         </div>
       </div>
 
+      {/* Source selector */}
+      <div className="flex gap-2">
+        <Button
+          variant={source === 'excel' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setSource('excel')}
+          disabled={gdLoading || importing}
+        >
+          Excel
+        </Button>
+        <Button
+          variant={source === 'golfdirecto' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setSource('golfdirecto')}
+          disabled={gdLoading || importing}
+        >
+          GolfDirecto
+        </Button>
+      </div>
+
+      {source === 'golfdirecto' && (
+        <div className="space-y-2">
+          <Textarea
+            value={gdUrls}
+            onChange={(e) => setGdUrls(e.target.value)}
+            rows={3}
+            placeholder={'Enlace Hándicap Inferior\nEnlace Hándicap Superior'}
+            className="text-xs"
+          />
+          <div className="flex flex-wrap items-center gap-3">
+            <Button variant="outline" size="sm" onClick={() => void handleGolfDirecto()} disabled={gdLoading || !gdUrls.trim()}>
+              {gdLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+              {gdLoading ? 'Leyendo GolfDirecto…' : 'Leer resultados de GolfDirecto'}
+            </Button>
+            <span className="text-[11px] text-muted-foreground">Un enlace por línea, todas las categorías del mismo torneo.</span>
+          </div>
+          {gdError && (
+            <div className="rounded border border-destructive/40 bg-destructive/5 p-2 text-xs text-destructive">{gdError}</div>
+          )}
+        </div>
+      )}
+
       {/* File input */}
+      {source === 'excel' && (
       <div className="flex flex-wrap items-center gap-3">
         <input
           ref={fileInputRef}
@@ -433,6 +521,7 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
           </span>
         )}
       </div>
+      )}
 
       {courseIncomplete && parsed && (
         <div className="flex items-start gap-2 rounded border border-amber-600/40 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-400">
