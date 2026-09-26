@@ -271,18 +271,34 @@ const EmbedPairsCompetitionView = ({
     return (
       <div className="pano-rounds">
         {columns.map((round) => {
-          // Clasificación conjunta de la prueba (todas las categorías juntas), por Net desc.
-          // No hay regla deportiva de desempate por prueba: los empatados comparten posición
-          // y el orden entre ellos (pairKey) es solo de renderizado determinista.
+          // Clasificación conjunta de la prueba (todas las categorías juntas):
+          // 1) Net desc; 2) menor suma HPU (hándicap de juego J1 + J2). No se usa pair_handicap.
+          // Si empatan Net y suma HPU, comparten posición (sin tercer criterio);
+          // el orden por pairKey es solo de renderizado determinista.
+          const hpuSum = (r: { player1PlayingHandicap?: number | null; player2PlayingHandicap?: number | null; player1Scorecard?: { playingHandicap?: number | null } | null; player2Scorecard?: { playingHandicap?: number | null } | null }): number | null => {
+            const h1 = r.player1PlayingHandicap ?? r.player1Scorecard?.playingHandicap ?? null;
+            const h2 = r.player2PlayingHandicap ?? r.player2Scorecard?.playingHandicap ?? null;
+            return h1 == null || h2 == null ? null : h1 + h2;
+          };
+          const cmpHpu = (a: number | null, b: number | null) => {
+            if (a === b) return 0;
+            if (a == null) return 1;
+            if (b == null) return -1;
+            return a - b;
+          };
           const results = [...(resultsByRound.get(round.id) ?? [])].sort((a, b) => {
             if (b.netPoints !== a.netPoints) return b.netPoints - a.netPoints;
+            const h = cmpHpu(hpuSum(a), hpuSum(b));
+            if (h !== 0) return h;
             const ak = ranking.rowsByPairId.get(a.pairId)?.pairKey ?? '';
             const bk = ranking.rowsByPairId.get(b.pairId)?.pairKey ?? '';
             return ak.localeCompare(bk);
           });
           const jointPositions: number[] = [];
           results.forEach((r, i) => {
-            jointPositions.push(i > 0 && results[i - 1].netPoints === r.netPoints ? jointPositions[i - 1] : i + 1);
+            const prev = results[i - 1];
+            const tied = i > 0 && prev.netPoints === r.netPoints && cmpHpu(hpuSum(prev), hpuSum(r)) === 0;
+            jointPositions.push(tied ? jointPositions[i - 1] : i + 1);
           });
           const isOpen = openRound === round.id;
           const avgNet = results.length
