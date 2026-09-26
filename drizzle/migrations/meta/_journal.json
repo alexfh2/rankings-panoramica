@@ -15,6 +15,13 @@
       "when": 1790459476344,
       "tag": "0001_players_license_exempt_and_pairs_import",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790459682978,
+      "tag": "0002_fix_pairs_import_missing_license_null",
+      "breakpoints": true
     }
   ]
 }
