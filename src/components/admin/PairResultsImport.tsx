@@ -49,6 +49,25 @@ import {
   type PairImportRpcSummary,
 } from '@/lib/buildPairImportPayload';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  applyLicenseResolutions,
+  normalizeNameForSearch,
+  rankUnlicensedCandidates,
+  resolutionKey,
+  resolvePlayerStatus,
+  type LicenseResolution,
+  type PlayerSlot,
+  type ResolvedPlayerStatus,
+} from '@/lib/pairLicenseResolution';
 import { splitUrlLines, validateSameGolfDirectoGame } from '@/lib/golfDirectoUrl';
 import {
   golfDirectoPairsToParsedPairs,
@@ -63,7 +82,7 @@ interface Props {
   onCompleted?: () => void;
 }
 
-type PlayerMatchStatus = 'existing' | 'new' | 'manual_review';
+type PlayerMatchStatus = ResolvedPlayerStatus;
 
 const toNumberArray = (value: unknown): number[] | null => {
   if (!Array.isArray(value)) return null;
@@ -105,7 +124,13 @@ const PlayerStatusBadge = ({ status }: { status: PlayerMatchStatus }) => {
   if (status === 'new') {
     return <span className="text-[11px] text-amber-600">Nuevo</span>;
   }
-  return <span className="text-[11px] text-destructive">Revisión manual</span>;
+  if (status === 'no_license_confirmed') {
+    return <span className="text-[11px] text-emerald-600">✓ Sin licencia confirmado</span>;
+  }
+  if (status === 'linked') {
+    return <span className="text-[11px] text-emerald-600">✓ Vinculado a jugador existente</span>;
+  }
+  return <span className="text-[11px] text-destructive">⚠ Falta licencia — revisión manual</span>;
 };
 
 const CONTRIB_MARK: Record<FourballContributor, string> = {
@@ -128,6 +153,22 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [resolutions, setResolutions] = useState<Map<string, LicenseResolution>>(new Map());
+  const [licenseDialog, setLicenseDialog] = useState<{ key: string; name: string } | null>(null);
+  const [licenseInput, setLicenseInput] = useState('');
+  const [confirmNoLicense, setConfirmNoLicense] = useState<{ key: string; name: string } | null>(null);
+  const [linkDialog, setLinkDialog] = useState<{ key: string; name: string } | null>(null);
+  const [linkSearch, setLinkSearch] = useState('');
+  const [linkSelected, setLinkSelected] = useState<string | null>(null);
+
+  const setResolution = (key: string, value: LicenseResolution | null) => {
+    setResolutions((prev) => {
+      const next = new Map(prev);
+      if (value) next.set(key, value);
+      else next.delete(key);
+      return next;
+    });
+  };
   const [importResult, setImportResult] = useState<PairImportRpcSummary | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
   const [warningsOpen, setWarningsOpen] = useState(false);
@@ -212,17 +253,46 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
     },
   });
 
-  const playerStatus = (player: ParsedPairPlayer, pair: ParsedPair): PlayerMatchStatus => {
-    if (!player.licenseNormalized || pair.pairKeyKind === 'name_fallback' || pair.pairKeyKind === 'none') {
-      return 'manual_review';
-    }
-    if (playersByLicense?.has(player.licenseNormalized)) return 'existing';
-    return 'new';
-  };
+  const hasMissingLicense = !!parsed?.pairs.some((p) => !p.player1.licenseNormalized || !p.player2.licenseNormalized);
+
+  // Solo jugadores confirmados sin licencia (license IS NULL AND license_exempt = true).
+  const { data: unlicensedPlayers } = useQuery({
+    queryKey: ['admin-pair-import-unlicensed-players'],
+    enabled: hasMissingLicense,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('players')
+        .select('id, name, gender, current_handicap, created_at')
+        .is('license', null)
+        .eq('license_exempt', true)
+        .order('name');
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: pairsByPlayers } = useQuery({
+    queryKey: ['admin-pair-import-pairs-by-players', competitionId],
+    enabled: !!competitionId && !!parsed,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('pairs')
+        .select('player_1_id, player_2_id')
+        .eq('competition_id', competitionId);
+      if (error) throw error;
+      return new Set((data ?? []).map((r) => [r.player_1_id, r.player_2_id].sort().join('|')));
+    },
+  });
 
   const rows = useMemo(() => {
     if (!parsed) return [];
-    return parsed.pairs.map((pair, index) => {
+    return parsed.pairs.map((sourcePair, index) => {
+      const resolved = applyLicenseResolutions(
+        sourcePair,
+        resolutions.get(resolutionKey(index, 1)),
+        resolutions.get(resolutionKey(index, 2)),
+      );
+      const pair = resolved.pair;
       const fourball: FourballScorecardResult | null =
         pair.player1.name && pair.player2.name
           ? buildFourballScorecard({
@@ -253,12 +323,20 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
         index,
         pair,
         fourball,
-        status1: playerStatus(pair.player1, pair),
-        status2: playerStatus(pair.player2, pair),
-        pairExists: !!(pair.pairKey && existingPairKeys?.has(pair.pairKey)),
+        resolved,
+        missing1: !sourcePair.player1.licenseNormalized,
+        missing2: !sourcePair.player2.licenseNormalized,
+        status1: resolvePlayerStatus(pair.player1, resolved.meta1, resolved.identityResolved, playersByLicense),
+        status2: resolvePlayerStatus(pair.player2, resolved.meta2, resolved.identityResolved, playersByLicense),
+        pairExists: (() => {
+          if (pair.pairKey && !resolved.meta1.noLicenseConfirmed && !resolved.meta2.noLicenseConfirmed && existingPairKeys?.has(pair.pairKey)) return true;
+          const id1 = resolved.meta1.fairwayPlayerId ?? (pair.player1.licenseNormalized ? playersByLicense?.get(pair.player1.licenseNormalized)?.id : undefined);
+          const id2 = resolved.meta2.fairwayPlayerId ?? (pair.player2.licenseNormalized ? playersByLicense?.get(pair.player2.licenseNormalized)?.id : undefined);
+          return !!(id1 && id2 && pairsByPlayers?.has([id1, id2].sort().join('|')));
+        })(),
       };
     });
-  }, [parsed, coursePar, courseHandicap, courseHandicapWomen, playersByLicense, existingPairKeys]);
+  }, [parsed, resolutions, coursePar, courseHandicap, courseHandicapWomen, playersByLicense, existingPairKeys, pairsByPlayers]);
 
   const summary = useMemo(() => {
     const blockingErrors = parsed?.errors.filter((e) => e.blocking) ?? [];
@@ -289,7 +367,7 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
           !!r.pair.player1.name &&
           !!r.pair.player2.name &&
           r.pair.netPoints != null &&
-          !!r.pair.pairKey &&
+          r.resolved.identityResolved &&
           r.status1 !== 'manual_review' &&
           r.status2 !== 'manual_review',
       );
@@ -299,7 +377,7 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
     if (blockingErrors.length > 0) blockers.push(`${blockingErrors.length} error(es) bloqueante(s) del parser.`);
     if (rows.some((r) => !r.pair.player1.name || !r.pair.player2.name)) blockers.push('Hay parejas incompletas.');
     if (rows.some((r) => r.pair.netPoints == null)) blockers.push('Hay parejas sin Net oficial.');
-    if (rows.some((r) => !r.pair.pairKey)) blockers.push('Hay parejas sin identidad válida.');
+    if (rows.some((r) => !r.resolved.identityResolved)) blockers.push('Hay parejas sin identidad válida.');
     if (manualPlayers > 0) blockers.push(`${manualPlayers} jugador(es) requieren revisión manual.`);
 
     return {
@@ -326,6 +404,7 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
       setParsed(result);
       setFileName(file.name);
       setExpanded(new Set());
+      setResolutions(new Map());
       setImportResult(null);
       setImportError(null);
       if (result.errors.some((e) => e.blocking)) {
@@ -370,6 +449,7 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
       setParsed(result);
       setFileName(`golfdirecto:${response.game?.id ?? check.gameId}`);
       setExpanded(new Set());
+      setResolutions(new Map());
       setImportResult(null);
       setImportError(null);
     } catch (err) {
@@ -404,7 +484,9 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
     setImportError(null);
     setConfirmOpen(false);
     try {
-      const payload = buildPairImportPayload(rows.map((r) => ({ pair: r.pair, fourball: r.fourball })));
+      const payload = buildPairImportPayload(
+        rows.map((r) => ({ pair: r.pair, fourball: r.fourball, meta1: r.resolved.meta1, meta2: r.resolved.meta2 })),
+      );
       const { data, error } = await supabase.rpc('import_pair_results_batch', {
         p_round_id: roundId,
         p_source_filename: fileName,
@@ -415,6 +497,8 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
       toast({ title: 'Resultados de parejas importados correctamente.' });
       queryClient.invalidateQueries({ queryKey: ['admin-pair-import-players'] });
       queryClient.invalidateQueries({ queryKey: ['admin-pair-import-pairs', competitionId] });
+      queryClient.invalidateQueries({ queryKey: ['admin-pair-import-pairs-by-players', competitionId] });
+      queryClient.invalidateQueries({ queryKey: ['admin-pair-import-unlicensed-players'] });
       queryClient.invalidateQueries({ queryKey: ['admin-pair-results', roundId] });
       queryClient.invalidateQueries({ queryKey: ['admin-import-logs', roundId] });
       queryClient.invalidateQueries({ queryKey: ['admin-rounds'] });
@@ -591,9 +675,9 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
 
                         <div className="grid gap-1 sm:grid-cols-2">
                           {[
-                            { p: pair.player1, s: row.status1, label: 'J1' },
-                            { p: pair.player2, s: row.status2, label: 'J2' },
-                          ].map(({ p, s, label }) => (
+                            { p: pair.player1, s: row.status1, label: 'J1', slot: 1 as PlayerSlot, missing: row.missing1, entered: row.resolved.licenseEntered1 },
+                            { p: pair.player2, s: row.status2, label: 'J2', slot: 2 as PlayerSlot, missing: row.missing2, entered: row.resolved.licenseEntered2 },
+                          ].map(({ p, s, label, slot, missing, entered }) => (
                             <div key={label} className="text-xs">
                               <span className="text-muted-foreground">{label}</span>{' '}
                               <span className="font-medium">{p.name || '—'}</span>
@@ -601,7 +685,33 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
                                 Lic: {p.licenseNormalized ?? '—'} · Hex:{' '}
                                 {p.exactHandicap != null ? p.exactHandicap : '—'} · Hpu:{' '}
                                 {p.playingHandicap != null ? p.playingHandicap : '—'} · <PlayerStatusBadge status={s} />
+                                {entered && <span className="text-[11px] text-emerald-600"> · ✓ Licencia introducida</span>}
                               </div>
+                              {missing && !importResult && (() => {
+                                const key = resolutionKey(row.index, slot);
+                                const current = resolutions.get(key);
+                                return (
+                                  <div className="mt-1 flex flex-wrap gap-1">
+                                    {current ? (
+                                      <Button variant="ghost" size="sm" className="h-6 px-2 text-[11px]" onClick={() => setResolution(key, null)}>
+                                        Deshacer
+                                      </Button>
+                                    ) : (
+                                      <>
+                                        <Button variant="outline" size="sm" className="h-6 px-2 text-[11px]" onClick={() => { setLicenseInput(''); setLicenseDialog({ key, name: p.name }); }}>
+                                          Introducir licencia
+                                        </Button>
+                                        <Button variant="outline" size="sm" className="h-6 px-2 text-[11px]" onClick={() => { setLinkSearch(''); setLinkSelected(null); setLinkDialog({ key, name: p.name }); }}>
+                                          Vincular a jugador sin licencia existente
+                                        </Button>
+                                        <Button variant="outline" size="sm" className="h-6 px-2 text-[11px]" onClick={() => setConfirmNoLicense({ key, name: p.name })}>
+                                          Confirmar jugador sin licencia
+                                        </Button>
+                                      </>
+                                    )}
+                                  </div>
+                                );
+                              })()}
                             </div>
                           ))}
                         </div>
@@ -625,7 +735,7 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
                     {isOpen && (
                       <div className="mt-3 space-y-3 border-t border-border pt-3 text-xs">
                         <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
-                          <span>pairKey: {pair.pairKey ?? '—'} ({pair.pairKeyKind})</span>
+                          <span>pairKey: {row.resolved.previewKey ?? '—'} ({pair.pairKeyKind})</span>
                           <span>Filas Excel: {pair.sourceRows.join(', ')}</span>
                         </div>
 
