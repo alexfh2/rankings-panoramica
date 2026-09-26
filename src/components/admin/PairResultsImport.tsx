@@ -344,6 +344,41 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
     }
   };
 
+  const handleGolfDirecto = async () => {
+    setGdError(null);
+    const urls = splitUrlLines(gdUrls);
+    if (urls.length === 0) return;
+    const check = validateSameGolfDirectoGame(urls);
+    if (!check.ok) {
+      setGdError(check.error ?? 'Enlaces de GolfDirecto no válidos.');
+      return;
+    }
+    setGdLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('parse-golfdirecto-pairs', { body: { urls } });
+      const response = (data ?? null) as GolfDirectoPairsResponse | null;
+      if (error || !response?.success) {
+        let message = response?.error;
+        if (!message && error && 'context' in error) {
+          try {
+            message = (await (error as { context: Response }).context.json())?.error;
+          } catch { /* ignore */ }
+        }
+        throw new Error(message || 'No se han podido leer los resultados de GolfDirecto.');
+      }
+      const result = golfDirectoPairsToParsedPairs(response, { categoryThreshold });
+      setParsed(result);
+      setFileName(`golfdirecto:${response.game?.id ?? check.gameId}`);
+      setExpanded(new Set());
+      setImportResult(null);
+      setImportError(null);
+    } catch (err) {
+      setGdError(err instanceof Error ? err.message : 'Error desconocido');
+    } finally {
+      setGdLoading(false);
+    }
+  };
+
   const toggle = (index: number) => {
     setExpanded((prev) => {
       const next = new Set(prev);
