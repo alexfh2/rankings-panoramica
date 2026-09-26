@@ -408,7 +408,50 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
         </div>
       </div>
 
+      {/* Source selector */}
+      <div className="flex gap-2">
+        <Button
+          variant={source === 'excel' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setSource('excel')}
+          disabled={gdLoading || importing}
+        >
+          Excel
+        </Button>
+        <Button
+          variant={source === 'golfdirecto' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setSource('golfdirecto')}
+          disabled={gdLoading || importing}
+        >
+          GolfDirecto
+        </Button>
+      </div>
+
+      {source === 'golfdirecto' && (
+        <div className="space-y-2">
+          <Textarea
+            value={gdUrls}
+            onChange={(e) => setGdUrls(e.target.value)}
+            rows={3}
+            placeholder={'Enlace Hándicap Inferior\nEnlace Hándicap Superior'}
+            className="text-xs"
+          />
+          <div className="flex flex-wrap items-center gap-3">
+            <Button variant="outline" size="sm" onClick={() => void handleGolfDirecto()} disabled={gdLoading || !gdUrls.trim()}>
+              {gdLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+              {gdLoading ? 'Leyendo GolfDirecto…' : 'Leer resultados de GolfDirecto'}
+            </Button>
+            <span className="text-[11px] text-muted-foreground">Un enlace por línea, todas las categorías del mismo torneo.</span>
+          </div>
+          {gdError && (
+            <div className="rounded border border-destructive/40 bg-destructive/5 p-2 text-xs text-destructive">{gdError}</div>
+          )}
+        </div>
+      )}
+
       {/* File input */}
+      {source === 'excel' && (
       <div className="flex flex-wrap items-center gap-3">
         <input
           ref={fileInputRef}
