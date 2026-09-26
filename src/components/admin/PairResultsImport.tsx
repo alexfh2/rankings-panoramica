@@ -48,6 +48,12 @@ import {
   mapPairImportError,
   type PairImportRpcSummary,
 } from '@/lib/buildPairImportPayload';
+import { Textarea } from '@/components/ui/textarea';
+import { splitUrlLines, validateSameGolfDirectoGame } from '@/lib/golfDirectoUrl';
+import {
+  golfDirectoPairsToParsedPairs,
+  type GolfDirectoPairsResponse,
+} from '@/lib/golfDirectoPairsToParsedPairs';
 
 
 interface Props {
@@ -114,6 +120,10 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [source, setSource] = useState<'excel' | 'golfdirecto'>('excel');
+  const [gdUrls, setGdUrls] = useState('');
+  const [gdLoading, setGdLoading] = useState(false);
+  const [gdError, setGdError] = useState<string | null>(null);
   const [parsed, setParsed] = useState<ParsePairExcelResult | null>(null);
   const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -476,6 +486,7 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
           </span>
         )}
       </div>
+      )}
 
       {courseIncomplete && parsed && (
         <div className="flex items-start gap-2 rounded border border-amber-600/40 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-400">
