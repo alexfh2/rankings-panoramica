@@ -1,4 +1,5 @@
 import type { ParsedPair, ParsedPairPlayer } from '@/lib/parsePairExcelResults';
+import type { PlayerIdentityMeta } from '@/lib/pairLicenseResolution';
 import type { FourballScorecardResult, FourballValidationStatus } from '@/lib/buildFourballScorecard';
 
 /**
@@ -16,6 +17,10 @@ export interface PairImportPlayerPayload {
   playingHandicap: number | null;
   scores: Array<number | null>;
   liftedHoles: number[];
+  /** Solo presente cuando el administrador confirmó explícitamente que el jugador no tiene licencia. */
+  noLicenseConfirmed?: boolean;
+  /** players.id de un jugador sin licencia existente elegido a mano. Nunca el _id de GolfDirecto. */
+  fairwayPlayerId?: string | null;
 }
 
 export interface PairImportValidationPayload {
@@ -40,7 +45,18 @@ export interface PairImportPairPayload {
 export interface PairImportPreviewRow {
   pair: ParsedPair;
   fourball: FourballScorecardResult | null;
+  meta1?: PlayerIdentityMeta;
+  meta2?: PlayerIdentityMeta;
 }
+
+const withIdentity = (base: PairImportPlayerPayload, meta?: PlayerIdentityMeta): PairImportPlayerPayload => {
+  if (!meta?.noLicenseConfirmed || base.licenseNormalized) return base;
+  return {
+    ...base,
+    noLicenseConfirmed: true,
+    ...(meta.fairwayPlayerId ? { fairwayPlayerId: meta.fairwayPlayerId } : {}),
+  };
+};
 
 const toPlayerPayload = (player: ParsedPairPlayer): PairImportPlayerPayload => ({
   name: player.name,
@@ -60,15 +76,19 @@ const toPlayerPayload = (player: ParsedPairPlayer): PairImportPlayerPayload => (
  */
 export function buildPairImportPayload(rows: PairImportPreviewRow[]): PairImportPairPayload[] {
   const payload: PairImportPairPayload[] = [];
-  for (const { pair, fourball } of rows) {
-    if (!pair.pairKey || pair.netPoints == null) continue;
+  for (const { pair, fourball, meta1, meta2 } of rows) {
+    const p1 = withIdentity(toPlayerPayload(pair.player1), meta1);
+    const p2 = withIdentity(toPlayerPayload(pair.player2), meta2);
+    const anyUnlicensed = !!p1.noLicenseConfirmed || !!p2.noLicenseConfirmed;
+    if ((!pair.pairKey && !anyUnlicensed) || pair.netPoints == null) continue;
     payload.push({
-      pairKey: pair.pairKey,
+      // Con jugadores sin licencia, la clave definitiva (ID:<players.id>) la calcula la base de datos.
+      pairKey: anyUnlicensed ? '' : (pair.pairKey as string),
       position: pair.position,
       grossPoints: pair.grossPoints,
       netPoints: pair.netPoints,
-      player1: toPlayerPayload(pair.player1),
-      player2: toPlayerPayload(pair.player2),
+      player1: p1,
+      player2: p2,
       validationStatus: fourball?.validationStatus ?? null,
       validation: {
         status: fourball?.validationStatus ?? null,
@@ -117,6 +137,8 @@ const ERROR_MESSAGES: Record<string, string> = {
   PLAYER_IDENTITY_CONFLICT: 'La pareja ya existe con una identidad incompatible.',
   INVALID_NET_POINTS: 'Hay un resultado Net inválido.',
   INVALID_GROSS_POINTS: 'Hay un resultado Brt inválido.',
+  FAIRWAY_PLAYER_NOT_FOUND: 'El jugador sin licencia vinculado ya no existe. Vuelve a seleccionarlo.',
+  FAIRWAY_PLAYER_NOT_UNLICENSED: 'El jugador vinculado ya tiene licencia: introdúcela en lugar de vincularlo.',
   INVALID_SCORECARD: 'Hay una tarjeta incompleta o con golpes inválidos.',
 };
 
