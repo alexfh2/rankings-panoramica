@@ -12,7 +12,6 @@ DECLARE
   v_res jsonb;
   v_report text := '';
   v_id_a uuid; v_id_x uuid; v_id_y uuid; v_n int; v_key text; v_pair uuid;
-  FUNCTION_FAILED boolean;
 BEGIN
   PERFORM set_config('request.jwt.claims', json_build_object('sub', v_admin, 'role', 'authenticated')::text, true);
   SELECT competition_id INTO v_comp FROM public.rounds WHERE id = v_round;
