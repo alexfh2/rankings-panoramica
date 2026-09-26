@@ -271,14 +271,18 @@ const EmbedPairsCompetitionView = ({
     return (
       <div className="pano-rounds">
         {columns.map((round) => {
+          // Clasificación conjunta de la prueba (todas las categorías juntas), por Net desc.
+          // No hay regla deportiva de desempate por prueba: los empatados comparten posición
+          // y el orden entre ellos (pairKey) es solo de renderizado determinista.
           const results = [...(resultsByRound.get(round.id) ?? [])].sort((a, b) => {
-            const ap = a.position ?? Number.MAX_SAFE_INTEGER;
-            const bp = b.position ?? Number.MAX_SAFE_INTEGER;
-            if (ap !== bp) return ap - bp;
             if (b.netPoints !== a.netPoints) return b.netPoints - a.netPoints;
             const ak = ranking.rowsByPairId.get(a.pairId)?.pairKey ?? '';
             const bk = ranking.rowsByPairId.get(b.pairId)?.pairKey ?? '';
             return ak.localeCompare(bk);
+          });
+          const jointPositions: number[] = [];
+          results.forEach((r, i) => {
+            jointPositions.push(i > 0 && results[i - 1].netPoints === r.netPoints ? jointPositions[i - 1] : i + 1);
           });
           const isOpen = openRound === round.id;
           const avgNet = results.length
@@ -327,7 +331,7 @@ const EmbedPairsCompetitionView = ({
                         <li key={res.id} className="pano-pairs-round__item">
                           <div className="pano-pairs-round__row">
                             <span className="pano-embed__pos">
-                              {String(res.position ?? i + 1).padStart(2, '0')}
+                              {String(jointPositions[i]).padStart(2, '0')}
                             </span>
                             {nameButton(row, '—')}
                             <span className="pano-pairs-round__hcp">
