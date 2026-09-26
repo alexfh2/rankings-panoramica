@@ -443,7 +443,8 @@ export type Database = {
           id: string
           initial_handicap: number | null
           is_senior: boolean
-          license: string
+          license: string | null
+          license_exempt: boolean
           name: string
           phone: string | null
           photo_url: string | null
@@ -458,7 +459,8 @@ export type Database = {
           id?: string
           initial_handicap?: number | null
           is_senior?: boolean
-          license: string
+          license?: string | null
+          license_exempt?: boolean
           name: string
           phone?: string | null
           photo_url?: string | null
@@ -473,7 +475,8 @@ export type Database = {
           id?: string
           initial_handicap?: number | null
           is_senior?: boolean
-          license?: string
+          license?: string | null
+          license_exempt?: boolean
           name?: string
           phone?: string | null
           photo_url?: string | null
