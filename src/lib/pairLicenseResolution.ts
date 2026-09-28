@@ -10,12 +10,12 @@ import {
  * La ausencia de licencia nunca se acepta sola: hace falta una de estas tres acciones.
  * - license: el administrador introduce la licencia real (vuelve al flujo normal).
  * - no_license: confirma que el participante no tiene licencia (se creará al importar).
- * - linked: vincula a un jugador sin licencia ya existente (players.id elegido a mano).
+ * - linked: vincula a un jugador existente de Fairway, con o sin licencia (players.id elegido a mano).
  */
 export type LicenseResolution =
   | { kind: 'license'; license: string }
   | { kind: 'no_license' }
-  | { kind: 'linked'; playerId: string; playerName: string };
+  | { kind: 'linked'; playerId: string; playerName: string; playerLicense?: string | null };
 
 export type PlayerSlot = 1 | 2;
 
@@ -24,6 +24,8 @@ export const resolutionKey = (pairIndex: number, slot: PlayerSlot) => `${pairInd
 export interface PlayerIdentityMeta {
   noLicenseConfirmed: boolean;
   fairwayPlayerId: string | null;
+  /** Licencia del jugador existente vinculado (solo informativa: nunca se escribe en la base). */
+  linkedLicense?: string | null;
 }
 
 export type ResolvedPlayerStatus =
@@ -68,14 +70,18 @@ function applyToPlayer(
   }
   return {
     player,
-    meta: { noLicenseConfirmed: true, fairwayPlayerId: resolution.playerId },
+    meta: {
+      noLicenseConfirmed: true,
+      fairwayPlayerId: resolution.playerId,
+      linkedLicense: resolution.playerLicense ? normalizePairLicense(resolution.playerLicense) : null,
+    },
     licenseEntered: false,
   };
 }
 
 function previewToken(player: ParsedPairPlayer, meta: PlayerIdentityMeta): string | null {
   if (player.licenseNormalized) return player.licenseNormalized;
-  if (meta.fairwayPlayerId) return `ID:${meta.fairwayPlayerId}`;
+  if (meta.fairwayPlayerId) return meta.linkedLicense ? meta.linkedLicense : `ID:${meta.fairwayPlayerId}`;
   if (meta.noLicenseConfirmed) return 'ID:(nuevo)';
   return null;
 }
@@ -149,4 +155,19 @@ export function rankUnlicensedCandidates<T extends UnlicensedCandidate>(name: st
     return n.split(' ').filter((w) => words.has(w)).length;
   };
   return [...candidates].sort((x, y) => score(y) - score(x) || x.name.localeCompare(y.name));
+}
+
+/**
+ * Candidatos con nombre parecido (mismo nombre normalizado o al menos dos palabras en común).
+ * Solo sirve para AVISAR y sugerir: nunca vincula ni decide identidad.
+ */
+export function findSimilarNameCandidates<T extends UnlicensedCandidate>(name: string, candidates: T[]): T[] {
+  const target = normalizeNameForSearch(name);
+  if (!target) return [];
+  const words = new Set(target.split(' ').filter((w) => w.length > 1));
+  return rankUnlicensedCandidates(name, candidates).filter((c) => {
+    const n = normalizeNameForSearch(c.name);
+    if (n === target) return true;
+    return n.split(' ').filter((w) => words.has(w)).length >= Math.min(2, words.size);
+  });
 }

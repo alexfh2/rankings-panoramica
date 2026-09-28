@@ -75,15 +75,36 @@ BEGIN
     INSERT INTO _t VALUES ('04 id inexistente', SQLERRM LIKE 'FAIRWAY_PLAYER_NOT_FOUND%', SQLERRM);
   END;
 
-  -- 5. fairwayPlayerId de jugador con licencia
+  -- 5. fairwayPlayerId de jugador CON licencia (caso Barros / Confalonieri):
+  --    reutiliza el federado, no lo modifica, no crea jugador ni pareja nuevos.
+  v_res := public.import_pair_results_batch(v_round, 't', jsonb_build_array(jsonb_build_object('netPoints', 50,
+      'pairKey','ZZ00000010|ZZ00000011',
+      'player1', jsonb_build_object('name','T CONFALONIERI, ERNESTO','licenseRaw','ZZ00000011','exactHandicap',18,'scores',v_sc),
+      'player2', jsonb_build_object('name','T BARROS BALAGUER, JORGE','licenseRaw','ZZ00000010','exactHandicap',16,'scores',v_sc))));
+  SELECT id INTO v_id_x FROM public.players WHERE license = 'ZZ00000010';
+  SELECT id INTO v_id_y FROM public.players WHERE license = 'ZZ00000011';
+  v_res := public.import_pair_results_batch(v_round, 't', jsonb_build_array(jsonb_build_object('netPoints', 39,
+      'player1', jsonb_build_object('name','T BARROS, JORGE','noLicenseConfirmed',true,'fairwayPlayerId',v_id_x,'exactHandicap',16,'scores',v_sc),
+      'player2', jsonb_build_object('name','T CONFALONIERI, ERNESTO','licenseRaw','ZZ00000011','exactHandicap',18,'scores',v_sc))));
+  INSERT INTO _t VALUES ('05a id con licencia reutiliza federado',
+    (v_res->>'playersCreated')::int = 0 AND (v_res->>'pairsReused')::int = 1, v_res::text);
+  SELECT count(*) INTO v_n FROM public.players WHERE name LIKE 'T BARROS%';
+  INSERT INTO _t VALUES ('05b no crea segundo jugador', v_n = 1, 'jugadores=' || v_n);
+  INSERT INTO _t VALUES ('05c federado conserva licencia y nombre',
+    EXISTS (SELECT 1 FROM public.players WHERE id = v_id_x AND license = 'ZZ00000010'
+            AND NOT license_exempt AND name = 'T BARROS BALAGUER, JORGE'), v_id_x::text);
+  SELECT count(*) INTO v_n FROM public.pairs WHERE competition_id = v_comp
+    AND v_id_x IN (player_1_id, player_2_id) AND v_id_y IN (player_1_id, player_2_id);
+  INSERT INTO _t VALUES ('05d no crea segunda pareja', v_n = 1, 'parejas=' || v_n);
+
+  -- 5e. fairwayPlayerId con licencia + misma licencia en el otro jugador -> duplicado
   BEGIN
     PERFORM public.import_pair_results_batch(v_round, 't', jsonb_build_array(jsonb_build_object('netPoints', 40,
-      'player1', jsonb_build_object('name','X','noLicenseConfirmed',true,
-         'fairwayPlayerId',(SELECT id FROM public.players WHERE license = 'ZZ00000001'),'exactHandicap',10,'scores',v_sc),
-      'player2', jsonb_build_object('name','T FED2','licenseRaw','ZZ00000002','exactHandicap',10,'scores',v_sc))));
-    INSERT INTO _t VALUES ('05 id con licencia', false, 'no bloqueó');
+      'player1', jsonb_build_object('name','X','noLicenseConfirmed',true,'fairwayPlayerId',v_id_x,'exactHandicap',10,'scores',v_sc),
+      'player2', jsonb_build_object('name','Y','licenseRaw','ZZ00000010','exactHandicap',10,'scores',v_sc))));
+    INSERT INTO _t VALUES ('05e mismo jugador dos veces', false, 'no bloqueó');
   EXCEPTION WHEN OTHERS THEN
-    INSERT INTO _t VALUES ('05 id con licencia', SQLERRM LIKE 'FAIRWAY_PLAYER_NOT_UNLICENSED%', SQLERRM);
+    INSERT INTO _t VALUES ('05e mismo jugador dos veces', SQLERRM LIKE 'DUPLICATE_PLAYER_IN_PAIR%', SQLERRM);
   END;
 
   -- 6 + 10. mismo nombre sin vincular -> jugador nuevo distinto; dos sin licencia -> pareja válida

@@ -22,6 +22,13 @@
       "when": 1790459682978,
       "tag": "0002_fix_pairs_import_missing_license_null",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790586308235,
+      "tag": "0003_pairs_import_link_licensed_player",
+      "breakpoints": true
     }
   ]
 }

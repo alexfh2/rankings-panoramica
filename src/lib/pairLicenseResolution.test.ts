@@ -3,6 +3,7 @@ import type { ParsedPair, ParsedPairPlayer } from '@/lib/parsePairExcelResults';
 import {
   applyLicenseResolutions,
   rankUnlicensedCandidates,
+  findSimilarNameCandidates,
   resolvePlayerStatus,
 } from '@/lib/pairLicenseResolution';
 import { buildPairImportPayload } from '@/lib/buildPairImportPayload';
@@ -139,5 +140,66 @@ describe('resolución de jugadores sin licencia', () => {
     const r = applyLicenseResolutions(p, undefined, undefined);
     expect(r.identityResolved).toBe(false);
     expect(resolvePlayerStatus(missing, { noLicenseConfirmed: false, fairwayPlayerId: null }, false, known)).toBe('manual_review');
+  });
+});
+
+describe('vincular a jugador existente con licencia (caso Barros)', () => {
+  const BARROS_ID = '11111111-1111-4111-8111-111111111111';
+  const existing = [
+    { id: BARROS_ID, name: 'BARROS BALAGUER, JORGE', license: 'XXXXXXX117' },
+    { id: '22222222-2222-4222-8222-222222222222', name: 'CONFALONIERI , ERNESTO', license: 'LV78495895' },
+    { id: '33333333-3333-4333-8333-333333333333', name: 'GREZES, PHILLIPPE', license: null },
+  ];
+
+  it('sin resolución sigue bloqueando aunque exista un nombre idéntico o similar', () => {
+    const r = applyLicenseResolutions(pair(player('BARROS BALAGUER, JORGE', null), player('CONFALONIERI', 'LV78495895')), undefined, undefined);
+    expect(r.identityResolved).toBe(false);
+    expect(r.meta1.fairwayPlayerId).toBeNull();
+    expect(buildPairImportPayload([{ pair: r.pair, fourball: null, meta1: r.meta1, meta2: r.meta2 }])).toHaveLength(0);
+  });
+
+  it('el nombre solo sugiere: "BARROS, JORGE" propone al Barros histórico sin vincular', () => {
+    const similar = findSimilarNameCandidates('BARROS, JORGE', existing);
+    expect(similar.map((c) => c.id)).toEqual([BARROS_ID]);
+    const r = applyLicenseResolutions(pair(player('BARROS, JORGE', null), player('CONFALONIERI', 'LV78495895')), undefined, undefined);
+    expect(r.meta1.fairwayPlayerId).toBeNull();
+  });
+
+  it('sin candidatos similares no hay aviso previo a crear', () => {
+    expect(findSimilarNameCandidates('PEREZ, ANA', existing)).toHaveLength(0);
+  });
+
+  it('confirmar nuevo sin licencia con candidatos sigue creando exento tras confirmación', () => {
+    expect(findSimilarNameCandidates('BARROS, JORGE', existing).length).toBeGreaterThan(0);
+    const r = applyLicenseResolutions(pair(player('BARROS, JORGE', null), player('CONFALONIERI', 'LV78495895')), { kind: 'no_license' }, undefined);
+    const [payload] = buildPairImportPayload([{ pair: r.pair, fourball: null, meta1: r.meta1, meta2: r.meta2 }]);
+    expect(payload.player1).toMatchObject({ noLicenseConfirmed: true, licenseRaw: null });
+    expect(payload.player1.fairwayPlayerId).toBeUndefined();
+  });
+
+  it('vincular a un federado envía su players.id y no inventa licencia en el archivo', () => {
+    const r = applyLicenseResolutions(
+      pair(player('BARROS, JORGE', null), player('CONFALONIERI', 'LV78495895')),
+      { kind: 'linked', playerId: BARROS_ID, playerName: 'BARROS BALAGUER, JORGE', playerLicense: 'XXXXXXX117' },
+      undefined,
+    );
+    expect(r.identityResolved).toBe(true);
+    expect(resolvePlayerStatus(r.pair.player1, r.meta1, true, known)).toBe('linked');
+    // La vista previa coincide con la clave histórica de la pareja.
+    expect(r.previewKey).toBe('LV78495895|XXXXXXX117');
+    const [payload] = buildPairImportPayload([{ pair: r.pair, fourball: null, meta1: r.meta1, meta2: r.meta2 }]);
+    expect(payload.player1).toMatchObject({ noLicenseConfirmed: true, fairwayPlayerId: BARROS_ID });
+    expect(payload.player1.licenseRaw).toBeNull();
+    expect(payload.player1.licenseNormalized).toBeNull();
+  });
+
+  it('un jugador con licencia en el archivo ignora la vinculación (flujo federado intacto)', () => {
+    const r = applyLicenseResolutions(
+      pair(player('BARROS', 'XXXXXXX117'), player('CONFALONIERI', 'LV78495895')),
+      { kind: 'linked', playerId: BARROS_ID, playerName: 'X', playerLicense: 'XXXXXXX117' },
+      undefined,
+    );
+    expect(r.meta1.fairwayPlayerId).toBeNull();
+    expect(r.pair.pairKey).toBe('LV78495895|XXXXXXX117');
   });
 });
