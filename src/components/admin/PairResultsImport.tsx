@@ -60,6 +60,7 @@ import {
   applyLicenseResolutions,
   normalizeNameForSearch,
   rankUnlicensedCandidates,
+  findSimilarNameCandidates,
   resolutionKey,
   resolvePlayerStatus,
   type LicenseResolution,
@@ -154,7 +155,12 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
   const [resolutions, setResolutions] = useState<Map<string, LicenseResolution>>(new Map());
   const [licenseDialog, setLicenseDialog] = useState<{ key: string; name: string } | null>(null);
   const [licenseInput, setLicenseInput] = useState('');
-  const [confirmNoLicense, setConfirmNoLicense] = useState<{ key: string; name: string } | null>(null);
+  const [confirmNoLicense, setConfirmNoLicense] = useState<{
+    key: string;
+    name: string;
+    similar: { id: string; name: string; license: string | null }[];
+  } | null>(null);
+  const [linkConfirmStep, setLinkConfirmStep] = useState(false);
   const [linkDialog, setLinkDialog] = useState<{ key: string; name: string } | null>(null);
   const [linkSearch, setLinkSearch] = useState('');
   const [linkSelected, setLinkSelected] = useState<string | null>(null);
@@ -253,16 +259,14 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
 
   const hasMissingLicense = !!parsed?.pairs.some((p) => !p.player1.licenseNormalized || !p.player2.licenseNormalized);
 
-  // Solo jugadores confirmados sin licencia (license IS NULL AND license_exempt = true).
-  const { data: unlicensedPlayers } = useQuery({
-    queryKey: ['admin-pair-import-unlicensed-players'],
+  // Todos los jugadores existentes (con licencia o sin licencia confirmada) para vinculación manual.
+  const { data: existingPlayers } = useQuery({
+    queryKey: ['admin-pair-import-existing-players'],
     enabled: hasMissingLicense,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('players')
-        .select('id, name, gender, current_handicap, created_at')
-        .is('license', null)
-        .eq('license_exempt', true)
+        .select('id, name, license, license_exempt, gender, current_handicap, created_at')
         .order('name');
       if (error) throw error;
       return data ?? [];
@@ -699,10 +703,10 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
                                         <Button variant="outline" size="sm" className="h-6 px-2 text-[11px]" onClick={() => { setLicenseInput(''); setLicenseDialog({ key, name: p.name }); }}>
                                           Introducir licencia
                                         </Button>
-                                        <Button variant="outline" size="sm" className="h-6 px-2 text-[11px]" onClick={() => { setLinkSearch(''); setLinkSelected(null); setLinkDialog({ key, name: p.name }); }}>
-                                          Vincular a jugador sin licencia existente
+                                        <Button variant="outline" size="sm" className="h-6 px-2 text-[11px]" onClick={() => { setLinkSearch(''); setLinkSelected(null); setLinkConfirmStep(false); setLinkDialog({ key, name: p.name }); }}>
+                                          Vincular a jugador existente
                                         </Button>
-                                        <Button variant="outline" size="sm" className="h-6 px-2 text-[11px]" onClick={() => setConfirmNoLicense({ key, name: p.name })}>
+                                        <Button variant="outline" size="sm" className="h-6 px-2 text-[11px]" onClick={() => setConfirmNoLicense({ key, name: p.name, similar: findSimilarNameCandidates(p.name, existingPlayers ?? []) })}>
                                           Confirmar jugador sin licencia
                                         </Button>
                                       </>
@@ -1042,68 +1046,142 @@ const PairResultsImport = ({ roundId, competitionId, onClose, onCompleted }: Pro
                   como jugador sin licencia y podrá participar en esta competición.
                 </AlertDialogDescription>
               </AlertDialogHeader>
+              {!!confirmNoLicense?.similar.length && (
+                <div className="space-y-1 rounded border border-amber-500/50 p-2 text-xs">
+                  <p className="font-medium">
+                    Hay jugadores existentes con un nombre similar. Revisa las posibles coincidencias antes de crear un
+                    jugador nuevo sin licencia.
+                  </p>
+                  {confirmNoLicense.similar.map((c) => (
+                    <div key={c.id} className="text-muted-foreground">
+                      · {c.name} · {c.license ? `Licencia ${c.license}` : 'Sin licencia'} · {c.id.slice(0, 8)}
+                    </div>
+                  ))}
+                </div>
+              )}
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                {confirmNoLicense?.similar.length ? (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      const c = confirmNoLicense;
+                      setConfirmNoLicense(null);
+                      setLinkSearch('');
+                      setLinkSelected(null);
+                      setLinkConfirmStep(false);
+                      setLinkDialog({ key: c.key, name: c.name });
+                    }}
+                  >
+                    Volver y vincular
+                  </Button>
+                ) : (
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                )}
                 <AlertDialogAction
                   onClick={() => {
                     if (confirmNoLicense) setResolution(confirmNoLicense.key, { kind: 'no_license' });
                     setConfirmNoLicense(null);
                   }}
                 >
-                  Confirmar sin licencia
+                  {confirmNoLicense?.similar.length ? 'Crear nuevo de todos modos' : 'Confirmar sin licencia'}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
 
-          {/* Vincular a jugador sin licencia existente */}
+          {/* Vincular a jugador existente (con o sin licencia) */}
           <Dialog open={!!linkDialog} onOpenChange={(o) => !o && setLinkDialog(null)}>
             <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Vincular a jugador sin licencia existente</DialogTitle>
-                <DialogDescription>
-                  {linkDialog?.name}. Solo se muestran jugadores confirmados sin licencia. El nombre sirve para
-                  sugerir; debes elegir tú el jugador correcto.
-                </DialogDescription>
-              </DialogHeader>
-              <Input value={linkSearch} onChange={(e) => setLinkSearch(e.target.value)} placeholder="Buscar por nombre" />
-              <div className="max-h-64 space-y-1 overflow-y-auto">
-                {(() => {
-                  const q = normalizeNameForSearch(linkSearch);
-                  const list = rankUnlicensedCandidates(linkDialog?.name ?? '', unlicensedPlayers ?? []).filter(
-                    (c) => !q || normalizeNameForSearch(c.name).includes(q),
+              {(() => {
+                const selected = existingPlayers?.find((u) => u.id === linkSelected) ?? null;
+                if (linkConfirmStep && selected && linkDialog) {
+                  return (
+                    <>
+                      <DialogHeader>
+                        <DialogTitle>Confirmar vinculación</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-3 text-sm">
+                        <div>
+                          <p className="text-xs text-muted-foreground">Jugador importado:</p>
+                          <p className="font-medium">{linkDialog.name}</p>
+                          <p className="text-xs text-muted-foreground">Sin licencia en el archivo</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">Se vinculará con:</p>
+                          <p className="font-medium">{selected.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {selected.license ? `Licencia ${selected.license}` : 'Sin licencia'}
+                          </p>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setLinkConfirmStep(false)}>Cancelar</Button>
+                        <Button
+                          onClick={() => {
+                            setResolution(linkDialog.key, {
+                              kind: 'linked',
+                              playerId: selected.id,
+                              playerName: selected.name,
+                              playerLicense: selected.license,
+                            });
+                            setLinkDialog(null);
+                            setLinkConfirmStep(false);
+                          }}
+                        >
+                          Confirmar vinculación
+                        </Button>
+                      </DialogFooter>
+                    </>
                   );
-                  if (list.length === 0) {
-                    return <p className="text-xs text-muted-foreground">No hay jugadores sin licencia que coincidan.</p>;
-                  }
-                  return list.map((c) => (
-                    <label
-                      key={c.id}
-                      className={`flex cursor-pointer items-center gap-2 rounded border p-2 text-xs ${linkSelected === c.id ? 'border-primary' : 'border-border'}`}
-                    >
-                      <input type="radio" name="link-candidate" checked={linkSelected === c.id} onChange={() => setLinkSelected(c.id)} />
-                      <span className="font-medium">{c.name}</span>
-                      <span className="text-muted-foreground">
-                        · {c.gender ?? '—'} · HCP {c.current_handicap ?? '—'} · alta {new Date(c.created_at).toLocaleDateString('es-ES')} · {c.id.slice(0, 8)}
-                      </span>
-                    </label>
-                  ));
-                })()}
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setLinkDialog(null)}>Cancelar</Button>
-                <Button
-                  disabled={!linkSelected}
-                  onClick={() => {
-                    const c = unlicensedPlayers?.find((u) => u.id === linkSelected);
-                    if (!linkDialog || !c) return;
-                    setResolution(linkDialog.key, { kind: 'linked', playerId: c.id, playerName: c.name });
-                    setLinkDialog(null);
-                  }}
-                >
-                  Vincular
-                </Button>
-              </DialogFooter>
+                }
+                const all = existingPlayers ?? [];
+                const suggested = new Set(findSimilarNameCandidates(linkDialog?.name ?? '', all).map((c) => c.id));
+                const q = normalizeNameForSearch(linkSearch);
+                const list = rankUnlicensedCandidates(linkDialog?.name ?? '', all)
+                  .filter((c) => (q ? normalizeNameForSearch(c.name).includes(q) || (c.license ?? '').includes(q) : suggested.has(c.id)))
+                  .slice(0, 50);
+                return (
+                  <>
+                    <DialogHeader>
+                      <DialogTitle>Vincular a jugador existente</DialogTitle>
+                      <DialogDescription>
+                        {linkDialog?.name}. Busca entre todos los jugadores de Fairway, con o sin licencia. El nombre
+                        solo sugiere posibles coincidencias; debes elegir tú el jugador correcto.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Input value={linkSearch} onChange={(e) => setLinkSearch(e.target.value)} placeholder="Buscar por nombre o licencia" />
+                    <div className="max-h-64 space-y-1 overflow-y-auto">
+                      {list.length === 0 ? (
+                        <p className="text-xs text-muted-foreground">
+                          {q ? 'No hay jugadores que coincidan.' : 'Sin posibles coincidencias por nombre. Escribe para buscar.'}
+                        </p>
+                      ) : (
+                        list.map((c) => (
+                          <label
+                            key={c.id}
+                            className={`flex cursor-pointer items-start gap-2 rounded border p-2 text-xs ${linkSelected === c.id ? 'border-primary' : 'border-border'}`}
+                          >
+                            <input type="radio" name="link-candidate" className="mt-0.5" checked={linkSelected === c.id} onChange={() => setLinkSelected(c.id)} />
+                            <span>
+                              <span className="font-medium">{c.name}</span>
+                              {suggested.has(c.id) && <span className="ml-1 text-amber-600">· Posible coincidencia</span>}
+                              <span className="block text-muted-foreground">
+                                {c.license ? `Licencia ${c.license}` : c.license_exempt ? 'Sin licencia' : 'Licencia —'} · {c.gender ?? '—'} · HCP {c.current_handicap ?? '—'} · {c.id.slice(0, 8)}
+                              </span>
+                            </span>
+                          </label>
+                        ))
+                      )}
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setLinkDialog(null)}>Cancelar</Button>
+                      <Button disabled={!selected} onClick={() => setLinkConfirmStep(true)}>
+                        Vincular
+                      </Button>
+                    </DialogFooter>
+                  </>
+                );
+              })()}
             </DialogContent>
           </Dialog>
 
