@@ -276,7 +276,10 @@ const AdminPromotions = () => {
     if (f.end_date && f.end_date < f.start_date) return 'La fecha de fin no puede ser anterior a la de inicio.';
     if (!f.images.image_desktop_url && !f.images.image_mobile_url)
       return 'Tiene que haber al menos una imagen en español (horizontal o vertical).';
-    if (f.link_url.trim() && !isValidUrl(f.link_url.trim())) return 'El enlace debe ser una URL válida (https://…).';
+    if (f.cta_type === 'web') {
+      if (!f.link_url.trim()) return 'El botón de tipo web necesita una URL.';
+      if (!isValidUrl(f.link_url.trim())) return 'El enlace debe ser una URL válida (https://…).';
+    }
     return null;
   };
 
@@ -307,7 +310,8 @@ const AdminPromotions = () => {
         active: form.active,
         start_date: form.start_date,
         end_date: form.end_date || null,
-        link_url: form.link_url.trim() || null,
+        cta_type: form.cta_type,
+        link_url: form.cta_type === 'web' ? form.link_url.trim() || null : null,
         alt: Object.keys(alt).length ? alt : null,
         sort: Number.isFinite(form.sort) ? form.sort : 0,
         ...form.images,
