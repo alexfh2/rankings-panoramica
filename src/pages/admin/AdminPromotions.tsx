@@ -109,6 +109,13 @@ const STATUS_LABEL: Record<PromoStatus, string> = {
   caducada: 'Caducada',
 };
 
+const CTA_LABEL: Record<PromoCtaType, string> = {
+  none: 'Sin botón',
+  web: 'Enlace web',
+  email: 'Email al club',
+  phone: 'Llamada al club',
+};
+
 const fmtDate = (d: string | null) =>
   d ? new Date(`${d}T00:00:00`).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'Sin fin';
 
@@ -544,14 +551,42 @@ const AdminPromotions = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label className="admin-card-label">Enlace (opcional)</Label>
-                <Input
-                  type="url"
-                  placeholder="https://"
-                  value={form.link_url}
-                  onChange={(e) => setForm({ ...form, link_url: e.target.value })}
-                />
+              <div className="space-y-3">
+                <Label className="admin-card-label">Botón sobre la imagen (opcional)</Label>
+                <p className="text-xs text-muted-foreground">
+                  Aparece encima de la promoción en la web y lleva al visitante a la acción elegida
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {PROMO_CTA_TYPES.map((t) => (
+                    <Button
+                      key={t}
+                      type="button"
+                      variant={form.cta_type === t ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setForm({ ...form, cta_type: t })}
+                    >
+                      {CTA_LABEL[t]}
+                    </Button>
+                  ))}
+                </div>
+                {form.cta_type === 'web' && (
+                  <Input
+                    type="url"
+                    placeholder="https://"
+                    value={form.link_url}
+                    onChange={(e) => setForm({ ...form, link_url: e.target.value })}
+                  />
+                )}
+                {form.cta_type === 'email' && (
+                  <p className="text-xs text-muted-foreground border border-dashed p-2">
+                    El botón abrirá el correo del visitante con destino <strong>{CLUB_EMAIL}</strong>
+                  </p>
+                )}
+                {form.cta_type === 'phone' && (
+                  <p className="text-xs text-muted-foreground border border-dashed p-2">
+                    El botón llamará al <strong>{CLUB_PHONE_DISPLAY}</strong> (en el móvil marca directamente)
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
