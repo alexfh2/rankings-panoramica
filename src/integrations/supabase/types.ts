@@ -489,6 +489,7 @@ export type Database = {
           active: boolean
           alt: Json | null
           created_at: string
+          cta_type: string
           end_date: string | null
           id: string
           image_desktop_url: string | null
@@ -506,6 +507,7 @@ export type Database = {
           active?: boolean
           alt?: Json | null
           created_at?: string
+          cta_type?: string
           end_date?: string | null
           id?: string
           image_desktop_url?: string | null
@@ -523,6 +525,7 @@ export type Database = {
           active?: boolean
           alt?: Json | null
           created_at?: string
+          cta_type?: string
           end_date?: string | null
           id?: string
           image_desktop_url?: string | null
