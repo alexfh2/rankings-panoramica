@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Trophy, Calendar, Users, FileText, ArrowRight } from 'lucide-react';
+import { Trophy, Calendar, Users, FileText, ArrowRight, Megaphone } from 'lucide-react';
+import { madridToday, promoStatus } from '@/lib/promotions';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -42,11 +43,31 @@ const AdminDashboard = () => {
     },
   });
 
+  const { data: promoStats } = useQuery({
+    queryKey: ['admin-promotions-stats'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('promotions')
+        .select('active, start_date, end_date, images_purged_at');
+      const today = madridToday();
+      let current = 0;
+      let scheduled = 0;
+      (data ?? []).forEach((p) => {
+        if (!p.active) return;
+        const s = promoStatus(p, today);
+        if (s === 'vigente') current++;
+        else if (s === 'programada') scheduled++;
+      });
+      return { current, scheduled };
+    },
+  });
+
   const stats = [
     { label: 'Temporadas', value: seasonCount ?? 0, icon: Trophy, path: '/admin/temporades' },
     { label: 'Jornadas', value: roundCount ?? 0, icon: Calendar, path: '/admin/jornades' },
     { label: 'Jugadores', value: playerCount ?? 0, icon: Users, path: '/admin/jugadors' },
     { label: 'Noticias', value: newsStats?.total ?? 0, icon: FileText, path: '/admin/noticies', extra: newsStats },
+    { label: 'Promociones', value: promoStats?.current ?? 0, icon: Megaphone, path: '/admin/promociones', promo: promoStats },
   ];
 
   return (
@@ -76,6 +97,16 @@ const AdminDashboard = () => {
                   </Badge>
                   <Badge variant="default" className="admin-pill-published">
                     {stat.extra.published} {stat.extra.published === 1 ? 'publicada' : 'publicadas'}
+                  </Badge>
+                </div>
+              )}
+              {stat.promo && (
+                <div className="flex gap-2 mt-2">
+                  <Badge variant="secondary" className="admin-pill-draft">
+                    {stat.promo.scheduled} {stat.promo.scheduled === 1 ? 'programada' : 'programadas'}
+                  </Badge>
+                  <Badge variant="default" className="admin-pill-published">
+                    {stat.promo.current} {stat.promo.current === 1 ? 'vigente' : 'vigentes'}
                   </Badge>
                 </div>
               )}

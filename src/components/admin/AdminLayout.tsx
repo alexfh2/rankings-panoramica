@@ -17,6 +17,7 @@ import {
   Users,
   FileText,
   Tag,
+  Megaphone,
 } from 'lucide-react';
 import logoAsset from '@/assets/logo-panoramica-crema.png.asset.json';
 
@@ -39,6 +40,7 @@ const mainLinks: NavLinkItem[] = [
   { path: '/admin', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { path: '/admin/tarifas', label: 'Tarifas', icon: Tag, end: false },
   { path: '/admin/actualidad', label: 'Actualidad', icon: FileText, end: false },
+  { path: '/admin/promociones', label: 'Promociones', icon: Megaphone, end: false },
   { path: '/admin/admins', label: 'Administradores', icon: Users, end: false },
 ];
 
