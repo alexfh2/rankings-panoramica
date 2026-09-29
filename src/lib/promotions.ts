@@ -15,6 +15,21 @@ export type PromoImageField = (typeof PROMO_IMAGE_FIELDS)[number];
 
 export type PromoStatus = 'vigente' | 'programada' | 'caducada';
 
+// Datos de contacto del club para el botón de llamada a la acción
+export const CLUB_EMAIL = 'golf@panoramicagrupo.com';
+export const CLUB_PHONE = '+34964493072';
+export const CLUB_PHONE_DISPLAY = '+34 964 49 30 72';
+
+export const PROMO_CTA_TYPES = ['none', 'web', 'email', 'phone'] as const;
+export type PromoCtaType = (typeof PROMO_CTA_TYPES)[number];
+
+export const promoCtaHref = (ctaType: PromoCtaType, linkUrl: string | null): string | null => {
+  if (ctaType === 'web') return linkUrl?.trim() || null;
+  if (ctaType === 'email') return `mailto:${CLUB_EMAIL}`;
+  if (ctaType === 'phone') return `tel:${CLUB_PHONE}`;
+  return null;
+};
+
 export const madridToday = () =>
   new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Europe/Madrid',
