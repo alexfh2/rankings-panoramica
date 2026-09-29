@@ -484,6 +484,60 @@ export type Database = {
         }
         Relationships: []
       }
+      promotions: {
+        Row: {
+          active: boolean
+          alt: Json | null
+          created_at: string
+          end_date: string | null
+          id: string
+          image_desktop_url: string | null
+          image_desktop_url_en: string | null
+          image_desktop_url_fr: string | null
+          image_mobile_url: string | null
+          image_mobile_url_en: string | null
+          image_mobile_url_fr: string | null
+          images_purged_at: string | null
+          link_url: string | null
+          sort: number
+          start_date: string
+        }
+        Insert: {
+          active?: boolean
+          alt?: Json | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          image_desktop_url?: string | null
+          image_desktop_url_en?: string | null
+          image_desktop_url_fr?: string | null
+          image_mobile_url?: string | null
+          image_mobile_url_en?: string | null
+          image_mobile_url_fr?: string | null
+          images_purged_at?: string | null
+          link_url?: string | null
+          sort?: number
+          start_date: string
+        }
+        Update: {
+          active?: boolean
+          alt?: Json | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          image_desktop_url?: string | null
+          image_desktop_url_en?: string | null
+          image_desktop_url_fr?: string | null
+          image_mobile_url?: string | null
+          image_mobile_url_en?: string | null
+          image_mobile_url_fr?: string | null
+          images_purged_at?: string | null
+          link_url?: string | null
+          sort?: number
+          start_date?: string
+        }
+        Relationships: []
+      }
       rates: {
         Row: {
           active: boolean
