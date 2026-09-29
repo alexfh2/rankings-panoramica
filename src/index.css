@@ -224,6 +224,13 @@
     @apply font-display;
   }
 
+  /* Native date picker icon: visible on dark surfaces */
+  :root:not(.light) input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.8;
+    cursor: pointer;
+  }
+
   /* Visible, consistent focus ring separated from the control */
   :focus-visible {
     outline: 2px solid hsl(var(--focus-ring));
