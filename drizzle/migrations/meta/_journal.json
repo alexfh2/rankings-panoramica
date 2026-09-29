@@ -29,6 +29,13 @@
       "when": 1790586308235,
       "tag": "0003_pairs_import_link_licensed_player",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790683488278,
+      "tag": "0004_create_promotions",
+      "breakpoints": true
     }
   ]
 }
