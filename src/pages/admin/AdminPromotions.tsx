@@ -22,15 +22,20 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { ChevronDown, ImageOff, Loader2, Pencil, Plus, Trash2, Upload, X } from 'lucide-react';
 import {
+  CLUB_EMAIL,
+  CLUB_PHONE_DISPLAY,
   PROMO_ACCEPT,
   PROMO_BUCKET,
+  PROMO_CTA_TYPES,
   PROMO_FOLDER,
   PROMO_IMAGE_FIELDS,
   PROMO_MAX_BYTES,
+  PromoCtaType,
   PromoImageField,
   PromoStatus,
   isValidUrl,
   madridToday,
+  promoCtaHref,
   promoStatus,
   storagePathFromUrl,
 } from '@/lib/promotions';
@@ -49,6 +54,7 @@ export type PromotionRow = {
   image_desktop_url_fr: string | null;
   image_mobile_url_fr: string | null;
   link_url: string | null;
+  cta_type: PromoCtaType;
   alt: Alt | null;
   sort: number;
   images_purged_at: string | null;
