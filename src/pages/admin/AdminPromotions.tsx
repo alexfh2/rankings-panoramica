@@ -462,7 +462,11 @@ const AdminPromotions = () => {
                       {fmtDate(p.start_date)} — {fmtDate(p.end_date)}
                     </p>
                     <p className="text-xs text-muted-foreground truncate max-w-[360px]">
-                      {p.link_url || 'Sin enlace'} · Orden {p.sort}
+                      {CTA_LABEL[p.cta_type ?? 'none']}
+                      {promoCtaHref(p.cta_type ?? 'none', p.link_url)
+                        ? ` · ${promoCtaHref(p.cta_type ?? 'none', p.link_url)}`
+                        : ''}{' '}
+                      · Orden {p.sort}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
