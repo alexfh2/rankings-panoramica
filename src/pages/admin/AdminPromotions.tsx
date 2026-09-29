@@ -66,6 +66,7 @@ type FormState = {
   active: boolean;
   start_date: string;
   end_date: string;
+  cta_type: PromoCtaType;
   link_url: string;
   alt: Alt;
   sort: number;
@@ -80,6 +81,7 @@ const emptyForm = (): FormState => ({
   active: false,
   start_date: madridToday(),
   end_date: '',
+  cta_type: 'none',
   link_url: '',
   alt: {},
   sort: 0,
@@ -92,6 +94,7 @@ const toForm = (p: PromotionRow): FormState => ({
   active: p.active,
   start_date: p.start_date,
   end_date: p.end_date ?? '',
+  cta_type: p.cta_type ?? 'none',
   link_url: p.link_url ?? '',
   alt: (p.alt as Alt) ?? {},
   sort: p.sort,
