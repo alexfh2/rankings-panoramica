@@ -215,9 +215,9 @@ const AdminPromotions = () => {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_promotion_click_counts');
       if (error) throw error;
-      const map: Record<string, { total: number; last_7d: number; last_click: string | null }> = {};
+      const map: Record<string, { total: number; in_period: number; last_click: string | null }> = {};
       (data ?? []).forEach((r) => {
-        map[r.promotion_id] = { total: Number(r.total), last_7d: Number(r.last_7d), last_click: r.last_click };
+        map[r.promotion_id] = { total: Number(r.total), in_period: Number(r.in_period), last_click: r.last_click };
       });
       return map;
     },
@@ -483,11 +483,15 @@ const AdminPromotions = () => {
                     </p>
                     {(() => {
                       const c = clicks[p.id];
+                      const inPeriod = c?.in_period ?? 0;
+                      const total = c?.total ?? 0;
                       return (
                         <p className="text-xs">
-                          <span className="text-gold font-medium">{c?.total ?? 0} clics</span>
+                          <span className="text-gold font-medium">
+                            {inPeriod} {inPeriod === 1 ? 'clic' : 'clics'} durante la promoción
+                          </span>
                           <span className="text-muted-foreground">
-                            {' '}· {c?.last_7d ?? 0} últimos 7 días
+                            {total !== inPeriod ? ` · ${total} en total` : ''}
                             {c?.last_click ? ` · último ${new Date(c.last_click).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', dateStyle: 'short', timeStyle: 'short' })}` : ''}
                           </span>
                         </p>
