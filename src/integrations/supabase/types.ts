@@ -484,6 +484,35 @@ export type Database = {
         }
         Relationships: []
       }
+      promotion_clicks: {
+        Row: {
+          created_at: string
+          cta_type: string
+          id: string
+          promotion_id: string
+        }
+        Insert: {
+          created_at?: string
+          cta_type: string
+          id?: string
+          promotion_id: string
+        }
+        Update: {
+          created_at?: string
+          cta_type?: string
+          id?: string
+          promotion_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promotion_clicks_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: false
+            referencedRelation: "promotions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       promotions: {
         Row: {
           active: boolean
@@ -876,6 +905,15 @@ export type Database = {
       }
     }
     Functions: {
+      get_promotion_click_counts: {
+        Args: never
+        Returns: {
+          last_7d: number
+          last_click: string
+          promotion_id: string
+          total: number
+        }[]
+      }
       get_published_pair_player_names: {
         Args: { p_competition_slug: string }
         Returns: {
