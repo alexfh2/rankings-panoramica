@@ -908,7 +908,7 @@ export type Database = {
       get_promotion_click_counts: {
         Args: never
         Returns: {
-          last_7d: number
+          in_period: number
           last_click: string
           promotion_id: string
           total: number
