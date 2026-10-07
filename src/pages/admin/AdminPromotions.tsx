@@ -210,6 +210,19 @@ const AdminPromotions = () => {
     },
   });
 
+  const { data: clicks = {} } = useQuery({
+    queryKey: ['admin-promotion-clicks'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_promotion_click_counts');
+      if (error) throw error;
+      const map: Record<string, { total: number; last_7d: number; last_click: string | null }> = {};
+      (data ?? []).forEach((r) => {
+        map[r.promotion_id] = { total: Number(r.total), last_7d: Number(r.last_7d), last_click: r.last_click };
+      });
+      return map;
+    },
+  });
+
   const today = madridToday();
   const sorted = [...promos].sort((a, b) => {
     const s = STATUS_ORDER[promoStatus(a, today)] - STATUS_ORDER[promoStatus(b, today)];
@@ -468,6 +481,18 @@ const AdminPromotions = () => {
                         : ''}{' '}
                       · Orden {p.sort}
                     </p>
+                    {(() => {
+                      const c = clicks[p.id];
+                      return (
+                        <p className="text-xs">
+                          <span className="text-gold font-medium">{c?.total ?? 0} clics</span>
+                          <span className="text-muted-foreground">
+                            {' '}· {c?.last_7d ?? 0} últimos 7 días
+                            {c?.last_click ? ` · último ${new Date(c.last_click).toLocaleString('es-ES', { timeZone: 'Europe/Madrid', dateStyle: 'short', timeStyle: 'short' })}` : ''}
+                          </span>
+                        </p>
+                      );
+                    })()}
                   </div>
                   <div className="flex items-center gap-2">
                     <Label htmlFor={`act-${p.id}`} className="text-xs text-muted-foreground">

@@ -43,6 +43,13 @@
       "when": 1790685019550,
       "tag": "0005_promotions_cta_type",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791377058550,
+      "tag": "0006_promotion_clicks",
+      "breakpoints": true
     }
   ]
 }

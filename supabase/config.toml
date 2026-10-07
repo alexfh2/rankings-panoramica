@@ -1,3 +1,5 @@
 project_id = "sdtsgrubozxdlbikypir"
 [functions.purge-promotion-images]
 verify_jwt = false
+[functions.track-promotion-click]
+verify_jwt = false
